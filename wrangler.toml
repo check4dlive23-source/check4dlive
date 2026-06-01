@@ -1,0 +1,17 @@
+name = "kaicai-live-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV Namespace — 你部署后把 id 改成你自己的
+[[kv_namespaces]]
+binding = "KV4D"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+# Cron trigger — 每分钟抓一次（免费版最短1分钟）
+[triggers]
+crons = ["* * * * *"]
+
+# 允许 Pages 前端调用
+[vars]
+ENVIRONMENT = "production"

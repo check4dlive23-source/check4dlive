@@ -1,0 +1,161 @@
+<html>
+    <head>
+                <meta charset="utf-8" />
+        <meta property="og:description" content="Cambodia 4D | Cambodia4D | Cambodia Results | Cambodia4d.com | Cambodia Live Draw | Play Online Lottery. Fastest Cambodia Toto Results. Get the Winning Cambodia Lottery Numbers and Lotto Cambodia National Lottery Results.">
+        <meta name="description" content="Cambodia 4D | Cambodia4D | Cambodia Results | Cambodia4d.com | Cambodia Live Draw | Play Online Lottery. Fastest Cambodia Toto Results. Get the Winning Cambodia Lottery Numbers and Lotto Cambodia National Lottery Results.">
+        <meta name="keywords" content="4d, toto, lottery, pools">
+        <meta name="og:image" content="/images/logo.png">
+        <meta property="og:type"   content="website" /> 
+        <meta name="og:keywords" content="4d, toto, lottery, pools">
+        <meta property="og:site_name" content="Welcome to Cambodia4D">
+        <meta property="og:url" content="https://cambodia4d.com">
+        <meta property="og:title" content="Welcome to Cambodia4D">
+        <meta name="Content-Type-Script" content="text/javascript">
+        <meta name="Content-Type-Style" content="text/css">
+        <title>Welcome to Cambodia4D</title>
+        <link rel="icon" href="/images/favorit.png"/>
+        <script src="/media/js/jquery-2.1.1.min.js" type="7f88492ae6bfef552e5d53b3-text/javascript"></script>
+        <link href="/media/css/uibase.css" rel="stylesheet" type="text/css"/>
+        
+        <link href="/media/css/jquery.datetimepicker.css" rel="stylesheet" type="text/css"/>
+        <script src="/media/js/jquery.datetimepicker.js" type="7f88492ae6bfef552e5d53b3-text/javascript"></script>
+        <script type="7f88492ae6bfef552e5d53b3-text/javascript">
+            $(function (){
+                active("#btnSearch", "#txtSearch")
+            });
+            
+            function active(btn, txt){
+                $(txt).keypress(function (e){
+                   var a = e.keyCode || e.keyChar || e.which;
+                   if (a === 13) $(btn).click();
+                });
+                $(btn).click(function (){
+                    var a = $(txt).val();
+                    $.get("/ajax.aspx?action=search&a=4d&data=" + a, function (msg){
+                        history.pushState(null,null, "/search?s=" + a);
+                        $("#body").html(msg);
+                    });
+                });
+                jQuery(txt).datetimepicker({
+                  format:'Y-m-d',
+                  timepicker:false,
+                  allowBlank:true,
+                  validateOnBlur:true
+                });
+            }
+    </script>
+    </head>
+    <body>
+        <div class="wraper">
+            <div id="header">
+                <div id="logo"></div>
+                
+<!--                <div class="lng">
+                    <a class='lang active' data-lang='en' href="/language/en/images%252Fperdana.png">English</a>
+                    <a class='lang' data-lang='ch' href="/language/ch/images%252Fperdana.png">Chinese</a>
+            
+                    <div style='margin-top: 5px;'>
+                        <input type="text" id="txtSearch" placeholder="Search for..." value="<br />
+<b>Deprecated</b>:  urldecode(): Passing null to parameter #1 ($string) of type string is deprecated in <b>/var/www/vhosts/allpools.com/httpdocs/production/cambodia4d/website/app/View/include/header.php</b> on line <b>59</b><br />
+">
+                        <input type="button" id="btnSearch" value="Go">
+                    </div>
+                    <script>
+                    $("a.lang").click(function (){
+                        if ($(this).hasClass("active")) return false;
+                        return true;
+                    });
+                    $("a.lang.active").removeClass("active");
+                    $("a.lang[data-lang=en]").addClass("active");
+            </script>
+                </div>-->
+                
+                <ul class="menu">
+                    <li><a href="/monday">Monday</a></li>
+                    <li><a href="/tuesday">Tuesday</a></li>
+                    <li><a href="/wednesday">Wednesday</a></li>
+                    <li><a href="/thursday">Thursday</a></li>
+                    <li><a href="/friday">Friday</a></li>
+                    <li><a href="/saturday">Saturday</a></li>
+                    <li><a href="/sunday">Sunday</a></li>
+                </ul>
+
+                <div class="center">
+                    <ul class="menu">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/livedraw">Live Draw</a></li>
+                        <li><a href="/result">Result</a></li>
+                        <li><a href="/about-us">About Us</a></li>
+                        <li><a href="/contact-us">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="left">
+                <div class="header">
+    Browse Result
+</div>
+<div id="search">
+    <input type="text" id="txtSearch" placeholder="Draw Number or date (format: YYYY-MM-DD)" value=""/>
+    <button type="button" id="btnSearch"><img src="/images/btnsearch.png" alt=""/></button>
+</div>
+
+<div class="header">
+    World Clock
+</div>
+<div class="time-zone">
+    <div class='zone'>
+                                    <b>New York</b>
+                                    <span>Monday</span><span>06:13 am</span>
+                                </div>
+                                <div class='zone'>
+                                    <b>London</b>
+                                    <span>Monday</span><span>11:13 am</span>
+                                </div>
+                                <div class='zone'>
+                                    <b>Phnom Penh</b>
+                                    <span>Monday</span><span>18:13 pm</span>
+                                </div>
+                                <div class='zone'>
+                                    <b>Tokyo</b>
+                                    <span>Monday</span><span>20:13 pm</span>
+                                </div></div>
+<script type="7f88492ae6bfef552e5d53b3-text/javascript">
+    setInterval(function (){
+        $.get("/ajax.aspx?action=time", function (msg){
+            $(".time-zone").html(msg);
+        });
+    }, 2000);
+</script>
+
+<!--<img src="/images/left-1.jpg" alt=""/>
+<img src="/images/left-2.jpg" alt=""/>
+<img src="/images/left-3.jpg" alt=""/>-->
+
+<p><a title="Titan King Casino" href="http://www.titankingcasino.com/"><img src="https://cambodia4d.com/images/upload/Titanking-Casino.gif" alt="Titanking-Casino" /></a></p>            </div>
+            <div class="right">
+                        <div class="header">
+    Browse Result By Day
+</div>
+<ul id="day-menu">
+    <li><a href="/monday"><p>Monday</p></a></li>
+    <li><a href="/tuesday"><p>Tuesday</p></a></li>
+    <li><a href="/wednesday"><p>Wednesday</p></a></li>
+    <li><a href="/thursday"><p>Thursday</p></a></li>
+    <li><a href="/friday"><p>Friday</p></a></li>
+    <li><a href="/saturday"><p>Saturday</p></a></li>
+    <li><a href="/sunday"><p>Sunday</p></a></li>
+</ul>
+
+<!--<img src="/images/right-1.jpg" alt=""/>
+<img src="/images/right-2.jpg" alt=""/>-->
+<p><a title="Naga World" href="http://www.nagaworld.com/"><img src="https://cambodia4d.com/images/upload/Nagaworld.gif" alt="Nagaworld" /></a></p>                </div>
+            <div id="body"><div class='draw-date'><div>Draw Date: Mon 29/09/25</div> <div>Draw No: 4956</div></div><div class='header2'>Toto 4D</div><div class='prize-payment'>Prize payments guaranteed in full</div><div class='single'><div class='prize'><div class='header'>1<sup>st</sup></div><div class='result'><span class='num'>5</span><span class='num'>1</span><span class='num'>9</span><span class='num'>2</span></div></div><div class='prize'><div class='header'>2<sup>nd</sup></div><div class='result'><span class='num'>6</span><span class='num'>9</span><span class='num'>7</span><span class='num'>1</span></div></div><div class='prize'><div class='header'>3<sup>rd</sup></div><div class='result'><span class='num'>4</span><span class='num'>6</span><span class='num'>0</span><span class='num'>0</span></div></div></div>            </div>
+                <div id="footer">
+                    Copyright &COPY; Cambodia4d.com 2012<br/>
+                    Must be 18 or older<br/>
+                    Play Responsibly
+                </div>
+        </div>
+    <script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="7f88492ae6bfef552e5d53b3-|49" defer></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"16a29fcd3a9b43dd877bfe03d194bc2a","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

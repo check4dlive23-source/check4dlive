@@ -1,0 +1,103 @@
+import type { Region } from "@/types";
+
+const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+export interface MYTParts {
+  day: number;
+  hour: number;
+  minute: number;
+  date: string;
+}
+
+/** Current calendar parts in Malaysia Time (UTC+8) */
+export function getMYTParts(now = new Date()): MYTParts {
+  const myt = new Date(now.getTime() + MYT_OFFSET_MS);
+  return {
+    day: myt.getUTCDay(),
+    hour: myt.getUTCHours(),
+    minute: myt.getUTCMinutes(),
+    date: myt.toISOString().split("T")[0],
+  };
+}
+
+export function todayMYT(now = new Date()): string {
+  return getMYTParts(now).date;
+}
+
+function inWindow(
+  hour: number,
+  minute: number,
+  startH: number,
+  startM: number,
+  endH: number,
+  endM: number
+): boolean {
+  const t = hour * 60 + minute;
+  const start = startH * 60 + startM;
+  const end = endH * 60 + endM;
+  return t >= start && t < end;
+}
+
+const DRAW_DAYS_WSS = [0, 3, 6]; // Sun, Wed, Sat
+
+/**
+ * Regional live draw windows (MYT):
+ * - west: Sun/Wed/Sat 19:00–20:00
+ * - east: Sun/Wed/Sat 18:30–19:30
+ * - cambodia: daily 18:00–19:00
+ * - singapore 4D: Sun/Wed/Sat 18:30–19:30
+ * - singapore Toto: Mon/Thu ~21:30 (21:30–22:30 window)
+ */
+export function isRegionLiveDraw(
+  region: Region,
+  now = new Date(),
+  mockLive = false
+): boolean {
+  if (mockLive) return true;
+
+  const { day, hour, minute } = getMYTParts(now);
+
+  switch (region) {
+    case "west":
+      return (
+        DRAW_DAYS_WSS.includes(day) &&
+        inWindow(hour, minute, 19, 0, 20, 0)
+      );
+    case "east":
+      return (
+        DRAW_DAYS_WSS.includes(day) &&
+        inWindow(hour, minute, 18, 30, 19, 30)
+      );
+    case "cambodia":
+      return inWindow(hour, minute, 18, 0, 19, 0);
+    case "singapore": {
+      const sg4d =
+        DRAW_DAYS_WSS.includes(day) &&
+        inWindow(hour, minute, 18, 30, 19, 30);
+      const sgToto =
+        [1, 4].includes(day) && inWindow(hour, minute, 21, 30, 22, 30);
+      return sg4d || sgToto;
+    }
+    default:
+      return false;
+  }
+}
+
+/** @deprecated Use isRegionLiveDraw(region) */
+export function isLiveDrawTime(region: Region = "west", now = new Date()): boolean {
+  return isRegionLiveDraw(region, now);
+}
+
+export function shouldScrapeOnLive(region: Region): boolean {
+  return region === "west" || region === "cambodia";
+}
+
+export function getRefreshIntervalMs(isLive: boolean): number {
+  return isLive ? 15_000 : 60_000;
+}
+
+export function getResultsPollIntervalMs(isLive?: boolean): number {
+  return getRefreshIntervalMs(isLive ?? false);
+}
+
+export const LIVE_CACHE_MS = 15_000;
