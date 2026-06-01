@@ -1,3 +1,4 @@
+import { padPrizeSlots, specialSlotCount } from "@/lib/prize-slots";
 import type { DrawResult, DrawStatus, OperatorId, Region } from "@/types";
 
 export interface DbDrawRow {
@@ -46,6 +47,11 @@ function mapStatus(first?: string | null): DrawStatus {
 export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
   const operator = row.operator as OperatorId;
   const region = row.region as Region;
+  const prizes = padDrawPrizes(
+    operator,
+    row.special_numbers,
+    row.consolation_numbers
+  );
   return {
     operator,
     region,
@@ -57,11 +63,23 @@ export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
     first_prize: row.first_prize ?? undefined,
     second_prize: row.second_prize ?? undefined,
     third_prize: row.third_prize ?? undefined,
-    special_numbers: row.special_numbers ?? undefined,
-    consolation_numbers: row.consolation_numbers ?? undefined,
+    special_numbers: prizes.special_numbers,
+    consolation_numbers: prizes.consolation_numbers,
     jackpot1_amount: row.jackpot1_amount ?? undefined,
     jackpot2_amount: row.jackpot2_amount ?? undefined,
     zodiac: row.zodiac ?? undefined,
+  };
+}
+
+function padDrawPrizes(
+  operator: OperatorId,
+  special?: string[] | null,
+  consolation?: string[] | null
+) {
+  const spCount = specialSlotCount(operator);
+  return {
+    special_numbers: padPrizeSlots(special, spCount),
+    consolation_numbers: padPrizeSlots(consolation, 10),
   };
 }
 
@@ -71,8 +89,14 @@ export function mergeDrawResult(
 ): DrawResult {
   if (!api) return mock;
   const fromApi = dbRowToDrawResult(api);
+  const operator = fromApi.operator;
   const date = fromApi.date || mock.date;
   const draw_no = fromApi.draw_no ?? mock.draw_no;
+  const prizes = padDrawPrizes(
+    operator,
+    fromApi.special_numbers ?? mock.special_numbers,
+    fromApi.consolation_numbers ?? mock.consolation_numbers
+  );
 
   if (!api.first_prize || api.first_prize === "----") {
     return {
@@ -80,9 +104,7 @@ export function mergeDrawResult(
       date,
       draw_no,
       status: fromApi.status,
-      special_numbers: fromApi.special_numbers ?? mock.special_numbers,
-      consolation_numbers:
-        fromApi.consolation_numbers ?? mock.consolation_numbers,
+      ...prizes,
     };
   }
 
@@ -92,8 +114,6 @@ export function mergeDrawResult(
     draw_no,
     displayName: fromApi.displayName || mock.displayName,
     subtitle: fromApi.subtitle ?? mock.subtitle,
-    special_numbers: fromApi.special_numbers ?? mock.special_numbers,
-    consolation_numbers:
-      fromApi.consolation_numbers ?? mock.consolation_numbers,
+    ...prizes,
   };
 }

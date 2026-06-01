@@ -39,9 +39,40 @@ const CHECK4D_PAGES = [
   "https://www.check4dresult.com/east-malaysia/",
 ] as const;
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Match exact JSON field (avoids Special1 matching inside Special10 or 3+3DSpecial1) */
 function field(block: string, name: string): string | undefined {
-  const m = block.match(new RegExp(`${name}:"([^"]*)"`));
+  const m = block.match(
+    new RegExp(`(?:^|[,{])${escapeRegExp(name)}:"([^"]*)"`)
+  );
   return m?.[1];
+}
+
+/** Extract one full {Company:...} object from the fourDResult array slice */
+function extractCompanyBlock(slice: string, company: string): string {
+  const tag = `Company:"${company}"`;
+  const tagIdx = slice.indexOf(tag);
+  if (tagIdx === -1) return "";
+
+  let objStart = tagIdx;
+  while (objStart > 0 && slice[objStart] !== "{") objStart--;
+
+  let depth = 0;
+  let end = objStart;
+  for (let i = objStart; i < slice.length; i++) {
+    if (slice[i] === "{") depth++;
+    else if (slice[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+  }
+  return slice.slice(objStart, end);
 }
 
 function parseMoney(raw?: string): number | null {
@@ -55,7 +86,7 @@ function collectSpecial(block: string, prefix: string, max: number): string[] {
   const out: string[] = [];
   for (let i = 1; i <= max; i++) {
     const v = field(block, `${prefix}${i}`);
-    if (v != null) out.push(v);
+    out.push(v ?? "----");
   }
   return out;
 }
@@ -228,10 +259,8 @@ export function parseCheck4dHtml(html: string): ParsedDraw[] {
   const seen = new Set<string>();
 
   for (const company of Object.keys(COMPANY_MAP)) {
-    const tag = `Company:"${company}"`;
-    const idx = slice.indexOf(tag);
-    if (idx === -1) continue;
-    const block = slice.slice(idx, idx + 14_000);
+    const block = extractCompanyBlock(slice, company);
+    if (!block) continue;
     const parsed = parseCompanyBlock(block, company);
     if (!parsed) continue;
     const key = `${parsed.operator}:${parsed.date}`;

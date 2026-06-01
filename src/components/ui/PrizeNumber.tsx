@@ -9,7 +9,7 @@ interface PrizeNumberProps {
 function isEmptyPrize(value?: string | null): boolean {
   if (!value) return true;
   const v = value.trim();
-  return v === "—" || v === "----" || v === "****";
+  return v === "—" || v === "-" || v === "." || v === "----" || v === "****";
 }
 
 export function PrizeNumber({
@@ -26,7 +26,12 @@ export function PrizeNumber({
 
   if (!revealed || isEmptyPrize(value)) {
     return (
-      <span className={`font-number text-dim ${sizeClass}`}>—</span>
+      <span
+        className={`font-number ${sizeClass} invisible select-none`}
+        aria-hidden
+      >
+        ----
+      </span>
     );
   }
 

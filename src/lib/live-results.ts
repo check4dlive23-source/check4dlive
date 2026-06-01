@@ -133,6 +133,23 @@ export async function fetchDrawsFromDb(
       byOperator[draw.operator as string] = draw as DrawRow;
     }
   }
+
+  if (region === "cambodia" && Object.keys(byOperator).length === 0) {
+    const { data: latest } = await supabase
+      .from("draws")
+      .select("*")
+      .eq("region", "cambodia")
+      .order("date", { ascending: false })
+      .limit(12);
+
+    for (const draw of latest ?? []) {
+      const op = draw.operator as string;
+      if (!byOperator[op]) {
+        byOperator[op] = draw as DrawRow;
+      }
+    }
+  }
+
   return byOperator;
 }
 
@@ -181,9 +198,20 @@ export async function getRegionResults(
   }
 
   const operators = await fetchDrawsFromDb(region, date);
+  let resolvedDate = date;
+
+  if (region === "cambodia" && Object.keys(operators).length > 0) {
+    const dates = Object.values(operators)
+      .map((o) => o.date as string)
+      .filter(Boolean)
+      .sort()
+      .reverse();
+    if (dates[0]) resolvedDate = dates[0];
+  }
+
   return {
     operators,
-    date,
+    date: resolvedDate,
     region,
     isLive,
     source: "db",

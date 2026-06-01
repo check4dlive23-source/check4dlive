@@ -45,7 +45,7 @@ export function ResultCard({ data }: ResultCardProps) {
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
       <header
-        className="flex items-start gap-2 px-2.5 py-2 border-b border-line"
+        className="flex items-start gap-2 px-2 py-1.5 border-b border-line"
         style={{ backgroundColor: `${brand}18` }}
       >
         <LogoBadge operator={data.operator} />
@@ -65,7 +65,7 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="py-1.5 border-r border-line">{t("secondPrize")}</div>
         <div className="py-1.5">{t("thirdPrize")}</div>
       </div>
-      <div className="grid grid-cols-3 border-b border-line text-center py-2">
+      <div className="grid grid-cols-3 border-b border-line text-center py-1.5">
         <div className="border-r border-line flex flex-col items-center gap-0.5">
           <PrizeNumber value={data.first_prize} revealed={revealed} />
           {data.zodiac && revealed && (
@@ -80,22 +80,22 @@ export function ResultCard({ data }: ResultCardProps) {
         </div>
       </div>
 
-      <section className="px-2.5 py-2 border-b border-line">
-        <p className="text-[10px] text-muted mb-2 uppercase tracking-wider">
+      <section className="px-2 py-1.5 border-b border-line">
+        <p className="text-[10px] text-muted mb-1.5 uppercase tracking-wider">
           {t("specialSection")}
         </p>
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-5 gap-1">
           {specialSlots.map((n, i) => (
             <PrizeNumber key={`sp-${i}`} value={n} size="sm" revealed={revealed} />
           ))}
         </div>
       </section>
 
-      <section className="px-2.5 py-2 border-b border-line">
-        <p className="text-[10px] text-muted mb-2 uppercase tracking-wider">
+      <section className="px-2 py-1.5 border-b border-line">
+        <p className="text-[10px] text-muted mb-1.5 uppercase tracking-wider">
           {t("consolationSection")}
         </p>
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-5 gap-1">
           {consolationSlots.map((n, i) => (
             <PrizeNumber key={`cn-${i}`} value={n} size="sm" revealed={revealed} />
           ))}
@@ -103,7 +103,7 @@ export function ResultCard({ data }: ResultCardProps) {
       </section>
 
       {hasJackpot && revealed && (
-        <section className="px-2.5 py-2 border-b border-line space-y-1">
+        <section className="px-2 py-1.5 border-b border-line space-y-1">
           {data.jackpot1_amount != null && (
             <div className="flex justify-between text-sm">
               <span className="text-muted">{t("jackpot1")}</span>
