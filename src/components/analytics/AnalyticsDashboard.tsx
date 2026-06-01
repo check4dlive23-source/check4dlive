@@ -1,10 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { SubpageHeader } from "@/components/layout/SubpageHeader";
 import { HeatBadge } from "@/components/number/HeatBadge";
 import { useLang } from "@/lib/language-context";
+import { formatDrawDate } from "@/lib/number-utils";
 import type {
   ColdNumberRow,
   DigitAnalysis,
@@ -15,7 +18,14 @@ import type {
 
 const HotBarChart = dynamic(
   () => import("./HotBarChart").then((m) => m.HotBarChart),
-  { ssr: false, loading: () => <div className="h-64 text-muted text-sm flex items-center justify-center">Loading chart…</div> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 text-muted text-sm flex items-center justify-center">
+        Loading chart…
+      </div>
+    ),
+  }
 );
 
 const TABS = ["hot", "cold", "digit", "patterns"] as const;
@@ -23,16 +33,21 @@ type Tab = (typeof TABS)[number];
 
 function DigitGrid({
   title,
+  subtitle,
   data,
   maxCount,
 }: {
   title: string;
+  subtitle?: string;
   data: DigitFrequency[];
   maxCount: number;
 }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-muted uppercase mb-2">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      {subtitle && (
+        <p className="text-[10px] text-muted mb-2">{subtitle}</p>
+      )}
       <div className="grid grid-cols-5 gap-1">
         {data.map((cell) => {
           const opacity =
@@ -43,7 +58,9 @@ function DigitGrid({
               className="rounded-md border border-line flex flex-col items-center justify-center py-2"
               style={{ backgroundColor: `rgba(245, 200, 66, ${opacity})` }}
             >
-              <span className="font-number text-lg text-foreground">{cell.digit}</span>
+              <span className="font-number text-lg text-foreground">
+                {cell.digit}
+              </span>
               <span className="text-[10px] text-muted">{cell.count}</span>
             </div>
           );
@@ -55,7 +72,9 @@ function DigitGrid({
 
 export function AnalyticsDashboard() {
   const { t } = useLang();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("hot");
+  const [quickNum, setQuickNum] = useState("");
 
   const tabLabels: Record<Tab, string> = {
     hot: t("hotNumbers"),
@@ -63,6 +82,7 @@ export function AnalyticsDashboard() {
     digit: t("digitAnalysis"),
     patterns: t("patterns"),
   };
+
   const [period, setPeriod] = useState<"30d" | "100draws">("30d");
   const [hot, setHot] = useState<HotNumberRow[]>([]);
   const [cold, setCold] = useState<ColdNumberRow[]>([]);
@@ -124,27 +144,58 @@ export function AnalyticsDashboard() {
       )
     : 1;
 
+  const goQuickNumber = (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = quickNum.replace(/\D/g, "").padStart(4, "0").slice(-4);
+    if (/^\d{4}$/.test(n)) router.push(`/number/${n}`);
+  };
+
   return (
     <div className="min-h-screen bg-surface">
       <SubpageHeader
         title={t("analyticsTitle")}
-        subtitle={`${t("hotNumbers")} · ${t("coldNumbers")} · ${t("digitAnalysis")}`}
+        subtitle={t("analyticsSubtitle")}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-4">
+        <form
+          onSubmit={goQuickNumber}
+          className="mb-6 rounded-xl border border-gold/30 bg-gold/5 p-4 flex flex-col sm:flex-row gap-3 items-center"
+        >
+          <span className="text-sm text-muted shrink-0">
+            {t("quickNumberSearch")}
+          </span>
+          <input
+            type="text"
+            value={quickNum}
+            onChange={(e) =>
+              setQuickNum(e.target.value.replace(/\D/g, "").slice(0, 4))
+            }
+            placeholder="1234"
+            className="flex-1 w-full rounded-lg border border-line bg-surface-3 px-4 py-2 font-number text-2xl tracking-[0.3em] text-center text-gold"
+            maxLength={4}
+          />
+          <button
+            type="submit"
+            className="shrink-0 rounded-lg bg-gold/20 border border-gold/40 px-5 py-2 text-sm font-semibold text-gold hover:bg-gold/30"
+          >
+            →
+          </button>
+        </form>
+
         <div className="flex flex-wrap gap-2 border-b border-line pb-3 mb-4">
-          {TABS.map((t) => (
+          {TABS.map((tabKey) => (
             <button
-              key={t}
+              key={tabKey}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => setTab(tabKey)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t
+                tab === tabKey
                   ? "bg-gold/20 text-gold border border-gold/40"
                   : "text-muted hover:text-foreground border border-transparent"
               }`}
             >
-              {tabLabels[t]}
+              {tabLabels[tabKey]}
             </button>
           ))}
         </div>
@@ -155,6 +206,7 @@ export function AnalyticsDashboard() {
 
         {tab === "hot" && (
           <div className="space-y-4">
+            <p className="text-sm text-muted">{t("hotNumbersHint")}</p>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -182,68 +234,96 @@ export function AnalyticsDashboard() {
             <div className="rounded-xl border border-line bg-surface-2 p-4">
               <HotBarChart data={hot} />
             </div>
-            <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-muted uppercase border-b border-line">
-                    <th className="px-3 py-2 text-left">{t("number")}</th>
-                    <th className="px-3 py-2 text-center">{t("totalHits")}</th>
-                    <th className="px-3 py-2 text-center">{t("firstHits")}</th>
-                    <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
-                    <th className="px-3 py-2 text-left">{t("heat")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {hot.map((row) => (
-                    <tr key={row.number} className="border-b border-line/50">
-                      <td className="px-3 py-2 font-number text-gold">{row.number}</td>
-                      <td className="px-3 py-2 text-center font-number">{row.total_hits}</td>
-                      <td className="px-3 py-2 text-center font-number">{row.first_hits}</td>
-                      <td className="px-3 py-2 text-muted">{row.last_seen ?? "—"}</td>
-                      <td className="px-3 py-2">
-                        <HeatBadge level={row.heat_level} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {hot.map((row) => (
+                <Link
+                  key={row.number}
+                  href={`/number/${row.number}`}
+                  className="rounded-xl border border-line bg-surface-2 p-3 hover:border-gold/40 transition-colors"
+                >
+                  <p className="font-number text-2xl text-gold text-center">
+                    {row.number}
+                  </p>
+                  <p className="text-center text-xs text-muted mt-1">
+                    {t("totalHits")}:{" "}
+                    <span className="font-number text-foreground">
+                      {row.total_hits}
+                    </span>
+                  </p>
+                  <p className="text-center text-[10px] text-dim mt-0.5">
+                    {t("lastSeen")}: {row.last_seen ?? "—"}
+                  </p>
+                  <div className="flex justify-center mt-2">
+                    <HeatBadge level={row.heat_level} />
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         )}
 
         {tab === "cold" && (
-          <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-muted uppercase border-b border-line">
-                  <th className="px-3 py-2 text-left">{t("number")}</th>
-                  <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
-                  <th className="px-3 py-2 text-center">{t("gapDays")}</th>
-                  <th className="px-3 py-2 text-center">{t("totalHitsEver")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cold.map((row) => (
-                  <tr key={row.number} className="border-b border-line/50">
-                    <td className="px-3 py-2 font-number text-foreground">{row.number}</td>
-                    <td className="px-3 py-2 text-muted">{row.last_seen_date ?? t("never")}</td>
-                    <td className="px-3 py-2 text-center font-number text-sky-300">
+          <div className="space-y-4">
+            <p className="text-sm text-muted">{t("coldNumbersHint")}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {cold.map((row) => (
+                <Link
+                  key={row.number}
+                  href={`/number/${row.number}`}
+                  className="rounded-xl border border-line bg-surface-2 p-4 flex items-center gap-4 hover:border-sky-500/40 transition-colors"
+                >
+                  <p className="font-number text-3xl text-foreground shrink-0">
+                    {row.number}
+                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-2xl font-number text-sky-300">
                       {row.gap_days}
-                    </td>
-                    <td className="px-3 py-2 text-center font-number">{row.total_hits}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <span className="text-sm text-muted ml-1">
+                        {t("days")}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted mt-1">
+                      {t("lastSeen")}:{" "}
+                      {row.last_seen_date
+                        ? formatDrawDate(row.last_seen_date)
+                        : t("never")}
+                    </p>
+                    <p className="text-xs text-dim mt-0.5">
+                      {t("totalHitsEver")}: {row.total_hits}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
         {tab === "digit" && digit && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-line bg-surface-2 p-4">
-            <DigitGrid title={t("thousands")} data={digit.thousands} maxCount={maxDigit} />
-            <DigitGrid title={t("hundreds")} data={digit.hundreds} maxCount={maxDigit} />
-            <DigitGrid title={t("tens")} data={digit.tens} maxCount={maxDigit} />
-            <DigitGrid title={t("units")} data={digit.units} maxCount={maxDigit} />
+            <DigitGrid
+              title={t("thousands")}
+              subtitle="Thousands"
+              data={digit.thousands}
+              maxCount={maxDigit}
+            />
+            <DigitGrid
+              title={t("hundreds")}
+              subtitle="Hundreds"
+              data={digit.hundreds}
+              maxCount={maxDigit}
+            />
+            <DigitGrid
+              title={t("tens")}
+              subtitle="Tens"
+              data={digit.tens}
+              maxCount={maxDigit}
+            />
+            <DigitGrid
+              title={t("units")}
+              subtitle="Units"
+              data={digit.units}
+              maxCount={maxDigit}
+            />
           </div>
         )}
 
@@ -259,10 +339,19 @@ export function AnalyticsDashboard() {
               </thead>
               <tbody>
                 {patterns.map((row, i) => (
-                  <tr key={`${row.pattern}-${row.example}-${i}`} className="border-b border-line/50">
+                  <tr
+                    key={`${row.pattern}-${row.example}-${i}`}
+                    className="border-b border-line/50"
+                  >
                     <td className="px-3 py-2 text-foreground">{row.pattern}</td>
-                    <td className="px-3 py-2 font-number text-gold">{row.example}</td>
-                    <td className="px-3 py-2 text-center font-number">{row.hit_count}</td>
+                    <td className="px-3 py-2 font-number text-gold">
+                      <Link href={`/number/${row.example}`} className="hover:underline">
+                        {row.example}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2 text-center font-number">
+                      {row.hit_count}
+                    </td>
                   </tr>
                 ))}
               </tbody>

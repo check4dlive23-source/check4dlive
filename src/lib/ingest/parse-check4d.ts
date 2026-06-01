@@ -16,12 +16,28 @@ export interface ParsedWestDraw {
   extra_data?: Record<string, unknown>;
 }
 
+export type ParsedDraw = ParsedWestDraw;
+
 const COMPANY_MAP: Record<string, OperatorId> = {
   MAGNUM4D: "magnum",
   DAMACAI: "damacai",
   SPORTTOTO: "toto",
   GDTOTO: "gd",
+  SABAH88: "sabah",
+  SADAKAN4D: "sandakan",
+  SARAWAKCASHSWEEP: "sarawak",
+  PERDANA4D: "perdana",
+  PERDANA: "perdana",
+  LUCKYHARI: "hari",
 };
+
+const CHECK4D_PAGES = [
+  "https://www.check4dresult.com/",
+  "https://www.check4dresult.com/sabah-sarawak-4d-results",
+  "https://www.check4dresult.com/grand-dragon-lotto",
+  "https://www.check4dresult.com/cambodia/",
+  "https://www.check4dresult.com/east-malaysia/",
+] as const;
 
 function field(block: string, name: string): string | undefined {
   const m = block.match(new RegExp(`${name}:"([^"]*)"`));
@@ -42,6 +58,10 @@ function collectSpecial(block: string, prefix: string, max: number): string[] {
     if (v != null) out.push(v);
   }
   return out;
+}
+
+function specialMax(operator: OperatorId): number {
+  return operator === "magnum" || operator === "toto" ? 13 : 10;
 }
 
 function parseMagnumExtras(block: string): Record<string, unknown> | undefined {
@@ -155,14 +175,16 @@ function parseTotoExtras(block: string): Record<string, unknown> | undefined {
 }
 
 function regionForOperator(op: OperatorId): Region {
-  if (op === "gd") return "cambodia";
+  if (op === "gd" || op === "perdana" || op === "hari") return "cambodia";
+  if (op === "sabah" || op === "sarawak" || op === "sandakan") return "east";
+  if (op === "sgpools") return "singapore";
   return "west";
 }
 
 function parseCompanyBlock(
   block: string,
   company: string
-): ParsedWestDraw | null {
+): ParsedDraw | null {
   const operator = COMPANY_MAP[company];
   if (!operator) return null;
 
@@ -176,8 +198,7 @@ function parseCompanyBlock(
   if (company === "DAMACAI") extra = parseDamacaiExtras(block);
   if (company === "SPORTTOTO") extra = parseTotoExtras(block);
 
-  const j1 = field(block, "Jackpot1Amount");
-  const j2 = field(block, "Jackpot2Amount");
+  const spMax = specialMax(operator);
 
   return {
     operator,
@@ -187,38 +208,45 @@ function parseCompanyBlock(
     first_prize: field(block, "FirstPrize"),
     second_prize: field(block, "SecondPrize"),
     third_prize: field(block, "ThirdPrize"),
-    special_numbers: collectSpecial(block, "Special", 13),
+    special_numbers: collectSpecial(block, "Special", spMax),
     consolation_numbers: collectSpecial(block, "Console", 10),
-    jackpot1_amount: parseMoney(j1),
-    jackpot2_amount: parseMoney(j2),
+    jackpot1_amount: parseMoney(field(block, "Jackpot1Amount")),
+    jackpot2_amount: parseMoney(field(block, "Jackpot2Amount")),
     zodiac: field(block, "Zodiac") ?? null,
     extra_data: extra,
   };
 }
 
 /** Parse embedded fourDResult payload from check4dresult.com HTML */
-export function parseCheck4dHtml(html: string): ParsedWestDraw[] {
+export function parseCheck4dHtml(html: string): ParsedDraw[] {
   const marker = "fourDResult:[";
   const start = html.indexOf(marker);
   if (start === -1) return [];
 
   const slice = html.slice(start + marker.length);
-  const results: ParsedWestDraw[] = [];
+  const results: ParsedDraw[] = [];
+  const seen = new Set<string>();
 
   for (const company of Object.keys(COMPANY_MAP)) {
     const tag = `Company:"${company}"`;
     const idx = slice.indexOf(tag);
     if (idx === -1) continue;
-    const block = slice.slice(idx, idx + 12_000);
+    const block = slice.slice(idx, idx + 14_000);
     const parsed = parseCompanyBlock(block, company);
-    if (parsed) results.push(parsed);
+    if (!parsed) continue;
+    const key = `${parsed.operator}:${parsed.date}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push(parsed);
   }
 
   return results;
 }
 
-export async function fetchCheck4dHtml(): Promise<string> {
-  const res = await fetch("https://www.check4dresult.com", {
+export async function fetchCheck4dHtml(
+  url = "https://www.check4dresult.com/"
+): Promise<string> {
+  const res = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; Check4DLive/1.0)",
       Accept: "text/html",
@@ -226,7 +254,25 @@ export async function fetchCheck4dHtml(): Promise<string> {
     next: { revalidate: 0 },
   });
   if (!res.ok) {
-    throw new Error(`check4dresult fetch failed: ${res.status}`);
+    throw new Error(`check4dresult fetch failed (${url}): ${res.status}`);
   }
   return res.text();
+}
+
+/** Scrape west, east, and cambodia operators from all known check4dresult pages */
+export async function fetchAllCheck4dDraws(): Promise<ParsedDraw[]> {
+  const byKey = new Map<string, ParsedDraw>();
+
+  for (const url of CHECK4D_PAGES) {
+    try {
+      const html = await fetchCheck4dHtml(url);
+      for (const draw of parseCheck4dHtml(html)) {
+        byKey.set(`${draw.operator}:${draw.date}`, draw);
+      }
+    } catch {
+      /* skip unreachable regional pages */
+    }
+  }
+
+  return Array.from(byKey.values());
 }

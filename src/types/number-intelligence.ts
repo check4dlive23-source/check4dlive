@@ -44,10 +44,24 @@ export interface RecentAppearance {
   draw_no: string | null;
 }
 
+export interface RelatedNumber {
+  number: string;
+  reason: string;
+  total_hits: number;
+}
+
+export interface NumberIntelligenceExtras {
+  total_draws_analyzed: number;
+  win_probability_pct: number;
+  predicted_next_date: string | null;
+  related_numbers: RelatedNumber[];
+}
+
 export interface NumberIntelligenceResponse {
   number: string;
   stats: NumberStatsPayload;
   timeline: TimelinePoint[];
   breakdown: OperatorBreakdown[];
   recent: RecentAppearance[];
+  extras: NumberIntelligenceExtras;
 }

@@ -4,7 +4,7 @@ import { LogoBadge } from "@/components/ui/LogoBadge";
 import { PrizeNumber } from "@/components/ui/PrizeNumber";
 import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
-import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
+import { formatCurrency, formatDrawHeaderMeta } from "@/lib/number-utils";
 import {
   CONSOLATION_SLOT_COUNT,
   padPrizeSlots,
@@ -41,13 +41,11 @@ export function ResultCard({ data }: ResultCardProps) {
   const hasJackpot =
     data.jackpot1_amount != null || data.jackpot2_amount != null;
   const revealed = data.status !== "pending";
-  const specialLabel =
-    spCount === 13 ? t("specialCount13") : t("specialCount10");
 
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
       <header
-        className="flex items-center gap-2 px-2.5 py-2 border-b border-line"
+        className="flex items-start gap-2 px-2.5 py-2 border-b border-line"
         style={{ backgroundColor: `${brand}18` }}
       >
         <LogoBadge operator={data.operator} />
@@ -55,9 +53,9 @@ export function ResultCard({ data }: ResultCardProps) {
           <h3 className="text-sm font-semibold text-foreground truncate">
             {data.displayName}
           </h3>
-          {data.subtitle && (
-            <p className="text-[10px] text-muted truncate">{data.subtitle}</p>
-          )}
+          <p className="text-[10px] text-muted truncate mt-0.5">
+            {formatDrawHeaderMeta(data.date, data.draw_no)}
+          </p>
         </div>
         <StatusTag status={data.status} />
       </header>
@@ -84,7 +82,7 @@ export function ResultCard({ data }: ResultCardProps) {
 
       <section className="px-2.5 py-2 border-b border-line">
         <p className="text-[10px] text-muted mb-2 uppercase tracking-wider">
-          {specialLabel}
+          {t("specialSection")}
         </p>
         <div className="grid grid-cols-5 gap-1.5">
           {specialSlots.map((n, i) => (
@@ -95,7 +93,7 @@ export function ResultCard({ data }: ResultCardProps) {
 
       <section className="px-2.5 py-2 border-b border-line">
         <p className="text-[10px] text-muted mb-2 uppercase tracking-wider">
-          {t("consolationCount10")}
+          {t("consolationSection")}
         </p>
         <div className="grid grid-cols-5 gap-1.5">
           {consolationSlots.map((n, i) => (
@@ -124,13 +122,6 @@ export function ResultCard({ data }: ResultCardProps) {
           )}
         </section>
       )}
-
-      <footer className="flex justify-between px-2.5 py-2 text-[10px] text-dim">
-        <span>
-          {t("drawNo")} {data.draw_no ?? "—"}
-        </span>
-        <span>{formatDrawDate(data.date)}</span>
-      </footer>
     </article>
   );
 }

@@ -89,7 +89,7 @@ export function isLiveDrawTime(region: Region = "west", now = new Date()): boole
 }
 
 export function shouldScrapeOnLive(region: Region): boolean {
-  return region === "west" || region === "cambodia";
+  return region === "west" || region === "cambodia" || region === "east";
 }
 
 export function getRefreshIntervalMs(isLive: boolean): number {

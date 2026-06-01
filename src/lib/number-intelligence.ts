@@ -4,9 +4,11 @@ import type { OperatorId } from "@/types";
 import type {
   HeatLevel,
   NumberIntelligenceResponse,
+  NumberIntelligenceExtras,
   NumberStatsPayload,
   OperatorBreakdown,
   RecentAppearance,
+  RelatedNumber,
   TimelinePoint,
 } from "@/types/number-intelligence";
 
@@ -244,6 +246,104 @@ function statsFromDbRow(
   };
 }
 
+function permutationsOf(digits: string[]): string[] {
+  if (digits.length <= 1) return [digits.join("")];
+  const out = new Set<string>();
+  for (let i = 0; i < digits.length; i++) {
+    const rest = [...digits.slice(0, i), ...digits.slice(i + 1)];
+    for (const p of permutationsOf(rest)) {
+      out.add(digits[i] + p);
+      if (out.size >= 12) break;
+    }
+  }
+  return Array.from(out);
+}
+
+async function buildRelatedNumbers(
+  supabase: NonNullable<ReturnType<typeof createClient>>,
+  number: string
+): Promise<RelatedNumber[]> {
+  const related: RelatedNumber[] = [];
+  const last2 = number.slice(2);
+
+  const { data: sameTail } = await supabase
+    .from("number_stats")
+    .select("number, total_hits")
+    .like("number", `%${last2}`)
+    .neq("number", number)
+    .order("total_hits", { ascending: false })
+    .limit(5);
+
+  for (const row of sameTail ?? []) {
+    related.push({
+      number: row.number as string,
+      reason: "same_last2",
+      total_hits: (row.total_hits as number) ?? 0,
+    });
+  }
+
+  const perms = permutationsOf(number.split(""))
+    .filter((p) => p !== number && /^\d{4}$/.test(p))
+    .slice(0, 6);
+
+  if (perms.length > 0) {
+    const { data: permRows } = await supabase
+      .from("number_stats")
+      .select("number, total_hits")
+      .in("number", perms);
+
+    for (const row of permRows ?? []) {
+      related.push({
+        number: row.number as string,
+        reason: "permutation",
+        total_hits: (row.total_hits as number) ?? 0,
+      });
+    }
+  }
+
+  const seen = new Set<string>();
+  return related.filter((r) => {
+    if (seen.has(r.number)) return false;
+    seen.add(r.number);
+    return true;
+  });
+}
+
+async function buildExtras(
+  supabase: NonNullable<ReturnType<typeof createClient>>,
+  number: string,
+  stats: NumberStatsPayload
+): Promise<NumberIntelligenceExtras> {
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setMonth(twoYearsAgo.getMonth() - 24);
+  const since = twoYearsAgo.toISOString().split("T")[0];
+
+  const { count: totalDraws } = await supabase
+    .from("draws")
+    .select("*", { count: "exact", head: true })
+    .gte("date", since);
+
+  const total = totalDraws ?? 0;
+  const winPct =
+    total > 0 ? Math.round((stats.total_hits / total) * 10000) / 100 : 0;
+
+  let predictedNext: string | null = null;
+  if (stats.avg_gap_days != null && stats.last_seen_date) {
+    const d = new Date(stats.last_seen_date);
+    d.setDate(d.getDate() + Math.round(stats.avg_gap_days));
+    predictedNext = d.toISOString().split("T")[0];
+  }
+
+  const related_numbers = await buildRelatedNumbers(supabase, number);
+
+  return {
+    total_draws_analyzed: total,
+    win_probability_pct: winPct,
+    predicted_next_date: predictedNext,
+    related_numbers,
+  };
+}
+
 function emptyResponse(number: string): NumberIntelligenceResponse {
   const stats: NumberStatsPayload = {
     number,
@@ -267,6 +367,12 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
     timeline: buildTimeline([]),
     breakdown: [],
     recent: [],
+    extras: {
+      total_draws_analyzed: 0,
+      win_probability_pct: 0,
+      predicted_next_date: null,
+      related_numbers: [],
+    },
   };
 }
 
@@ -329,11 +435,14 @@ export async function getNumberIntelligence(
     };
   });
 
+  const extras = await buildExtras(supabase, number, stats);
+
   return {
     number,
     stats,
     timeline: buildTimeline(rows),
     breakdown: buildBreakdown(rows),
     recent,
+    extras,
   };
 }

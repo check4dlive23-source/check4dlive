@@ -5,8 +5,7 @@
  */
 import { createServerClient } from "@/lib/supabase/server";
 import {
-  fetchCheck4dHtml,
-  parseCheck4dHtml,
+  fetchAllCheck4dDraws,
   type ParsedWestDraw,
 } from "@/lib/ingest/parse-check4d";
 import { buildHistoryEntries, recordDrawStats } from "@/lib/ingest/stats";
@@ -47,8 +46,7 @@ export async function runIngest(): Promise<IngestResult> {
     };
   }
 
-  const html = await fetchCheck4dHtml();
-  const parsed = parseCheck4dHtml(html);
+  const parsed = await fetchAllCheck4dDraws();
   const errors: string[] = [];
   let inserted = 0;
   const operators: string[] = [];

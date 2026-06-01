@@ -24,6 +24,34 @@ export function formatDrawDate(date?: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
+const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Header meta: (Sun) 31/05/2026 #375/26 */
+export function formatDrawHeaderMeta(
+  date?: string | null,
+  drawNo?: string | null
+): string {
+  if (!date && !drawNo) return "—";
+  if (!date) return drawNo ? `#${drawNo}` : "—";
+
+  const part = String(date).split("T")[0];
+  let wd = 0;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(part)) {
+    const [y, m, d] = part.split("-").map(Number);
+    wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  } else {
+    const parsed = new Date(date);
+    if (!Number.isNaN(parsed.getTime())) {
+      wd = parsed.getUTCDay();
+    }
+  }
+
+  const dayName = DAY_SHORT[wd];
+  const formatted = formatDrawDate(date);
+  const no = drawNo ? ` #${drawNo}` : "";
+  return `(${dayName}) ${formatted}${no}`;
+}
+
 export function formatTimeMYT(date: Date): string {
   return date.toLocaleTimeString("en-MY", {
     hour: "2-digit",

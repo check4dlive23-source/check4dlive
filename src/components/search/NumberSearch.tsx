@@ -5,7 +5,21 @@ import { useState } from "react";
 import { SubpageHeader } from "@/components/layout/SubpageHeader";
 import { HeatBadge } from "@/components/number/HeatBadge";
 import { useLang } from "@/lib/language-context";
+import { formatDrawDate } from "@/lib/number-utils";
 import type { SearchResultRow } from "@/types/analytics";
+
+const POPULAR_NUMBERS = [
+  "8888",
+  "1688",
+  "1234",
+  "0000",
+  "7777",
+  "3333",
+  "6666",
+  "9999",
+  "5555",
+  "1111",
+];
 
 const OPERATOR_LABELS: Record<string, string> = {
   magnum: "Magnum",
@@ -27,16 +41,21 @@ export function NumberSearch() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const runSearch = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const q = query.trim();
-    if (q.length < 2) return;
+  const runSearch = async (q: string) => {
+    const trimmed = q.trim();
+    if (trimmed.length < 2) return;
     setLoading(true);
     setSearched(true);
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    setQuery(trimmed);
+    const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
     const data = await res.json();
     setRows(data.rows ?? []);
     setLoading(false);
+  };
+
+  const onSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    runSearch(query);
   };
 
   return (
@@ -44,14 +63,12 @@ export function NumberSearch() {
       <SubpageHeader title={t("smartSearch")} subtitle={t("searchSubtitle")} />
 
       <div className="mx-auto max-w-6xl px-4 py-6">
-        <form onSubmit={runSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl">
+        <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3 max-w-xl">
           <input
             type="text"
             value={query}
             onChange={(e) =>
-              setQuery(
-                e.target.value.replace(/[^0-9*?]/g, "").slice(0, 4)
-              )
+              setQuery(e.target.value.replace(/[^0-9*?]/g, "").slice(0, 4))
             }
             placeholder={t("searchPlaceholder")}
             className="flex-1 rounded-xl border border-line-strong bg-surface-3 px-4 py-3 font-number text-3xl tracking-[0.3em] text-center text-gold placeholder:text-dim focus:outline-none focus:border-gold/50"
@@ -66,55 +83,69 @@ export function NumberSearch() {
           </button>
         </form>
 
+        <p className="text-xs text-muted mt-2">{t("searchExamples")}</p>
+        <p className="text-xs text-dim mt-1">{t("searchTips")}</p>
+
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold text-muted uppercase mb-2">
+            {t("popularSearches")}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_NUMBERS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => runSearch(n)}
+                className="font-number rounded-full border border-line bg-surface-3 px-3 py-1 text-sm text-gold hover:border-gold/50"
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </section>
+
         {loading && <p className="text-sm text-muted mt-4">{t("searching")}</p>}
 
         {searched && !loading && (
-          <div className="mt-6 rounded-xl border border-line bg-surface-2 overflow-x-auto">
+          <div className="mt-6 space-y-3">
             {rows.length === 0 ? (
-              <p className="p-6 text-sm text-muted text-center">{t("noResults")}</p>
+              <p className="p-6 text-sm text-muted text-center rounded-xl border border-line bg-surface-2">
+                {t("noResults")}
+              </p>
             ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-muted uppercase border-b border-line">
-                    <th className="px-3 py-2 text-left">{t("number")}</th>
-                    <th className="px-3 py-2 text-center">{t("hits")}</th>
-                    <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
-                    <th className="px-3 py-2 text-left">{t("heat")}</th>
-                    <th className="px-3 py-2 text-left">{t("operators")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.number} className="border-b border-line/50">
-                      <td className="px-3 py-2">
-                        <Link
-                          href={`/number/${row.number}`}
-                          className="font-number text-lg text-gold hover:underline"
-                        >
-                          {row.number}
-                        </Link>
-                      </td>
-                      <td className="px-3 py-2 text-center font-number">
-                        {row.total_hits}
-                      </td>
-                      <td className="px-3 py-2 text-muted">
-                        {row.last_seen ?? "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <HeatBadge level={row.heat_level} />
-                      </td>
-                      <td className="px-3 py-2 text-xs text-muted">
-                        {Object.entries(row.operators)
-                          .map(
-                            ([op, n]) =>
-                              `${OPERATOR_LABELS[op] ?? op}:${n}`
-                          )
-                          .join(" · ") || "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              rows.map((row) => (
+                <Link
+                  key={row.number}
+                  href={`/number/${row.number}`}
+                  className="block rounded-xl border border-line bg-surface-2 p-4 hover:border-gold/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-number text-3xl text-gold">
+                      {row.number}
+                    </span>
+                    <HeatBadge level={row.heat_level} />
+                  </div>
+                  <p className="text-sm text-muted mt-2">
+                    {t("totalHits")}:{" "}
+                    <span className="font-number text-foreground">
+                      {row.total_hits}
+                    </span>
+                    {" · "}
+                    {t("lastSeen")}:{" "}
+                    {row.last_seen
+                      ? formatDrawDate(row.last_seen)
+                      : "—"}
+                  </p>
+                  <p className="text-xs text-dim mt-1">
+                    {Object.entries(row.operators)
+                      .map(
+                        ([op, n]) =>
+                          `${OPERATOR_LABELS[op] ?? op}: ${n}`
+                      )
+                      .join(" · ") || "—"}
+                  </p>
+                </Link>
+              ))
             )}
           </div>
         )}

@@ -35,6 +35,7 @@ import { LottoBallCard } from "./LottoBallCard";
 import { TotoLottoCombinedCard } from "./TotoLottoCombinedCard";
 import { MagnumGoldCard } from "./MagnumGoldCard";
 import { MagnumLifeCard } from "./MagnumLifeCard";
+import { DrawScheduleBar } from "./DrawScheduleBar";
 import { RegionTabs } from "./RegionTabs";
 import { ResultCard } from "./ResultCard";
 import { Sabah3DCard } from "./Sabah3DCard";
@@ -69,12 +70,22 @@ function CardGrid({
 }
 
 const WEST_OPERATORS = ["magnum", "damacai", "toto"] as const;
+const EAST_OPERATORS = ["sabah", "sarawak", "sandakan"] as const;
+const CAMBODIA_OPERATORS = ["gd", "perdana", "hari"] as const;
 
-function mergeWestMain4D(operators: Record<string, DbDrawRow>): DrawResult[] {
-  return WEST_OPERATORS.map((op) => {
-    const mock = westMain4D.find((d) => d.operator === op)!;
+function mergeRegionDraws(
+  mocks: DrawResult[],
+  operators: Record<string, DbDrawRow>,
+  keys: readonly string[]
+): DrawResult[] {
+  return keys.map((op) => {
+    const mock = mocks.find((d) => d.operator === op)!;
     return mergeDrawResult(mock, operators[op]);
   });
+}
+
+function mergeWestMain4D(operators: Record<string, DbDrawRow>): DrawResult[] {
+  return mergeRegionDraws(westMain4D, operators, WEST_OPERATORS);
 }
 
 function getRefreshInterval(isLive: boolean): number {
@@ -127,6 +138,16 @@ export function LiveTerminal() {
     [results]
   );
 
+  const eastMain4DDisplay = useMemo(
+    () => mergeRegionDraws(eastMain4D, results, EAST_OPERATORS),
+    [results]
+  );
+
+  const cambodiaMain4DDisplay = useMemo(
+    () => mergeRegionDraws(cambodiaMain4D, results, CAMBODIA_OPERATORS),
+    [results]
+  );
+
   const magnumDraw = westMain4DDisplay[0];
   const damacaiDraw = westMain4DDisplay[1];
   const totoDraw = westMain4DDisplay[2];
@@ -164,9 +185,10 @@ export function LiveTerminal() {
             </button>
           </div>
           </div>
-          <div className="mx-auto max-w-7xl px-4 pb-3">
+          <div className="mx-auto max-w-7xl px-4 pb-2">
             <RegionTabs active={region} onChange={setRegion} />
           </div>
+          <DrawScheduleBar region={region} isLive={isLive} />
         </header>
 
         <div className="mx-auto max-w-7xl px-4 py-3">
@@ -244,7 +266,7 @@ export function LiveTerminal() {
                   {regionLabels.east.schedule}
                 </p>
                 <CardGrid cols={3}>
-                  {eastMain4D.map((d) => (
+                  {eastMain4DDisplay.map((d) => (
                     <ResultCard key={d.operator} data={d} />
                   ))}
                 </CardGrid>
@@ -254,8 +276,8 @@ export function LiveTerminal() {
                 <SectionTitle>{t("sabahOther")}</SectionTitle>
                 <CardGrid>
                   <Sabah3DCard
-                    date={eastMain4D[0].date}
-                    draw_no={eastMain4D[0].draw_no}
+                    date={eastMain4DDisplay[0]?.date}
+                    draw_no={eastMain4DDisplay[0]?.draw_no}
                     status="drawn"
                     data={sabah3D}
                   />
@@ -272,7 +294,7 @@ export function LiveTerminal() {
                   {regionLabels.cambodia.schedule}
                 </p>
                 <CardGrid cols={3}>
-                  {cambodiaMain4D.map((d) => (
+                  {cambodiaMain4DDisplay.map((d) => (
                     <ResultCard key={d.operator} data={d} />
                   ))}
                 </CardGrid>

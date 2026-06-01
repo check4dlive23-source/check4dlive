@@ -6,8 +6,7 @@ import {
   todayMYT,
 } from "@/lib/draw-time";
 import {
-  fetchCheck4dHtml,
-  parseCheck4dHtml,
+  fetchAllCheck4dDraws,
   type ParsedWestDraw,
 } from "@/lib/ingest/parse-check4d";
 import type { Region } from "@/types";
@@ -36,8 +35,9 @@ function toDbRow(draw: ParsedWestDraw) {
 export async function scrapeLiveResults(
   region: Region
 ): Promise<Record<string, DrawRow>> {
-  const html = await fetchCheck4dHtml();
-  const parsed = parseCheck4dHtml(html).filter((d) => d.region === region);
+  const parsed = (await fetchAllCheck4dDraws()).filter(
+    (d) => d.region === region
+  );
 
   const operators: Record<string, DrawRow> = {};
   for (const draw of parsed) {
