@@ -1,7 +1,7 @@
 "use client";
 
+import { useLang } from "@/lib/language-context";
 import type { Region } from "@/types";
-import { regionLabels } from "@/lib/mock-data";
 
 interface RegionTabsProps {
   active: Region;
@@ -10,11 +10,19 @@ interface RegionTabsProps {
 
 const regions: Region[] = ["west", "east", "cambodia", "singapore"];
 
+const regionKeys = {
+  west: "westMY",
+  east: "eastMY",
+  cambodia: "cambodia",
+  singapore: "singapore",
+} as const;
+
 export function RegionTabs({ active, onChange }: RegionTabsProps) {
+  const { t } = useLang();
+
   return (
     <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
       {regions.map((r) => {
-        const { flag, label } = regionLabels[r];
         const isActive = active === r;
         return (
           <button
@@ -27,7 +35,7 @@ export function RegionTabs({ active, onChange }: RegionTabsProps) {
                 : "bg-surface-2 text-muted border border-transparent hover:bg-surface-3 hover:text-foreground"
             }`}
           >
-            {flag} {label}
+            {t(regionKeys[r])}
           </button>
         );
       })}

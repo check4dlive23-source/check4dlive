@@ -69,6 +69,31 @@ export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null
 ): DrawResult {
-  if (!api?.first_prize || api.first_prize === "----") return mock;
-  return dbRowToDrawResult(api);
+  if (!api) return mock;
+  const fromApi = dbRowToDrawResult(api);
+  const date = fromApi.date || mock.date;
+  const draw_no = fromApi.draw_no ?? mock.draw_no;
+
+  if (!api.first_prize || api.first_prize === "----") {
+    return {
+      ...mock,
+      date,
+      draw_no,
+      status: fromApi.status,
+      special_numbers: fromApi.special_numbers ?? mock.special_numbers,
+      consolation_numbers:
+        fromApi.consolation_numbers ?? mock.consolation_numbers,
+    };
+  }
+
+  return {
+    ...fromApi,
+    date,
+    draw_no,
+    displayName: fromApi.displayName || mock.displayName,
+    subtitle: fromApi.subtitle ?? mock.subtitle,
+    special_numbers: fromApi.special_numbers ?? mock.special_numbers,
+    consolation_numbers:
+      fromApi.consolation_numbers ?? mock.consolation_numbers,
+  };
 }

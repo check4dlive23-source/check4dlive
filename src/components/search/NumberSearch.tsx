@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { SubpageHeader } from "@/components/layout/SubpageHeader";
 import { HeatBadge } from "@/components/number/HeatBadge";
+import { useLang } from "@/lib/language-context";
 import type { SearchResultRow } from "@/types/analytics";
 
 const OPERATOR_LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const OPERATOR_LABELS: Record<string, string> = {
 };
 
 export function NumberSearch() {
+  const { t } = useLang();
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<SearchResultRow[]>([]);
   const [searched, setSearched] = useState(false);
@@ -39,10 +41,7 @@ export function NumberSearch() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <SubpageHeader
-        title="Number Search"
-        subtitle="Wildcard search: use * or ? for any digit (e.g. 12**, *888, 88??)"
-      />
+      <SubpageHeader title={t("smartSearch")} subtitle={t("searchSubtitle")} />
 
       <div className="mx-auto max-w-6xl px-4 py-6">
         <form onSubmit={runSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl">
@@ -54,7 +53,7 @@ export function NumberSearch() {
                 e.target.value.replace(/[^0-9*?]/g, "").slice(0, 4)
               )
             }
-            placeholder="1234 or 12**"
+            placeholder={t("searchPlaceholder")}
             className="flex-1 rounded-xl border border-line-strong bg-surface-3 px-4 py-3 font-number text-3xl tracking-[0.3em] text-center text-gold placeholder:text-dim focus:outline-none focus:border-gold/50"
             maxLength={4}
           />
@@ -63,25 +62,25 @@ export function NumberSearch() {
             disabled={query.trim().length < 2}
             className="rounded-xl bg-gold/20 border border-gold/40 px-6 py-3 text-sm font-semibold text-gold hover:bg-gold/30 disabled:opacity-40"
           >
-            Search
+            {t("search")}
           </button>
         </form>
 
-        {loading && <p className="text-sm text-muted mt-4">Searching…</p>}
+        {loading && <p className="text-sm text-muted mt-4">{t("searching")}</p>}
 
         {searched && !loading && (
           <div className="mt-6 rounded-xl border border-line bg-surface-2 overflow-x-auto">
             {rows.length === 0 ? (
-              <p className="p-6 text-sm text-muted text-center">No matching numbers.</p>
+              <p className="p-6 text-sm text-muted text-center">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-muted uppercase border-b border-line">
-                    <th className="px-3 py-2 text-left">Number</th>
-                    <th className="px-3 py-2 text-center">Hits</th>
-                    <th className="px-3 py-2 text-left">Last seen</th>
-                    <th className="px-3 py-2 text-left">Heat</th>
-                    <th className="px-3 py-2 text-left">Operators</th>
+                    <th className="px-3 py-2 text-left">{t("number")}</th>
+                    <th className="px-3 py-2 text-center">{t("hits")}</th>
+                    <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
+                    <th className="px-3 py-2 text-left">{t("heat")}</th>
+                    <th className="px-3 py-2 text-left">{t("operators")}</th>
                   </tr>
                 </thead>
                 <tbody>

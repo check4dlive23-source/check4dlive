@@ -2,7 +2,10 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { MainNav } from "@/components/layout/MainNav";
 import { LuckyModal } from "@/components/ui/LuckyModal";
+import { useLang } from "@/lib/language-context";
 import { getRefreshIntervalMs } from "@/lib/draw-time";
 import {
   cambodiaMain4D,
@@ -79,6 +82,7 @@ function getRefreshInterval(isLive: boolean): number {
 }
 
 export function LiveTerminal() {
+  const { t } = useLang();
   const [region, setRegion] = useState<Region>("west");
   const [results, setResults] = useState<Record<string, DbDrawRow>>({});
   const [isLive, setIsLive] = useState(false);
@@ -148,20 +152,15 @@ export function LiveTerminal() {
               )}
             </div>
           <div className="flex shrink-0 items-center gap-2">
-            <nav className="hidden sm:flex items-center gap-2 text-xs text-muted">
-              <a href="/analytics" className="hover:text-foreground">Analytics</a>
-              <span className="text-dim">·</span>
-              <a href="/draws" className="hover:text-foreground">Draws</a>
-              <span className="text-dim">·</span>
-              <a href="/search" className="hover:text-foreground">Search</a>
-            </nav>
+            <MainNav />
+            <LanguageToggle />
             <button
               type="button"
               onClick={() => setLuckyOpen(true)}
               className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
               aria-haspopup="dialog"
             >
-              🍀 幸运号码
+              {t("lucky")}
             </button>
           </div>
           </div>
@@ -187,7 +186,7 @@ export function LiveTerminal() {
 
                 {/* ADSENSE_SLOT_BETWEEN */}
 
-                <SectionTitle>Magnum 其他游戏</SectionTitle>
+                <SectionTitle>{t("magnumOther")}</SectionTitle>
                 <div className="grid grid-cols-2 gap-3">
                   <MagnumGoldCard
                     date={magnumDraw.date}
@@ -203,7 +202,7 @@ export function LiveTerminal() {
                   />
                 </div>
 
-                <SectionTitle>Sports Toto 其他游戏</SectionTitle>
+                <SectionTitle>{t("totoOther")}</SectionTitle>
                 <div className="grid grid-cols-2 gap-3 items-start">
                   <div className="flex flex-col gap-3">
                     <FiveDCard
@@ -229,7 +228,7 @@ export function LiveTerminal() {
                   />
                 </div>
 
-                <SectionTitle>Damacai 其他游戏</SectionTitle>
+                <SectionTitle>{t("damacaiOther")}</SectionTitle>
                 <Damacai3Plus3DCard
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}
@@ -252,7 +251,7 @@ export function LiveTerminal() {
 
                 {/* ADSENSE_SLOT_BETWEEN */}
 
-                <SectionTitle>Sabah 其他游戏</SectionTitle>
+                <SectionTitle>{t("sabahOther")}</SectionTitle>
                 <CardGrid>
                   <Sabah3DCard
                     date={eastMain4D[0].date}
@@ -293,7 +292,7 @@ export function LiveTerminal() {
             )}
 
             <p className="mt-8 text-center text-xs text-dim">
-              更新于{" "}
+              {t("updatedAt")}{" "}
               <span suppressHydrationWarning>
                 {mounted ? updateTime : "--:--:--"}
               </span>

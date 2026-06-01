@@ -1,3 +1,4 @@
+import { AppProviders } from "@/components/providers/AppProviders";
 import type { Metadata } from "next";
 import { Noto_Sans_SC, Rajdhani } from "next/font/google";
 import "./globals.css";
@@ -39,7 +40,7 @@ export default function RootLayout({
         className={`${rajdhani.variable} ${notoSansSC.variable} font-sans antialiased`}
       >
         {/* ADSENSE_SLOT_TOP — layout-level placeholder */}
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

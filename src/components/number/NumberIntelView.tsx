@@ -1,19 +1,25 @@
+"use client";
+
 import dynamic from "next/dynamic";
 import Link from "next/link";
-
-const AppearanceTimeline = dynamic(
-  () => import("./AppearanceTimeline").then((m) => m.AppearanceTimeline),
-  { ssr: false, loading: () => (
-    <div className="h-64 flex items-center justify-center text-sm text-muted">
-      Loading chart…
-    </div>
-  ) }
-);
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import { parsePosition } from "@/lib/number-intelligence";
 import type { NumberIntelligenceResponse } from "@/types/number-intelligence";
+
+const AppearanceTimeline = dynamic(
+  () => import("./AppearanceTimeline").then((m) => m.AppearanceTimeline),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 flex items-center justify-center text-sm text-muted">
+        Loading chart…
+      </div>
+    ),
+  }
+);
 
 const POSITION_COLORS: Record<string, string> = {
   first: "text-gold",
@@ -50,6 +56,7 @@ interface NumberIntelViewProps {
 }
 
 export function NumberIntelView({ data }: NumberIntelViewProps) {
+  const { t } = useLang();
   const { stats } = data;
   const lastPos = stats.last_seen_position
     ? parsePosition(stats.last_seen_position).label
@@ -71,7 +78,7 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
           <div className="mt-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <p className="text-xs text-muted uppercase tracking-wider mb-1">
-                Number Intelligence
+                {t("numberIntelligence")}
               </p>
               <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
                 {data.number}
@@ -88,38 +95,38 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
       <main className="mx-auto max-w-5xl px-4 py-6 space-y-8">
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            Overview
+            {t("overview")}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            <StatCell label="Total hits" value={stats.total_hits} />
-            <StatCell label="1st Prize" value={stats.first_prize_hits} />
-            <StatCell label="2nd Prize" value={stats.second_prize_hits} />
-            <StatCell label="3rd Prize" value={stats.third_prize_hits} />
-            <StatCell label="Special" value={stats.special_hits} />
-            <StatCell label="Consolation" value={stats.consolation_hits} />
+            <StatCell label={t("totalHitsEver")} value={stats.total_hits} />
+            <StatCell label={t("firstPrize")} value={stats.first_prize_hits} />
+            <StatCell label={t("secondPrize")} value={stats.second_prize_hits} />
+            <StatCell label={t("thirdPrize")} value={stats.third_prize_hits} />
+            <StatCell label={t("special")} value={stats.special_hits} />
+            <StatCell label={t("consolation")} value={stats.consolation_hits} />
           </div>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
             <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
-              <span className="text-muted">Last seen: </span>
+              <span className="text-muted">{t("lastSeen")}: </span>
               <span className="text-foreground">
                 {stats.last_seen_date
                   ? `${formatDrawDate(stats.last_seen_date)} · ${lastOp} · ${lastPos}`
-                  : "Never"}
+                  : t("never")}
               </span>
             </div>
             <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
-              <span className="text-muted">Current gap: </span>
+              <span className="text-muted">{t("currentGap")}: </span>
               <span className="text-foreground font-number">
                 {stats.current_gap_days != null
-                  ? `${stats.current_gap_days} days`
+                  ? `${stats.current_gap_days} ${t("days")}`
                   : "—"}
               </span>
             </div>
             <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
-              <span className="text-muted">Average gap: </span>
+              <span className="text-muted">{t("avgGap")}: </span>
               <span className="text-foreground font-number">
                 {stats.avg_gap_days != null
-                  ? `${stats.avg_gap_days} days`
+                  ? `${stats.avg_gap_days} ${t("days")}`
                   : "—"}
               </span>
             </div>
@@ -128,7 +135,7 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
 
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            Appearance timeline (24 months)
+            {t("appearanceTimeline")}
           </h2>
           <div className="rounded-xl border border-line bg-surface-2 p-4">
             <AppearanceTimeline data={data.timeline} />
@@ -137,22 +144,22 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
 
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            Breakdown by operator
+            {t("breakdownByOperator")}
           </h2>
           <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
             {data.breakdown.length === 0 ? (
-              <p className="p-4 text-sm text-muted">No appearances recorded yet.</p>
+              <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2">Operator</th>
-                    <th className="px-3 py-2 text-center">Total</th>
-                    <th className="px-3 py-2 text-center">1st</th>
-                    <th className="px-3 py-2 text-center">2nd</th>
-                    <th className="px-3 py-2 text-center">3rd</th>
-                    <th className="px-3 py-2 text-center">Special</th>
-                    <th className="px-3 py-2 text-center">Cons.</th>
+                    <th className="px-3 py-2">{t("operator")}</th>
+                    <th className="px-3 py-2 text-center">{t("totalHits")}</th>
+                    <th className="px-3 py-2 text-center">{t("firstHits")}</th>
+                    <th className="px-3 py-2 text-center">{t("secondHits")}</th>
+                    <th className="px-3 py-2 text-center">{t("thirdHits")}</th>
+                    <th className="px-3 py-2 text-center">{t("special")}</th>
+                    <th className="px-3 py-2 text-center">{t("consolation")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -189,19 +196,19 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
 
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            Recent appearances
+            {t("recentAppearances")}
           </h2>
           <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
             {data.recent.length === 0 ? (
-              <p className="p-4 text-sm text-muted">No recent history.</p>
+              <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2">Date</th>
-                    <th className="px-3 py-2">Operator</th>
-                    <th className="px-3 py-2">Prize position</th>
-                    <th className="px-3 py-2">Draw no.</th>
+                    <th className="px-3 py-2">{t("dateLabel")}</th>
+                    <th className="px-3 py-2">{t("operator")}</th>
+                    <th className="px-3 py-2">{t("prizePosition")}</th>
+                    <th className="px-3 py-2">{t("drawNoCol")}</th>
                   </tr>
                 </thead>
                 <tbody>

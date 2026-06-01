@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { SubpageHeader } from "@/components/layout/SubpageHeader";
 import { HeatBadge } from "@/components/number/HeatBadge";
+import { useLang } from "@/lib/language-context";
 import type {
   ColdNumberRow,
   DigitAnalysis,
@@ -19,13 +20,6 @@ const HotBarChart = dynamic(
 
 const TABS = ["hot", "cold", "digit", "patterns"] as const;
 type Tab = (typeof TABS)[number];
-
-const TAB_LABELS: Record<Tab, string> = {
-  hot: "Hot Numbers",
-  cold: "Cold Numbers",
-  digit: "Digit Analysis",
-  patterns: "Patterns",
-};
 
 function DigitGrid({
   title,
@@ -60,7 +54,15 @@ function DigitGrid({
 }
 
 export function AnalyticsDashboard() {
+  const { t } = useLang();
   const [tab, setTab] = useState<Tab>("hot");
+
+  const tabLabels: Record<Tab, string> = {
+    hot: t("hotNumbers"),
+    cold: t("coldNumbers"),
+    digit: t("digitAnalysis"),
+    patterns: t("patterns"),
+  };
   const [period, setPeriod] = useState<"30d" | "100draws">("30d");
   const [hot, setHot] = useState<HotNumberRow[]>([]);
   const [cold, setCold] = useState<ColdNumberRow[]>([]);
@@ -125,8 +127,8 @@ export function AnalyticsDashboard() {
   return (
     <div className="min-h-screen bg-surface">
       <SubpageHeader
-        title="Analytics Dashboard"
-        subtitle="Hot & cold numbers, digit frequency, and pattern analysis"
+        title={t("analyticsTitle")}
+        subtitle={`${t("hotNumbers")} · ${t("coldNumbers")} · ${t("digitAnalysis")}`}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-4">
@@ -142,13 +144,13 @@ export function AnalyticsDashboard() {
                   : "text-muted hover:text-foreground border border-transparent"
               }`}
             >
-              {TAB_LABELS[t]}
+              {tabLabels[t]}
             </button>
           ))}
         </div>
 
         {loading && (
-          <p className="text-sm text-muted mb-4">Loading…</p>
+          <p className="text-sm text-muted mb-4">{t("loading")}</p>
         )}
 
         {tab === "hot" && (
@@ -163,7 +165,7 @@ export function AnalyticsDashboard() {
                     : "border-line text-muted"
                 }`}
               >
-                Last 30 days
+                {t("last30days")}
               </button>
               <button
                 type="button"
@@ -174,7 +176,7 @@ export function AnalyticsDashboard() {
                     : "border-line text-muted"
                 }`}
               >
-                Last 100 draws
+                {t("last100draws")}
               </button>
             </div>
             <div className="rounded-xl border border-line bg-surface-2 p-4">
@@ -184,11 +186,11 @@ export function AnalyticsDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-muted uppercase border-b border-line">
-                    <th className="px-3 py-2 text-left">Number</th>
-                    <th className="px-3 py-2 text-center">Total</th>
-                    <th className="px-3 py-2 text-center">1st</th>
-                    <th className="px-3 py-2 text-left">Last seen</th>
-                    <th className="px-3 py-2 text-left">Heat</th>
+                    <th className="px-3 py-2 text-left">{t("number")}</th>
+                    <th className="px-3 py-2 text-center">{t("totalHits")}</th>
+                    <th className="px-3 py-2 text-center">{t("firstHits")}</th>
+                    <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
+                    <th className="px-3 py-2 text-left">{t("heat")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,17 +216,17 @@ export function AnalyticsDashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-muted uppercase border-b border-line">
-                  <th className="px-3 py-2 text-left">Number</th>
-                  <th className="px-3 py-2 text-left">Last seen</th>
-                  <th className="px-3 py-2 text-center">Gap (days)</th>
-                  <th className="px-3 py-2 text-center">Total hits</th>
+                  <th className="px-3 py-2 text-left">{t("number")}</th>
+                  <th className="px-3 py-2 text-left">{t("lastSeen")}</th>
+                  <th className="px-3 py-2 text-center">{t("gapDays")}</th>
+                  <th className="px-3 py-2 text-center">{t("totalHitsEver")}</th>
                 </tr>
               </thead>
               <tbody>
                 {cold.map((row) => (
                   <tr key={row.number} className="border-b border-line/50">
                     <td className="px-3 py-2 font-number text-foreground">{row.number}</td>
-                    <td className="px-3 py-2 text-muted">{row.last_seen_date ?? "Never"}</td>
+                    <td className="px-3 py-2 text-muted">{row.last_seen_date ?? t("never")}</td>
                     <td className="px-3 py-2 text-center font-number text-sky-300">
                       {row.gap_days}
                     </td>
@@ -238,10 +240,10 @@ export function AnalyticsDashboard() {
 
         {tab === "digit" && digit && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-line bg-surface-2 p-4">
-            <DigitGrid title="Thousands" data={digit.thousands} maxCount={maxDigit} />
-            <DigitGrid title="Hundreds" data={digit.hundreds} maxCount={maxDigit} />
-            <DigitGrid title="Tens" data={digit.tens} maxCount={maxDigit} />
-            <DigitGrid title="Units" data={digit.units} maxCount={maxDigit} />
+            <DigitGrid title={t("thousands")} data={digit.thousands} maxCount={maxDigit} />
+            <DigitGrid title={t("hundreds")} data={digit.hundreds} maxCount={maxDigit} />
+            <DigitGrid title={t("tens")} data={digit.tens} maxCount={maxDigit} />
+            <DigitGrid title={t("units")} data={digit.units} maxCount={maxDigit} />
           </div>
         )}
 
@@ -250,9 +252,9 @@ export function AnalyticsDashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-muted uppercase border-b border-line">
-                  <th className="px-3 py-2 text-left">Pattern</th>
-                  <th className="px-3 py-2 text-left">Example</th>
-                  <th className="px-3 py-2 text-center">Hit count</th>
+                  <th className="px-3 py-2 text-left">{t("pattern")}</th>
+                  <th className="px-3 py-2 text-left">{t("example")}</th>
+                  <th className="px-3 py-2 text-center">{t("hitCount")}</th>
                 </tr>
               </thead>
               <tbody>

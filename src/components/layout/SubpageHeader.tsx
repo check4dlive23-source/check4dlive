@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { MainNav } from "@/components/layout/MainNav";
+import { useLang } from "@/lib/language-context";
 
 export function SubpageHeader({
   title,
@@ -10,23 +15,23 @@ export function SubpageHeader({
   subtitle?: string;
   children?: ReactNode;
 }) {
+  const { t } = useLang();
+
   return (
     <header className="border-b border-line bg-surface-2">
       <div className="mx-auto max-w-6xl px-4 py-4">
-        <nav className="flex flex-wrap gap-3 text-xs mb-3">
-          <Link href="/" className="text-muted hover:text-foreground">
-            Live
-          </Link>
-          <Link href="/analytics" className="text-muted hover:text-foreground">
-            Analytics
-          </Link>
-          <Link href="/draws" className="text-muted hover:text-foreground">
-            Draws
-          </Link>
-          <Link href="/search" className="text-muted hover:text-foreground">
-            Search
-          </Link>
-        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-surface-3 border border-line hover:border-gold/50 hover:text-gold transition-colors"
+            >
+              {t("home")}
+            </Link>
+            <MainNav />
+          </div>
+          <LanguageToggle />
+        </div>
         <h1 className="text-xl font-bold text-foreground">{title}</h1>
         {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
         {children}
