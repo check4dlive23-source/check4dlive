@@ -40,15 +40,12 @@ export function ResultCard({ data }: ResultCardProps) {
   );
   const revealed = data.status !== "pending";
 
-  const showZodiac =
-    revealed && data.operator === "toto" && Boolean(data.zodiac);
-
   const showJackpot =
     revealed &&
     (data.operator === "magnum" ||
       data.operator === "damacai" ||
       data.operator === "toto") &&
-    data.jackpot1_amount != null;
+    (data.jackpot1_amount ?? 0) > 0;
 
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
@@ -77,7 +74,7 @@ export function ResultCard({ data }: ResultCardProps) {
       <div className="grid grid-cols-3 border-b border-line text-center py-1.5">
         <div className="border-r border-line flex flex-col items-center gap-0.5">
           <PrizeNumber value={data.first_prize} revealed={revealed} />
-          {showZodiac && (
+          {data.operator === "toto" && data.zodiac && (
             <span className="text-[10px] text-gold">{data.zodiac}</span>
           )}
         </div>

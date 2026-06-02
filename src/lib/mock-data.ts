@@ -484,7 +484,7 @@ export const singapore4D: DrawResult = {
   first_prize: "2916",
   second_prize: "8403",
   third_prize: "1578",
-  special_numbers: special10,
+  special_numbers: [],
   consolation_numbers: consolation10,
 };
 

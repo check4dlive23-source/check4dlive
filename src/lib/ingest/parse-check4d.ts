@@ -94,7 +94,7 @@ function collectSpecial(block: string, prefix: string, max: number): string[] {
 }
 
 function specialMax(operator: OperatorId): number {
-  return operator === "magnum" || operator === "toto" ? 13 : 10;
+  return operator === "damacai" ? 10 : 13;
 }
 
 function parseMagnumExtras(block: string): Record<string, unknown> | undefined {
@@ -243,8 +243,12 @@ function parseCompanyBlock(
     third_prize: field(block, "ThirdPrize"),
     special_numbers: collectSpecial(block, "Special", spMax),
     consolation_numbers: collectSpecial(block, "Console", 10),
-    jackpot1_amount: parseMoney(field(block, "Jackpot1Amount")),
-    jackpot2_amount: parseMoney(field(block, "Jackpot2Amount")),
+    jackpot1_amount: parseMoney(
+      field(block, "Jackpot1Amount") ?? field(block, "JackPot1Amount")
+    ),
+    jackpot2_amount: parseMoney(
+      field(block, "Jackpot2Amount") ?? field(block, "JackPot2Amount")
+    ),
     zodiac: operator === "toto" ? field(block, "Zodiac") ?? null : null,
     extra_data: extra,
   };

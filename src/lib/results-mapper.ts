@@ -87,7 +87,15 @@ export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null
 ): DrawResult {
-  if (!api) return mock;
+  if (!api) {
+    if (mock.operator === "sgpools") {
+      return {
+        ...mock,
+        special_numbers: [],
+      };
+    }
+    return mock;
+  }
   const fromApi = dbRowToDrawResult(api);
   const operator = fromApi.operator;
   const date = fromApi.date || mock.date;

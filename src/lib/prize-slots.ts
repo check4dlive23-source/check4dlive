@@ -2,9 +2,21 @@ import type { OperatorId } from "@/types";
 
 export const CONSOLATION_SLOT_COUNT = 10;
 
-/** Magnum & Sports Toto use 13 special slots; all other 4D operators use 10 */
+const SPECIAL_SLOTS: Record<string, number> = {
+  damacai: 10,
+  magnum: 13,
+  toto: 13,
+  sabah: 13,
+  sarawak: 13,
+  sandakan: 13,
+  gd: 13,
+  perdana: 13,
+  hari: 13,
+  sgpools: 13,
+};
+
 export function specialSlotCount(operator: OperatorId | string): number {
-  return operator === "magnum" || operator === "toto" ? 13 : 10;
+  return SPECIAL_SLOTS[operator] ?? 13;
 }
 
 export function padPrizeSlots(
