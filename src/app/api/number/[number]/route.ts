@@ -6,6 +6,8 @@ export async function GET(
   { params }: { params: { number: string } }
 ) {
   const number = normalize4D(params.number);
+  const url = new URL(_request.url);
+  const page = Number(url.searchParams.get("page") ?? "1");
 
   if (!isValid4D(number)) {
     return NextResponse.json(
@@ -15,7 +17,10 @@ export async function GET(
   }
 
   try {
-    const data = await getNumberIntelligence(number);
+    const data = await getNumberIntelligence(number, {
+      page,
+      pageSize: 50,
+    });
     if (!data) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

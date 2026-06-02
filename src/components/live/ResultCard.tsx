@@ -38,9 +38,17 @@ export function ResultCard({ data }: ResultCardProps) {
     data.consolation_numbers,
     CONSOLATION_SLOT_COUNT
   );
-  const hasJackpot =
-    data.jackpot1_amount != null || data.jackpot2_amount != null;
   const revealed = data.status !== "pending";
+
+  const showZodiac =
+    revealed && data.operator === "toto" && Boolean(data.zodiac);
+
+  const showJackpot =
+    revealed &&
+    (data.operator === "magnum" ||
+      data.operator === "damacai" ||
+      data.operator === "toto") &&
+    data.jackpot1_amount != null;
 
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
@@ -68,7 +76,7 @@ export function ResultCard({ data }: ResultCardProps) {
       <div className="grid grid-cols-3 border-b border-line text-center py-1.5">
         <div className="border-r border-line flex flex-col items-center gap-0.5">
           <PrizeNumber value={data.first_prize} revealed={revealed} />
-          {data.zodiac && revealed && (
+          {showZodiac && (
             <span className="text-[10px] text-gold">{data.zodiac}</span>
           )}
         </div>
@@ -102,7 +110,7 @@ export function ResultCard({ data }: ResultCardProps) {
         </div>
       </section>
 
-      {hasJackpot && revealed && (
+      {showJackpot && (
         <section className="px-2 py-1.5 border-b border-line space-y-1">
           {data.jackpot1_amount != null && (
             <div className="flex justify-between text-sm">

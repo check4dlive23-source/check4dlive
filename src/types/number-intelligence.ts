@@ -57,11 +57,19 @@ export interface NumberIntelligenceExtras {
   related_numbers: RelatedNumber[];
 }
 
+export interface HistoryPage {
+  items: RecentAppearance[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface NumberIntelligenceResponse {
   number: string;
   stats: NumberStatsPayload;
   timeline: TimelinePoint[];
   breakdown: OperatorBreakdown[];
   recent: RecentAppearance[];
+  history: HistoryPage;
   extras: NumberIntelligenceExtras;
 }

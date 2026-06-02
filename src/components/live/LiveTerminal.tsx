@@ -148,6 +148,11 @@ export function LiveTerminal() {
     [results]
   );
 
+  const singapore4DDisplay = useMemo(
+    () => mergeDrawResult(singapore4D, results["sgpools"]),
+    [results]
+  );
+
   const magnumDraw = westMain4DDisplay[0];
   const damacaiDraw = westMain4DDisplay[1];
   const totoDraw = westMain4DDisplay[2];
@@ -307,7 +312,7 @@ export function LiveTerminal() {
                   {regionLabels.singapore.schedule}
                 </p>
                 <CardGrid cols={2}>
-                  <ResultCard data={singapore4D} />
+                  <ResultCard data={singapore4DDisplay} />
                   <LottoBallCard data={singaporeToto} />
                 </CardGrid>
               </>

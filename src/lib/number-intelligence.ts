@@ -367,6 +367,12 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
     timeline: buildTimeline([]),
     breakdown: [],
     recent: [],
+    history: {
+      items: [],
+      page: 1,
+      pageSize: 50,
+      total: 0,
+    },
     extras: {
       total_draws_analyzed: 0,
       win_probability_pct: 0,
@@ -377,10 +383,14 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
 }
 
 export async function getNumberIntelligence(
-  rawNumber: string
+  rawNumber: string,
+  options?: { page?: number; pageSize?: number }
 ): Promise<NumberIntelligenceResponse | null> {
   const number = normalize4D(rawNumber);
   if (!isValid4D(number)) return null;
+
+  const page = Math.max(1, Math.floor(options?.page ?? 1));
+  const pageSize = Math.max(1, Math.floor(options?.pageSize ?? 50));
 
   const supabase = createClient();
   if (!supabase) return emptyResponse(number);
@@ -437,12 +447,49 @@ export async function getNumberIntelligence(
 
   const extras = await buildExtras(supabase, number, stats);
 
+  const historyFrom = "2010-01-01";
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { count: total } = await supabase
+    .from("draw_history")
+    .select("id", { count: "exact", head: true })
+    .eq("number", number)
+    .gte("date", historyFrom);
+
+  const { data: historyRows } = await supabase
+    .from("draw_history")
+    .select("date, operator, position, draws(draw_no)")
+    .eq("number", number)
+    .gte("date", historyFrom)
+    .order("date", { ascending: false })
+    .range(from, to);
+
+  const historyItems: RecentAppearance[] = (historyRows ?? []).map((r) => {
+    const row = normalizeHistoryRow(r as Record<string, unknown>);
+    const parsed = parsePosition(row.position);
+    return {
+      date: row.date,
+      operator: row.operator as OperatorId,
+      position: row.position,
+      position_label: parsed.label,
+      position_tier: parsed.tier,
+      draw_no: resolveDrawNo(row.draws),
+    };
+  });
+
   return {
     number,
     stats,
     timeline: buildTimeline(rows),
     breakdown: buildBreakdown(rows),
     recent,
+    history: {
+      items: historyItems,
+      page,
+      pageSize,
+      total: total ?? 0,
+    },
     extras,
   };
 }

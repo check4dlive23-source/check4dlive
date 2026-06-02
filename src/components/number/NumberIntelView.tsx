@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
@@ -42,6 +43,40 @@ const OPERATOR_LABELS: Record<string, string> = {
   hari: "Lucky Hari Hari",
   sgpools: "Singapore Pools",
 };
+
+function HistoryPagination({
+  page,
+  totalPages,
+  number,
+}: {
+  page: number;
+  totalPages: number;
+  number: string;
+}) {
+  const { t } = useLang();
+  const router = useRouter();
+
+  return (
+    <div className="flex gap-2">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => router.push(`/number/${number}?page=${page - 1}`)}
+        className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
+      >
+        {t("previous")}
+      </button>
+      <button
+        type="button"
+        disabled={page >= totalPages}
+        onClick={() => router.push(`/number/${number}?page=${page + 1}`)}
+        className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
+      >
+        {t("next")}
+      </button>
+    </div>
+  );
+}
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
@@ -276,44 +311,61 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
             {t("recentAppearances")}
           </h2>
           <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
-            {data.recent.length === 0 ? (
+            {data.history.items.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2">{t("dateLabel")}</th>
-                    <th className="px-3 py-2">{t("operator")}</th>
-                    <th className="px-3 py-2">{t("prizePosition")}</th>
-                    <th className="px-3 py-2">{t("drawNoCol")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent.map((row, i) => (
-                    <tr
-                      key={`${row.date}-${row.operator}-${i}`}
-                      className="border-b border-line/50"
-                    >
-                      <td className="px-3 py-2 text-foreground">
-                        {formatDrawDate(row.date)}
-                      </td>
-                      <td className="px-3 py-2 text-foreground">
-                        {OPERATOR_LABELS[row.operator] ?? row.operator}
-                      </td>
-                      <td
-                        className={`px-3 py-2 font-medium ${
-                          POSITION_COLORS[row.position_tier]
-                        }`}
-                      >
-                        {row.position_label}
-                      </td>
-                      <td className="px-3 py-2 font-number text-muted">
-                        {row.draw_no ?? "—"}
-                      </td>
+              <>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-line text-left text-muted text-xs uppercase">
+                      <th className="px-3 py-2">{t("dateLabel")}</th>
+                      <th className="px-3 py-2">{t("operator")}</th>
+                      <th className="px-3 py-2">{t("prizePosition")}</th>
+                      <th className="px-3 py-2">{t("drawNoCol")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {data.history.items.map((row, i) => (
+                      <tr
+                        key={`${row.date}-${row.operator}-${i}`}
+                        className="border-b border-line/50"
+                      >
+                        <td className="px-3 py-2 text-foreground">
+                          {formatDrawDate(row.date)}
+                        </td>
+                        <td className="px-3 py-2 text-foreground">
+                          {OPERATOR_LABELS[row.operator] ?? row.operator}
+                        </td>
+                        <td
+                          className={`px-3 py-2 font-medium ${
+                            POSITION_COLORS[row.position_tier]
+                          }`}
+                        >
+                          {row.position_label}
+                        </td>
+                        <td className="px-3 py-2 font-number text-muted">
+                          {row.draw_no ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="flex items-center justify-between text-sm px-4 py-3 border-t border-line bg-surface-2">
+                  <span className="text-muted">
+                    {t("page")} {data.history.page} /{" "}
+                    {Math.max(1, Math.ceil(data.history.total / data.history.pageSize))}
+                  </span>
+                  <HistoryPagination
+                    page={data.history.page}
+                    totalPages={Math.max(
+                      1,
+                      Math.ceil(data.history.total / data.history.pageSize)
+                    )}
+                    number={data.number}
+                  />
+                </div>
+              </>
             )}
           </div>
         </section>

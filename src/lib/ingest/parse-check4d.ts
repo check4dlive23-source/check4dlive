@@ -23,6 +23,7 @@ const COMPANY_MAP: Record<string, OperatorId> = {
   DAMACAI: "damacai",
   SPORTTOTO: "toto",
   GDTOTO: "gd",
+  SINGAPORE4D: "sgpools",
   SABAH88: "sabah",
   SADAKAN4D: "sandakan",
   SARAWAKCASHSWEEP: "sarawak",
@@ -34,6 +35,7 @@ const COMPANY_MAP: Record<string, OperatorId> = {
 const CHECK4D_PAGES = [
   "https://www.check4dresult.com/",
   "https://www.check4dresult.com/sabah-sarawak-4d-results",
+  "https://www.check4dresult.com/singapore-4d-result",
   "https://www.check4dresult.com/grand-dragon-lotto",
   "https://www.check4dresult.com/cambodia/",
   "https://www.check4dresult.com/east-malaysia/",
@@ -243,7 +245,7 @@ function parseCompanyBlock(
     consolation_numbers: collectSpecial(block, "Console", 10),
     jackpot1_amount: parseMoney(field(block, "Jackpot1Amount")),
     jackpot2_amount: parseMoney(field(block, "Jackpot2Amount")),
-    zodiac: field(block, "Zodiac") ?? null,
+    zodiac: operator === "toto" ? field(block, "Zodiac") ?? null : null,
     extra_data: extra,
   };
 }

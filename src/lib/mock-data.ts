@@ -477,7 +477,7 @@ export const singapore4D: DrawResult = {
   operator: "sgpools",
   region: "singapore",
   displayName: "Singapore Pools 4D",
-  subtitle: "Wed/Sat/Sun 6:30PM",
+  subtitle: "Wed/Sat/Sun 6:30PM SGT",
   date: MOCK_DATE,
   draw_no: "SG-1847",
   status: "drawn",
@@ -491,7 +491,7 @@ export const singapore4D: DrawResult = {
 export const singaporeToto: LottoBallResult = {
   operator: "sgpools",
   displayName: "Singapore Pools Toto 6/45",
-  subtitle: "Mon/Thu 9:30PM",
+  subtitle: "Mon/Thu 9:30PM SGT",
   balls: [10, 13, 30, 35, 38, 44],
   bonus: 15,
   hasBonus: true,

@@ -36,7 +36,7 @@ const SUBTITLES: Partial<Record<Region, string>> = {
   west: "Wed/Sat/Sun 7:00PM",
   east: "Wed/Sat/Sun 6:30PM",
   cambodia: "Daily",
-  singapore: "Wed/Sat/Sun 6:30PM",
+  singapore: "Wed/Sat/Sun 6:30PM SGT",
 };
 
 function mapStatus(first?: string | null): DrawStatus {
@@ -67,7 +67,7 @@ export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
     consolation_numbers: prizes.consolation_numbers,
     jackpot1_amount: row.jackpot1_amount ?? undefined,
     jackpot2_amount: row.jackpot2_amount ?? undefined,
-    zodiac: row.zodiac ?? undefined,
+    zodiac: operator === "toto" ? row.zodiac ?? undefined : undefined,
   };
 }
 
