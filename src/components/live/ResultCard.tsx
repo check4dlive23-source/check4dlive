@@ -4,7 +4,7 @@ import { LogoBadge } from "@/components/ui/LogoBadge";
 import { PrizeNumber } from "@/components/ui/PrizeNumber";
 import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
-import { formatCurrency, formatDrawHeaderMeta } from "@/lib/number-utils";
+import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import {
   CONSOLATION_SLOT_COUNT,
   padPrizeSlots,
@@ -61,9 +61,10 @@ export function ResultCard({ data }: ResultCardProps) {
           <h3 className="text-sm font-semibold text-foreground truncate">
             {data.displayName}
           </h3>
-          <p className="text-[10px] text-muted truncate mt-0.5">
-            {formatDrawHeaderMeta(data.date, data.draw_no)}
-          </p>
+          <div className="flex items-center justify-between text-[10px] text-muted mt-0.5">
+            <span>{formatDrawDate(data.date)}</span>
+            <span>{data.draw_no ?? "—"}</span>
+          </div>
         </div>
         <StatusTag status={data.status} />
       </header>

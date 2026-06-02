@@ -56,8 +56,8 @@ export function MagnumLifeCard({
         </div>
       </section>
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
-        <span>期号 {draw_no ?? "—"}</span>
         <span>{formatDrawDate(date)}</span>
+        <span>期号 {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

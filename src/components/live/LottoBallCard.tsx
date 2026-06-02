@@ -42,8 +42,8 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
       </section>
 
       <footer className="flex justify-between px-2.5 py-1.5 text-[10px] text-dim border-t border-line">
-        <span>期号 {data.draw_no ?? "—"}</span>
         <span>{formatDrawDate(data.date)}</span>
+        <span>期号 {data.draw_no ?? "—"}</span>
       </footer>
     </article>
   );

@@ -101,8 +101,8 @@ export function Damacai3Plus3DCard({
       </section>
 
       <footer className="flex justify-between px-2 py-1.5 text-[10px] text-dim">
-        <span>期号 {draw_no ?? "—"}</span>
         <span>{formatDrawDate(date)}</span>
+        <span>期号 {draw_no ?? "—"}</span>
       </footer>
     </article>
   );
