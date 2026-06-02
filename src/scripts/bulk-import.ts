@@ -183,8 +183,8 @@ function parse4dMoonPastResults(params: {
       html,
       dateIso,
       operator: "toto",
-      logoSrc: "/images/logo_sportstoto.gif",
-      titleIncludes: "Toto",
+      logoSrc: "/images/logo_toto4d.gif",
+      titleIncludes: "SportsToto",
     });
     if (t) out.push(t);
   }
