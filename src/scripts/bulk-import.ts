@@ -1,9 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import {
-  fetchCheck4dHtml,
-  parseCheck4dHtml,
-  type ParsedDraw,
-} from "@/lib/ingest/parse-check4d";
+import type { ParsedDraw } from "@/lib/ingest/parse-check4d";
 import { buildHistoryEntries } from "@/lib/ingest/stats";
 import { calculateHeatScore } from "@/lib/heat-score";
 import type { OperatorId } from "@/types";
@@ -70,6 +66,132 @@ function operatorSet(): OperatorId[] {
   return ["magnum", "damacai", "toto"];
 }
 
+async function fetch4dMoonPastResultsHtml(dateIso: string): Promise<string> {
+  const res = await fetch(`https://www.4dmoon.com/past-results/${dateIso}`, {
+    // Some hosts block requests without a UA. Keep it simple and stable.
+    headers: {
+      "user-agent": "check4dlive-bulk-import/1.0",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`4dmoon fetch failed (${res.status}) for ${dateIso}`);
+  }
+
+  return res.text();
+}
+
+function parse4dMoonOperatorBlock(params: {
+  html: string;
+  dateIso: string;
+  operator: OperatorId;
+  logoSrc: string;
+  titleIncludes: string;
+}): ParsedDraw | null {
+  const { html, dateIso, operator, logoSrc, titleIncludes } = params;
+
+  const logoIdx = html.indexOf(logoSrc);
+  if (logoIdx < 0) return null;
+
+  // Grab a reasonably-sized window around the operator card.
+  const start = Math.max(0, logoIdx - 20_000);
+  const end = Math.min(html.length, logoIdx + 80_000);
+  const block = html.slice(start, end);
+
+  if (!block.toLowerCase().includes(titleIncludes.toLowerCase())) return null;
+
+  const prizeMatches = Array.from(block.matchAll(/class="rtn">(\d{4})</g)).map(
+    (m) => m[1]
+  );
+  if (prizeMatches.length < 3) return null;
+
+  const specialStart = block.indexOf('class="rpl">Special</td>');
+  const consolationStart = block.indexOf('class="rpl">Consolation</td>');
+
+  const specialsPart =
+    specialStart >= 0 && consolationStart > specialStart
+      ? block.slice(specialStart, consolationStart)
+      : "";
+  const consolationPart =
+    consolationStart >= 0 ? block.slice(consolationStart) : "";
+
+  const special_numbers = Array.from(
+    specialsPart.matchAll(/class="rbn">(\d{4})</g)
+  )
+    .map((m) => m[1])
+    .slice(0, 10);
+  const consolation_numbers = Array.from(
+    consolationPart.matchAll(/class="rbn">(\d{4})</g)
+  )
+    .map((m) => m[1])
+    .slice(0, 10);
+
+  const rdd = /class="rdd">\([^)]*\)\s*[^<]*#([^<]+)<\/span>/i.exec(block)?.[1];
+  const draw_no = rdd ? rdd.trim() : undefined;
+
+  return {
+    date: dateIso,
+    operator,
+    region: "west",
+    draw_no,
+    first_prize: prizeMatches[0] ?? null,
+    second_prize: prizeMatches[1] ?? null,
+    third_prize: prizeMatches[2] ?? null,
+    special_numbers,
+    consolation_numbers,
+    jackpot1_amount: undefined,
+    jackpot2_amount: undefined,
+    zodiac: undefined,
+    extra_data: undefined,
+  };
+}
+
+function parse4dMoonPastResults(params: {
+  html: string;
+  dateIso: string;
+  operators: OperatorId[];
+}): ParsedDraw[] {
+  const { html, dateIso, operators } = params;
+
+  const out: ParsedDraw[] = [];
+
+  if (operators.includes("damacai")) {
+    const d = parse4dMoonOperatorBlock({
+      html,
+      dateIso,
+      operator: "damacai",
+      logoSrc: "/images/logo_damacai.gif",
+      titleIncludes: "Damacai",
+    });
+    if (d) out.push(d);
+  }
+
+  if (operators.includes("magnum")) {
+    const m = parse4dMoonOperatorBlock({
+      html,
+      dateIso,
+      operator: "magnum",
+      logoSrc: "/images/logo_magnum.gif",
+      titleIncludes: "Magnum",
+    });
+    if (m) out.push(m);
+  }
+
+  if (operators.includes("toto")) {
+    const t = parse4dMoonOperatorBlock({
+      html,
+      dateIso,
+      operator: "toto",
+      logoSrc: "/images/logo_sportstoto.gif",
+      titleIncludes: "Toto",
+    });
+    if (t) out.push(t);
+  }
+
+  return out.filter((d) => d.date === dateIso);
+}
+
 export async function bulkImportHistorical(params: {
   from: string;
   to: string;
@@ -95,13 +217,12 @@ export async function bulkImportHistorical(params: {
     if (isMytDrawDay(cursor)) {
       processedDates++;
 
-      const url = `https://www.check4dresult.com/past-results/?date=${cursor}`;
       onProgress?.(`[${jobId}] Fetching ${cursor} (${processedDates} draw days)`);
 
-      const html = await fetchCheck4dHtml(url);
-      const parsed = parseCheck4dHtml(html).filter(
-        (d) => ops.includes(d.operator) && d.date === cursor
-      );
+      // check4dresult.com "past-results?date=" is unreliable (404/redirect).
+      // 4dmoon provides stable HTML pages per draw date.
+      const html = await fetch4dMoonPastResultsHtml(cursor);
+      const parsed = parse4dMoonPastResults({ html, dateIso: cursor, operators: ops });
 
       for (const draw of parsed) {
         const { data: existing } = await supabase
@@ -145,10 +266,11 @@ export async function bulkImportHistorical(params: {
 
         insertedDraws += 1;
       }
+
+      await sleep(1000); // 1 request/sec to avoid being blocked
     }
 
     cursor = addDaysIso(cursor, 1);
-    await sleep(1000); // 1 request/sec to avoid being blocked
   }
 
   onProgress?.(
