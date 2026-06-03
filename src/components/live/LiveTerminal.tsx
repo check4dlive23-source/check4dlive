@@ -26,6 +26,7 @@ import {
   type DbDrawRow,
   mergeDrawResult,
 } from "@/lib/results-mapper";
+import { todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
 import type { DrawResult, Region } from "@/types";
 import { Damacai3Plus3DCard } from "./Damacai3Plus3DCard";
@@ -72,6 +73,41 @@ const WEST_OPERATORS = ["magnum", "damacai", "toto"] as const;
 const EAST_OPERATORS = ["sabah", "sarawak", "sandakan"] as const;
 const CAMBODIA_OPERATORS = ["gd", "perdana", "hari"] as const;
 
+function LoadingSkeleton({ cols = 3 }: { cols?: 2 | 3 }) {
+  const count = cols === 3 ? 3 : 2;
+  return (
+    <div
+      className={
+        cols === 3
+          ? "grid grid-cols-1 md:grid-cols-3 gap-3"
+          : "grid grid-cols-1 md:grid-cols-2 gap-3"
+      }
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-line bg-surface-2 overflow-hidden animate-pulse"
+        >
+          <div className="h-12 bg-surface-3 border-b border-line" />
+          <div className="h-10 bg-surface-3 border-b border-line" />
+          <div className="grid grid-cols-3 gap-2 p-3">
+            <div className="h-12 rounded bg-surface-3" />
+            <div className="h-12 rounded bg-surface-3" />
+            <div className="h-12 rounded bg-surface-3" />
+          </div>
+          <div className="p-3 space-y-2">
+            <div className="grid grid-cols-5 gap-1">
+              {Array.from({ length: 10 }).map((_, j) => (
+                <div key={j} className="h-8 rounded bg-surface-3" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function mergeRegionDraws(
   mocks: DrawResult[],
   operators: Record<string, DbDrawRow>,
@@ -94,10 +130,13 @@ export function LiveTerminal() {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [luckyOpen, setLuckyOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [todayStr, setTodayStr] = useState("");
   const [updateTime, setUpdateTime] = useState("");
 
   useEffect(() => {
     setMounted(true);
+    setTodayStr(todayMYT());
   }, []);
 
   useEffect(() => {
@@ -105,6 +144,10 @@ export function LiveTerminal() {
       lastUpdate ? formatTimeMYT(lastUpdate) : formatTimeMYT(new Date())
     );
   }, [lastUpdate]);
+
+  useEffect(() => {
+    setIsInitialized(false);
+  }, [region]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -129,6 +172,7 @@ export function LiveTerminal() {
           setIsLive(data.isLive ?? false);
           setIsDrawDay(data.isDrawDay ?? false);
           setLastUpdate(new Date());
+          setIsInitialized(true);
         } catch (err) {
           console.error("SSE parse failed:", err);
         }
@@ -160,9 +204,9 @@ export function LiveTerminal() {
         results,
         WEST_OPERATORS,
         drawDayActive,
-        ""
+        todayStr
       ),
-    [results, isDrawDay]
+    [results, drawDayActive, todayStr]
   );
 
   const eastMain4DDisplay = useMemo(
@@ -172,9 +216,9 @@ export function LiveTerminal() {
         results,
         EAST_OPERATORS,
         drawDayActive,
-        ""
+        todayStr
       ),
-    [results, isDrawDay]
+    [results, drawDayActive, todayStr]
   );
 
   const cambodiaMain4DDisplay = useMemo(
@@ -184,15 +228,15 @@ export function LiveTerminal() {
         results,
         CAMBODIA_OPERATORS,
         drawDayActive,
-        ""
+        todayStr
       ),
-    [results, isDrawDay]
+    [results, drawDayActive, todayStr]
   );
 
   const singapore4DDisplay = useMemo(
     () =>
-      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, ""),
-    [results, isDrawDay]
+      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, todayStr),
+    [results, drawDayActive, todayStr]
   );
 
   const magnumDraw = westMain4DDisplay[0];
@@ -238,7 +282,9 @@ export function LiveTerminal() {
           <main className="min-w-0">
             {/* ADSENSE_SLOT_TOP */}
 
-            {region === "west" && (
+            {!isInitialized ? (
+              <LoadingSkeleton cols={region === "singapore" ? 2 : 3} />
+            ) : region === "west" ? (
               <>
                 <p className="text-sm text-muted mb-3">
                   {regionLabels.west.schedule}
@@ -256,13 +302,13 @@ export function LiveTerminal() {
                   <MagnumGoldCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={drawDayActive ? "pending" : magnumDraw.status}
+                    status={magnumDraw.status}
                     data={magnumGold}
                   />
                   <MagnumLifeCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={drawDayActive ? "pending" : magnumDraw.status}
+                    status={magnumDraw.status}
                     data={magnumLife}
                   />
                 </div>
@@ -297,13 +343,11 @@ export function LiveTerminal() {
                 <Damacai3Plus3DCard
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}
-                  status={drawDayActive ? "pending" : damacaiDraw.status}
+                  status={damacaiDraw.status}
                   data={damacai3Plus3D}
                 />
               </>
-            )}
-
-            {region === "east" && (
+            ) : region === "east" ? (
               <>
                 <p className="text-sm text-muted mb-4">
                   {regionLabels.east.schedule}
@@ -348,9 +392,7 @@ export function LiveTerminal() {
                   ))}
                 </CardGrid>
               </>
-            )}
-
-            {region === "singapore" && (
+            ) : region === "singapore" ? (
               <>
                 <p className="text-sm text-muted mb-4">
                   {regionLabels.singapore.schedule}
@@ -365,7 +407,7 @@ export function LiveTerminal() {
                   />
                 </CardGrid>
               </>
-            )}
+            ) : null}
 
             <p className="mt-8 text-center text-xs text-dim">
               {t("updatedAt")}{" "}
