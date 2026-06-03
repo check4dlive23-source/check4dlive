@@ -23,6 +23,14 @@ import {
   westMain4D,
 } from "@/lib/mock-data";
 import {
+  mapDamacai3Plus3DExtra,
+  mapMagnumGoldExtra,
+  mapMagnumLifeExtra,
+  mapToto5DExtra,
+  mapToto6DTiers,
+  mapTotoLottoGames,
+} from "@/lib/extra-data-mapper";
+import {
   type DbDrawRow,
   mergeDrawResult,
 } from "@/lib/results-mapper";
@@ -243,6 +251,47 @@ export function LiveTerminal() {
   const damacaiDraw = westMain4DDisplay[1];
   const totoDraw = westMain4DDisplay[2];
 
+  const magnumExtra = results["magnum"]?.extra_data as
+    | Record<string, unknown>
+    | undefined;
+  const damacaiExtra = results["damacai"]?.extra_data as
+    | Record<string, unknown>
+    | undefined;
+  const totoExtra = results["toto"]?.extra_data as
+    | Record<string, unknown>
+    | undefined;
+
+  const magnumGoldData = useMemo(
+    () => mapMagnumGoldExtra(magnumExtra?.gold, magnumGold),
+    [magnumExtra]
+  );
+  const magnumLifeData = useMemo(
+    () => mapMagnumLifeExtra(magnumExtra?.life, magnumLife),
+    [magnumExtra]
+  );
+  const damacai3Plus3DData = useMemo(
+    () =>
+      mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D, damacai3Plus3D),
+    [damacaiExtra]
+  );
+  const toto5DData = useMemo(
+    () => mapToto5DExtra(totoExtra?.toto5D, toto5D),
+    [totoExtra]
+  );
+  const toto6DData = useMemo(
+    () => mapToto6DTiers(totoExtra?.toto6D, toto6DTiers),
+    [totoExtra]
+  );
+  const totoLottoData = useMemo(
+    () =>
+      mapTotoLottoGames(totoExtra?.totoLotto, totoLottoGames, {
+        date: totoDraw.date,
+        draw_no: totoDraw.draw_no,
+        status: totoDraw.status,
+      }),
+    [totoExtra, totoDraw.date, totoDraw.draw_no, totoDraw.status]
+  );
+
   return (
     <>
       <div className="min-h-screen bg-surface pb-16 sm:pb-0">
@@ -305,13 +354,13 @@ export function LiveTerminal() {
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
                     status={magnumDraw.status}
-                    data={magnumGold}
+                    data={magnumGoldData}
                   />
                   <MagnumLifeCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
                     status={magnumDraw.status}
-                    data={magnumLife}
+                    data={magnumLifeData}
                   />
                 </div>
 
@@ -323,18 +372,18 @@ export function LiveTerminal() {
                       date={totoDraw.date}
                       draw_no={totoDraw.draw_no}
                       status={totoDraw.status}
-                      prizes={toto5D}
+                      prizes={toto5DData}
                     />
                     <SixDCard
                       displayName="Sports Toto 6D"
                       date={totoDraw.date}
                       draw_no={totoDraw.draw_no}
                       status={totoDraw.status}
-                      tiers={toto6DTiers}
+                      tiers={toto6DData}
                     />
                   </div>
                   <TotoLottoCombinedCard
-                    games={totoLottoGames}
+                    games={totoLottoData}
                     date={totoDraw.date}
                     draw_no={totoDraw.draw_no}
                     status={totoDraw.status}
@@ -346,7 +395,7 @@ export function LiveTerminal() {
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}
                   status={damacaiDraw.status}
-                  data={damacai3Plus3D}
+                  data={damacai3Plus3DData}
                 />
               </>
             )}
