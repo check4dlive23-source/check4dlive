@@ -38,3 +38,5 @@ next-env.d.ts
 # scrape debug artifacts
 tmp-*.html
 mkcert.exe
+
+.vercel

@@ -94,7 +94,11 @@ function collectSpecial(block: string, prefix: string, max: number): string[] {
 }
 
 function specialMax(operator: OperatorId): number {
-  return operator === "damacai" ? 10 : 13;
+  if (operator === "damacai") return 10;
+  if (operator === "sabah" || operator === "sandakan" || operator === "sarawak") {
+    return 10;
+  }
+  return 13;
 }
 
 function parseMagnumExtras(block: string): Record<string, unknown> | undefined {
