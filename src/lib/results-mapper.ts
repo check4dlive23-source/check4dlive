@@ -103,17 +103,17 @@ export function mergeDrawResult(
   api?: DbDrawRow | null,
   isDrawDay = false
 ): DrawResult {
-  if (isDrawDay && !api) {
-    const operator = mock.operator;
-    const spCount = specialSlotCount(operator);
+  const today = todayMYT();
+
+  if (isDrawDay && (!api || (api.date as string) !== today)) {
     return withPaddedPrizes({
       ...mock,
-      date: todayMYT(),
+      date: today,
       status: "pending",
       first_prize: "----",
       second_prize: "----",
       third_prize: "----",
-      special_numbers: Array(spCount).fill("----"),
+      special_numbers: Array(specialSlotCount(mock.operator)).fill("----"),
       consolation_numbers: Array(10).fill("----"),
     });
   }
