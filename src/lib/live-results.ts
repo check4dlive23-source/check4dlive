@@ -1,10 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import {
-  isRegionLiveDraw,
-  LIVE_CACHE_MS,
-  shouldScrapeOnLive,
-  todayMYT,
-} from "@/lib/draw-time";
+import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import {
   fetchAllCheck4dDraws,
   type ParsedWestDraw,
@@ -33,9 +28,10 @@ function toDbRow(draw: ParsedWestDraw) {
 
 /** Scrape check4dresult.com and return operators for the requested region */
 export async function scrapeLiveResults(
-  region: Region
+  region: Region,
+  preloaded?: ParsedWestDraw[]
 ): Promise<Record<string, DrawRow>> {
-  const parsed = (await fetchAllCheck4dDraws()).filter(
+  const parsed = (preloaded ?? (await fetchAllCheck4dDraws())).filter(
     (d) => d.region === region
   );
 
@@ -49,27 +45,6 @@ export async function scrapeLiveResults(
     };
   }
   return operators;
-}
-
-export async function isLiveCacheFresh(
-  region: Region,
-  date: string
-): Promise<boolean> {
-  const supabase = createClient();
-  if (!supabase) return false;
-
-  const { data } = await supabase
-    .from("draws")
-    .select("created_at")
-    .eq("region", region)
-    .eq("date", date)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!data?.created_at) return false;
-  const age = Date.now() - new Date(data.created_at as string).getTime();
-  return age < LIVE_CACHE_MS;
 }
 
 /** Replace today's draws per operator (live upsert) */
@@ -161,6 +136,51 @@ export interface RegionResultsPayload {
   source: "live" | "cache" | "db" | "none";
 }
 
+/** Cron-only: one check4dresult fetch, upsert all live regions into Supabase */
+export async function runLiveCronIngest(): Promise<{
+  skipped: boolean;
+  scraped?: Region[];
+  operators?: number;
+  date?: string;
+  error?: string;
+}> {
+  const regions: Region[] = ["west", "east", "cambodia", "singapore"];
+  const liveRegions = regions.filter((r) => isRegionLiveDraw(r));
+  if (liveRegions.length === 0) {
+    return { skipped: true };
+  }
+
+  const date = todayMYT();
+  let totalCount = 0;
+
+  try {
+    const allParsed = await fetchAllCheck4dDraws();
+
+    for (const region of liveRegions) {
+      const liveData = await scrapeLiveResults(region, allParsed);
+      if (Object.keys(liveData).length > 0) {
+        await upsertDrawResults(liveData, date, region);
+        totalCount += Object.keys(liveData).length;
+      }
+    }
+
+    return {
+      skipped: false,
+      scraped: liveRegions,
+      operators: totalCount,
+      date,
+    };
+  } catch (e) {
+    return {
+      skipped: false,
+      scraped: liveRegions,
+      operators: totalCount,
+      date,
+      error: e instanceof Error ? e.message : "Live ingest failed",
+    };
+  }
+}
+
 export async function getRegionResults(
   region: Region,
   options?: { mockLive?: boolean; date?: string }
@@ -175,26 +195,6 @@ export async function getRegionResults(
   const supabase = createClient();
   if (!supabase) {
     return { operators: {}, date, region, isLive, source: "none" };
-  }
-
-  const canScrape = isLive && shouldScrapeOnLive(region);
-
-  if (canScrape) {
-    const fresh = await isLiveCacheFresh(region, date);
-    if (fresh) {
-      const operators = await fetchDrawsFromDb(region, date);
-      return { operators, date, region, isLive, source: "cache" };
-    }
-
-    try {
-      const liveData = await scrapeLiveResults(region);
-      if (Object.keys(liveData).length > 0) {
-        await upsertDrawResults(liveData, date, region);
-        return { operators: liveData, date, region, isLive, source: "live" };
-      }
-    } catch {
-      /* fall through to DB */
-    }
   }
 
   const operators = await fetchDrawsFromDb(region, date);

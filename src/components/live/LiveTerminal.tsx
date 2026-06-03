@@ -118,14 +118,6 @@ export function LiveTerminal() {
           setIsLive(live);
           setLastUpdate(new Date());
         }
-        if (live) {
-          const otherRegions: Region[] = (
-            ["west", "east", "cambodia", "singapore"] as Region[]
-          ).filter((r) => r !== region);
-          otherRegions.forEach((r) =>
-            fetch(`/api/results?region=${r}&t=${Date.now()}`)
-          );
-        }
         if (interval) clearInterval(interval);
         interval = setInterval(poll, getRefreshInterval(live));
       } catch (err) {
