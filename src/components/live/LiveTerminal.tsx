@@ -284,7 +284,9 @@ export function LiveTerminal() {
 
             {!isInitialized ? (
               <LoadingSkeleton cols={region === "singapore" ? 2 : 3} />
-            ) : region === "west" ? (
+            ) : (
+              <>
+            {region === "west" && (
               <>
                 <p className="text-sm text-muted mb-3">
                   {regionLabels.west.schedule}
@@ -347,7 +349,9 @@ export function LiveTerminal() {
                   data={damacai3Plus3D}
                 />
               </>
-            ) : region === "east" ? (
+            )}
+
+            {region === "east" && (
               <>
                 <p className="text-sm text-muted mb-4">
                   {regionLabels.east.schedule}
@@ -392,7 +396,9 @@ export function LiveTerminal() {
                   ))}
                 </CardGrid>
               </>
-            ) : region === "singapore" ? (
+            )}
+
+            {region === "singapore" && (
               <>
                 <p className="text-sm text-muted mb-4">
                   {regionLabels.singapore.schedule}
@@ -407,7 +413,9 @@ export function LiveTerminal() {
                   />
                 </CardGrid>
               </>
-            ) : null}
+            )}
+              </>
+            )}
 
             <p className="mt-8 text-center text-xs text-dim">
               {t("updatedAt")}{" "}
