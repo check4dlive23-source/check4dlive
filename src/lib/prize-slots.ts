@@ -2,19 +2,24 @@ import type { OperatorId } from "@/types";
 
 export const CONSOLATION_SLOT_COUNT = 10;
 
+const SPECIAL_SLOTS: Record<string, number> = {
+  damacai: 10,
+  magnum: 13,
+  toto: 13,
+  sabah: 13,
+  sarawak: 13,
+  sandakan: 13,
+  gd: 13,
+  perdana: 13,
+  hari: 13,
+  sgpools: 10,
+};
+
 export function specialSlotCount(operator: OperatorId | string): number {
-  if (operator === "damacai" || operator === "sgpools") return 10;
-  if (
-    operator === "sabah" ||
-    operator === "sandakan" ||
-    operator === "sarawak"
-  ) {
-    return 10;
-  }
-  return 13;
+  return SPECIAL_SLOTS[operator] ?? 13;
 }
 
-/** Alias used by UI — damacai/sgpools/east: 10, others: 13 */
+/** Alias used by UI — damacai/sgpools: 10, others per SPECIAL_SLOTS */
 export function getSpecialCount(operator: string): number {
   return specialSlotCount(operator);
 }
