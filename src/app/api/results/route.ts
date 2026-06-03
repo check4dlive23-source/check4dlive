@@ -18,10 +18,7 @@ export async function GET(request: Request) {
     const drawDay = isDrawDayAndNearDraw(region);
 
     const headers: HeadersInit = {
-      "Cache-Control":
-        payload.isLive && payload.source === "live"
-          ? "no-store, max-age=0"
-          : "private, max-age=30",
+      "Cache-Control": "no-store, max-age=0",
     };
 
     return NextResponse.json(
