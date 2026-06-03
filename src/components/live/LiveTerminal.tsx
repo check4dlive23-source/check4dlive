@@ -283,11 +283,17 @@ export function LiveTerminal() {
                   <Sabah3DCard
                     date={eastMain4DDisplay[0]?.date}
                     draw_no={eastMain4DDisplay[0]?.draw_no}
-                    status="drawn"
+                    status={isDrawDay ? "pending" : "drawn"}
                     data={sabah3D}
                   />
                   {sabahLottoGames.map((g) => (
-                    <LottoBallCard key={g.displayName} data={g} />
+                    <LottoBallCard
+                      key={g.displayName}
+                      data={{
+                        ...g,
+                        status: isDrawDay ? "pending" : g.status,
+                      }}
+                    />
                   ))}
                 </CardGrid>
               </>
