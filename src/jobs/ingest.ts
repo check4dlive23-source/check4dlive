@@ -1,7 +1,7 @@
 /**
  * Daily maintenance ingest (Vercel cron 00:05 MYT).
- * Persists completed draws + draw_history + number_stats.
- * Live draw updates use /api/results scrape path — not this job.
+ * Persists latest check4dresult draws for fallback (all regions, any prize state).
+ * Live draw updates use live-ingest cron — not this job.
  */
 import { createServerClient } from "@/lib/supabase/server";
 import {
@@ -9,10 +9,19 @@ import {
   type ParsedWestDraw,
 } from "@/lib/ingest/parse-check4d";
 import { buildHistoryEntries, recordDrawStats } from "@/lib/ingest/stats";
+import type { Region } from "@/types";
+
+export const INGEST_REGIONS: Region[] = [
+  "west",
+  "east",
+  "cambodia",
+  "singapore",
+];
 
 export interface IngestResult {
   success: boolean;
   inserted: number;
+  regions: Region[];
   operators: string[];
   errors?: string[];
 }
@@ -41,6 +50,7 @@ export async function runIngest(): Promise<IngestResult> {
     return {
       success: false,
       inserted: 0,
+      regions: INGEST_REGIONS,
       operators: [],
       errors: ["Supabase not configured"],
     };
@@ -52,15 +62,20 @@ export async function runIngest(): Promise<IngestResult> {
   const operators: string[] = [];
 
   for (const draw of parsed) {
-    if (
-      !draw.first_prize ||
-      draw.first_prize === "----" ||
-      !/^\d{4}$/.test(draw.first_prize)
-    ) {
+    if (!draw.date || !INGEST_REGIONS.includes(draw.region)) {
+      continue;
+    }
+    if (!draw.first_prize || draw.first_prize === "") {
       continue;
     }
 
     try {
+      await supabase
+        .from("draws")
+        .delete()
+        .eq("operator", draw.operator)
+        .eq("date", draw.date);
+
       const { data: row, error } = await supabase
         .from("draws")
         .insert(toDbRow(draw))
@@ -70,27 +85,33 @@ export async function runIngest(): Promise<IngestResult> {
       if (error) throw new Error(error.message);
       if (!row?.id) throw new Error("No draw id returned");
 
-      const entries = buildHistoryEntries(draw);
-      await recordDrawStats(
-        supabase,
-        row.id,
-        draw.date,
-        draw.operator,
-        entries
-      );
+      const hasValidPrize =
+        draw.first_prize != null && /^\d{4}$/.test(draw.first_prize);
+      if (hasValidPrize) {
+        const entries = buildHistoryEntries(draw);
+        await recordDrawStats(
+          supabase,
+          row.id,
+          draw.date,
+          draw.operator,
+          entries
+        );
+      }
 
       inserted += 1;
-      operators.push(draw.operator);
+      operators.push(`${draw.region}/${draw.operator}:${draw.date}`);
     } catch (e) {
-      errors.push(
-        `${draw.operator}: ${e instanceof Error ? e.message : String(e)}`
-      );
+      const msg = e instanceof Error ? e.message : String(e);
+      const label = `${draw.operator} ${draw.date}`;
+      console.error(`[ingest] ${label}:`, e);
+      errors.push(`${label}: ${msg}`);
     }
   }
 
   return {
     success: errors.length === 0,
     inserted,
+    regions: INGEST_REGIONS,
     operators,
     errors: errors.length ? errors : undefined,
   };

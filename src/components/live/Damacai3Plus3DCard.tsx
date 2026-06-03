@@ -12,15 +12,23 @@ interface Damacai3Plus3DCardProps {
   data: Damacai3Plus3DExtra;
 }
 
-function SixDigitGrid({ numbers }: { numbers: string[] }) {
+function SixDigitGrid({
+  numbers,
+  revealed,
+}: {
+  numbers: string[];
+  revealed: boolean;
+}) {
   return (
     <div className="grid grid-cols-5 gap-1">
       {numbers.map((n, i) => (
         <span
           key={`${n}-${i}`}
-          className="font-number text-xs text-foreground text-center truncate"
+          className={`font-number text-xs text-center truncate ${
+            revealed ? "text-foreground" : "text-muted opacity-70"
+          }`}
         >
-          {n}
+          {revealed ? n : "----"}
         </span>
       ))}
     </div>
@@ -63,7 +71,7 @@ export function Damacai3Plus3DCard({
                     revealed ? "text-foreground" : "text-dim"
                   }`}
                 >
-                  {revealed ? p.number : "—"}
+                  {revealed ? p.number : "----"}
                 </td>
                 <td className="py-1 pr-2 text-xs font-semibold text-gold whitespace-nowrap">
                   {p.zodiac}
@@ -82,22 +90,14 @@ export function Damacai3Plus3DCard({
 
       <section className="p-2 border-b border-line">
         <p className="text-[10px] text-muted mb-1 uppercase">Special 特別獎</p>
-        {revealed ? (
-          <SixDigitGrid numbers={data.special} />
-        ) : (
-          <p className="text-dim text-xs font-number">—</p>
-        )}
+        <SixDigitGrid numbers={data.special} revealed={revealed} />
       </section>
 
       <section className="p-2 border-b border-line">
         <p className="text-[10px] text-muted mb-1 uppercase">
           Consolation 安慰獎
         </p>
-        {revealed ? (
-          <SixDigitGrid numbers={data.consolation} />
-        ) : (
-          <p className="text-dim text-xs font-number">—</p>
-        )}
+        <SixDigitGrid numbers={data.consolation} revealed={revealed} />
       </section>
 
       <footer className="flex justify-between px-2 py-1.5 text-[10px] text-dim">

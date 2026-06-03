@@ -1,3 +1,4 @@
+import { isDrawDayAndNearDraw } from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
 import type { Region } from "@/types";
 import { NextResponse } from "next/server";
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
 
   try {
     const payload = await getRegionResults(region, { mockLive });
+    const drawDay = isDrawDayAndNearDraw(region);
 
     const headers: HeadersInit = {
       "Cache-Control":
@@ -29,6 +31,7 @@ export async function GET(request: Request) {
         date: payload.date,
         region: payload.region,
         source: payload.source,
+        isDrawDay: drawDay,
       },
       { headers }
     );

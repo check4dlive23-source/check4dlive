@@ -37,7 +37,6 @@ export async function scrapeLiveResults(
 
   const operators: Record<string, DrawRow> = {};
   for (const draw of parsed) {
-    if (!draw.first_prize || draw.first_prize === "----") continue;
     operators[draw.operator] = {
       ...toDbRow(draw),
       id: `live-${draw.operator}`,
@@ -57,12 +56,13 @@ export async function upsertDrawResults(
   if (!supabase) return;
 
   for (const [operator, row] of Object.entries(operators)) {
+    const rowDate = (row.date as string) ?? date;
     await supabase
       .from("draws")
       .delete()
       .eq("region", region)
       .eq("operator", operator)
-      .eq("date", date);
+      .eq("date", rowDate);
 
     const { error } = await supabase.from("draws").insert({
       date: (row.date as string) ?? date,
@@ -109,13 +109,13 @@ export async function fetchDrawsFromDb(
     }
   }
 
-  if (region === "cambodia" && Object.keys(byOperator).length === 0) {
+  if (Object.keys(byOperator).length === 0) {
     const { data: latest } = await supabase
       .from("draws")
       .select("*")
-      .eq("region", "cambodia")
+      .eq("region", region)
       .order("date", { ascending: false })
-      .limit(12);
+      .limit(10);
 
     for (const draw of latest ?? []) {
       const op = draw.operator as string;
@@ -200,7 +200,7 @@ export async function getRegionResults(
   const operators = await fetchDrawsFromDb(region, date);
   let resolvedDate = date;
 
-  if (region === "cambodia" && Object.keys(operators).length > 0) {
+  if (Object.keys(operators).length > 0) {
     const dates = Object.values(operators)
       .map((o) => o.date as string)
       .filter(Boolean)

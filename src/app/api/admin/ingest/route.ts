@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: result.success,
       inserted: result.inserted,
+      regions: result.regions,
       operators: result.operators,
       errors: result.errors,
     });

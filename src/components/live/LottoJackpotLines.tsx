@@ -18,11 +18,17 @@ function prizeLabels(data: LottoBallResult): { first: string; second: string } {
 interface LottoJackpotLinesProps {
   data: LottoBallResult;
   compact?: boolean;
+  /** Larger jackpot text for mobile lotto cards */
+  readable?: boolean;
 }
 
-export function LottoJackpotLines({ data, compact = false }: LottoJackpotLinesProps) {
-  const textSize = compact ? "text-[10px]" : "text-xs";
-  const noteSize = compact ? "text-[9px]" : "text-[10px]";
+export function LottoJackpotLines({
+  data,
+  compact = false,
+  readable = false,
+}: LottoJackpotLinesProps) {
+  const textSize = readable ? "text-sm" : compact ? "text-[10px]" : "text-xs";
+  const noteSize = readable ? "text-xs" : compact ? "text-[9px]" : "text-[10px]";
   const { first, second } = prizeLabels(data);
 
   if (

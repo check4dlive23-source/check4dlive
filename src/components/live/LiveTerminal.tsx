@@ -76,16 +76,13 @@ const CAMBODIA_OPERATORS = ["gd", "perdana", "hari"] as const;
 function mergeRegionDraws(
   mocks: DrawResult[],
   operators: Record<string, DbDrawRow>,
-  keys: readonly string[]
+  keys: readonly string[],
+  isDrawDay: boolean
 ): DrawResult[] {
   return keys.map((op) => {
     const mock = mocks.find((d) => d.operator === op)!;
-    return mergeDrawResult(mock, operators[op]);
+    return mergeDrawResult(mock, operators[op], isDrawDay);
   });
-}
-
-function mergeWestMain4D(operators: Record<string, DbDrawRow>): DrawResult[] {
-  return mergeRegionDraws(westMain4D, operators, WEST_OPERATORS);
 }
 
 function getRefreshInterval(isLive: boolean): number {
@@ -97,6 +94,7 @@ export function LiveTerminal() {
   const [region, setRegion] = useState<Region>("west");
   const [results, setResults] = useState<Record<string, DbDrawRow>>({});
   const [isLive, setIsLive] = useState(false);
+  const [isDrawDay, setIsDrawDay] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [luckyOpen, setLuckyOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -116,6 +114,7 @@ export function LiveTerminal() {
         if (data.operators) {
           setResults(data.operators as Record<string, DbDrawRow>);
           setIsLive(live);
+          setIsDrawDay(Boolean(data.isDrawDay));
           setLastUpdate(new Date());
         }
         if (interval) clearInterval(interval);
@@ -134,23 +133,24 @@ export function LiveTerminal() {
   }, [region]);
 
   const westMain4DDisplay = useMemo(
-    () => mergeWestMain4D(results),
-    [results]
+    () => mergeRegionDraws(westMain4D, results, WEST_OPERATORS, isDrawDay),
+    [results, isDrawDay]
   );
 
   const eastMain4DDisplay = useMemo(
-    () => mergeRegionDraws(eastMain4D, results, EAST_OPERATORS),
-    [results]
+    () => mergeRegionDraws(eastMain4D, results, EAST_OPERATORS, isDrawDay),
+    [results, isDrawDay]
   );
 
   const cambodiaMain4DDisplay = useMemo(
-    () => mergeRegionDraws(cambodiaMain4D, results, CAMBODIA_OPERATORS),
-    [results]
+    () =>
+      mergeRegionDraws(cambodiaMain4D, results, CAMBODIA_OPERATORS, isDrawDay),
+    [results, isDrawDay]
   );
 
   const singapore4DDisplay = useMemo(
-    () => mergeDrawResult(singapore4D, results["sgpools"]),
-    [results]
+    () => mergeDrawResult(singapore4D, results["sgpools"], isDrawDay),
+    [results, isDrawDay]
   );
 
   const magnumDraw = westMain4DDisplay[0];
@@ -163,7 +163,7 @@ export function LiveTerminal() {
 
   return (
     <>
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-screen bg-surface pb-16 sm:pb-0">
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-md">
           <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
@@ -218,13 +218,13 @@ export function LiveTerminal() {
                   <MagnumGoldCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={magnumDraw.status}
+                    status={isDrawDay ? "pending" : magnumDraw.status}
                     data={magnumGold}
                   />
                   <MagnumLifeCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={magnumDraw.status}
+                    status={isDrawDay ? "pending" : magnumDraw.status}
                     data={magnumLife}
                   />
                 </div>
@@ -259,7 +259,7 @@ export function LiveTerminal() {
                 <Damacai3Plus3DCard
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}
-                  status={damacaiDraw.status}
+                  status={isDrawDay ? "pending" : damacaiDraw.status}
                   data={damacai3Plus3D}
                 />
               </>
@@ -313,7 +313,12 @@ export function LiveTerminal() {
                 </p>
                 <CardGrid cols={2}>
                   <ResultCard data={singapore4DDisplay} />
-                  <LottoBallCard data={singaporeToto} />
+                  <LottoBallCard
+                    data={{
+                      ...singaporeToto,
+                      status: isDrawDay ? "pending" : singaporeToto.status,
+                    }}
+                  />
                 </CardGrid>
               </>
             )}

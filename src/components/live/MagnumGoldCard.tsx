@@ -13,17 +13,20 @@ interface MagnumGoldCardProps {
   data: MagnumGoldExtra;
 }
 
-function DigitCell({ value }: { value: string }) {
+function DigitCell({ value, revealed }: { value: string; revealed: boolean }) {
   const empty = value === "" || value === " ";
+  const dimmed = !revealed;
   return (
     <span
-      className={`inline-flex h-7 w-6 items-center justify-center rounded border font-number text-sm ${
-        empty
-          ? "border-line/50 bg-surface-3/50 text-dim"
-          : "border-line bg-surface-4 text-foreground"
+      className={`inline-flex h-10 w-9 items-center justify-center rounded border font-number text-base font-bold ${
+        dimmed
+          ? "border-line/70 bg-surface-3/60 text-muted opacity-70"
+          : empty
+            ? "border-line/50 bg-surface-3/50 text-dim"
+            : "border-line bg-surface-4 text-foreground"
       }`}
     >
-      {empty ? " " : value}
+      {dimmed ? "—" : empty ? " " : value}
     </span>
   );
 }
@@ -31,18 +34,22 @@ function DigitCell({ value }: { value: string }) {
 function DigitRow({
   digits,
   bonus,
+  revealed,
 }: {
   digits: string[];
   bonus: string[];
+  revealed: boolean;
 }) {
+  const d = revealed ? digits : digits.map(() => "");
+  const b = revealed ? bonus : bonus.map(() => "");
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {digits.map((d, i) => (
-        <DigitCell key={`d-${i}`} value={d} />
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      {d.map((digit, i) => (
+        <DigitCell key={`d-${i}`} value={digit} revealed={revealed} />
       ))}
       <span className="text-muted text-xs px-0.5">+</span>
-      {bonus.map((b, i) => (
-        <DigitCell key={`b-${i}`} value={b} />
+      {b.map((digit, i) => (
+        <DigitCell key={`b-${i}`} value={digit} revealed={revealed} />
       ))}
     </div>
   );
@@ -52,10 +59,12 @@ function PrizeBlock({
   title,
   children,
   prize,
+  revealed,
 }: {
   title: string;
   children: ReactNode;
   prize?: number;
+  revealed: boolean;
 }) {
   return (
     <div className="px-2.5 py-2 border-b border-line space-y-1.5">
@@ -65,7 +74,8 @@ function PrizeBlock({
       {children}
       {prize != null && (
         <p className="text-sm text-gold font-number">
-          Prize: {formatCurrency(prize, 2)}
+          Prize:{" "}
+          {revealed ? formatCurrency(prize, 2) : "—"}
         </p>
       )}
     </div>
@@ -78,6 +88,8 @@ export function MagnumGoldCard({
   status,
   data,
 }: MagnumGoldCardProps) {
+  const revealed = status !== "pending";
+
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden min-w-0">
       <header
@@ -93,18 +105,22 @@ export function MagnumGoldCard({
         <StatusTag status={status} />
       </header>
 
-      <PrizeBlock title="Jackpot 1" prize={data.jackpot1.prize}>
-        <DigitRow digits={data.jackpot1.digits} bonus={data.jackpot1.bonus} />
+      <PrizeBlock title="Jackpot 1" prize={data.jackpot1.prize} revealed={revealed}>
+        <DigitRow
+          digits={data.jackpot1.digits}
+          bonus={data.jackpot1.bonus}
+          revealed={revealed}
+        />
       </PrizeBlock>
 
-      <PrizeBlock title="Jackpot 2" prize={data.jackpot2.prize}>
+      <PrizeBlock title="Jackpot 2" prize={data.jackpot2.prize} revealed={revealed}>
         <div className="space-y-2">
           {data.jackpot2.variations.map((v, i) => (
             <div key={i}>
               {i > 0 && (
                 <p className="text-[10px] text-muted text-center py-1">OR</p>
               )}
-              <DigitRow digits={v.digits} bonus={v.bonus} />
+              <DigitRow digits={v.digits} bonus={v.bonus} revealed={revealed} />
             </div>
           ))}
         </div>
@@ -118,7 +134,7 @@ export function MagnumGoldCard({
           >
             <span className="text-muted">{p.label}</span>
             <span className="font-number text-gold">
-              {formatCurrency(p.amount)}
+              {revealed ? formatCurrency(p.amount) : "—"}
             </span>
           </div>
         ))}

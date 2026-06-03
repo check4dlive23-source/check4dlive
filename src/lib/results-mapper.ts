@@ -1,3 +1,4 @@
+import { todayMYT } from "@/lib/draw-time";
 import { padPrizeSlots, specialSlotCount } from "@/lib/prize-slots";
 import type { DrawResult, DrawStatus, OperatorId, Region } from "@/types";
 
@@ -99,8 +100,24 @@ function withPaddedPrizes(draw: DrawResult): DrawResult {
 
 export function mergeDrawResult(
   mock: DrawResult,
-  api?: DbDrawRow | null
+  api?: DbDrawRow | null,
+  isDrawDay = false
 ): DrawResult {
+  if (isDrawDay && !api) {
+    const operator = mock.operator;
+    const spCount = specialSlotCount(operator);
+    return withPaddedPrizes({
+      ...mock,
+      date: todayMYT(),
+      status: "pending",
+      first_prize: "----",
+      second_prize: "----",
+      third_prize: "----",
+      special_numbers: Array(spCount).fill("----"),
+      consolation_numbers: Array(10).fill("----"),
+    });
+  }
+
   if (!api) {
     if (mock.operator === "sgpools") {
       return withPaddedPrizes({

@@ -22,6 +22,11 @@ export function SixDCard({
   status,
   tiers,
 }: SixDCardProps) {
+  const revealed = status !== "pending";
+  const tierBox = revealed
+    ? "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3 border border-line rounded py-2 text-foreground tracking-wide"
+    : "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3/60 border border-line/70 rounded py-2 text-muted opacity-70 tracking-wide";
+
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
       <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
@@ -32,19 +37,28 @@ export function SixDCard({
         </div>
         <StatusTag status={status} />
       </header>
-      <section className="divide-y divide-border font-number text-sm">
+      <section className="divide-y divide-border">
         {tiers.map((tier) => (
-          <div key={tier.label} className="px-3 py-2 flex gap-2 items-center flex-wrap">
-            <span className="text-muted w-8 shrink-0">{tier.label}</span>
-            {tier.label === "1st" ? (
-              <span className="text-foreground tracking-wide">{tier.front}</span>
-            ) : (
-              <>
-                <span className="text-foreground tracking-wide">{tier.front}</span>
-                <span className="text-muted text-xs">OR</span>
-                <span className="text-foreground tracking-wide">{tier.back}</span>
-              </>
-            )}
+          <div
+            key={tier.label}
+            className="flex flex-row items-center gap-2 px-3 py-2"
+          >
+            <span className="text-xs text-muted w-12 shrink-0">{tier.label}</span>
+            <span className={tierBox}>
+              {!revealed ? (
+                "----"
+              ) : tier.label === "1st" ? (
+                tier.front
+              ) : (
+                <>
+                  {tier.front}{" "}
+                  <span className="text-muted text-sm font-sans font-normal">
+                    OR
+                  </span>{" "}
+                  {tier.back}
+                </>
+              )}
+            </span>
           </div>
         ))}
       </section>

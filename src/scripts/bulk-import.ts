@@ -244,7 +244,15 @@ function parseOperatorBlock(
 export async function fetchCheck4dOrgHtml(dateIso: string): Promise<string> {
   const res = await fetch(`${CHECK4D_ORG_BASE}/${dateIso}`, {
     headers: {
-      "user-agent": "check4dlive-bulk-import/1.0",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      Accept:
+        "text/html,application/xhtml+xml,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept-Encoding": "gzip, deflate, br",
+      Referer: "https://www.check4d.org/",
+      Connection: "keep-alive",
+      "Upgrade-Insecure-Requests": "1",
     },
     cache: "no-store",
   });
@@ -277,7 +285,7 @@ export function parseCheck4dOrg(html: string, dateIso: string): ParsedDraw[] {
   return out.filter((d) => d.date === dateIso);
 }
 
-function toDbDrawRow(draw: ParsedDraw) {
+export function toDbDrawRow(draw: ParsedDraw) {
   return {
     date: draw.date,
     draw_no: draw.draw_no ?? null,
@@ -293,6 +301,60 @@ function toDbDrawRow(draw: ParsedDraw) {
     zodiac: draw.zodiac ?? null,
     extra_data: draw.extra_data ?? null,
   };
+}
+
+/** Insert parsed draws + draw_history rows (skips existing date/operator/region). */
+export async function insertParsedDraws(parsed: ParsedDraw[]): Promise<{
+  inserted: number;
+  operators: string[];
+}> {
+  const supabase = createServerClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const operators: string[] = [];
+  let inserted = 0;
+
+  for (const draw of parsed) {
+    const { data: existing } = await supabase
+      .from("draws")
+      .select("id")
+      .eq("date", draw.date)
+      .eq("operator", draw.operator)
+      .eq("region", draw.region)
+      .maybeSingle();
+
+    if (existing?.id) {
+      continue;
+    }
+
+    const { data: row, error } = await supabase
+      .from("draws")
+      .insert(toDbDrawRow(draw))
+      .select("id")
+      .maybeSingle();
+
+    if (error) throw new Error(`draws insert: ${error.message}`);
+    if (!row?.id) throw new Error("No draw id returned");
+
+    const entries = buildHistoryEntries(draw);
+    if (entries.length > 0) {
+      const rows = entries.map((e) => ({
+        number: e.number,
+        date: draw.date,
+        draw_id: row.id,
+        operator: draw.operator,
+        position: e.position,
+      }));
+
+      const { error: histErr } = await supabase.from("draw_history").insert(rows);
+      if (histErr) throw new Error(`draw_history insert: ${histErr.message}`);
+    }
+
+    operators.push(draw.operator);
+    inserted += 1;
+  }
+
+  return { inserted, operators };
 }
 
 export async function bulkImportHistorical(params: {

@@ -1,7 +1,6 @@
 "use client";
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { PrizeNumber } from "@/components/ui/PrizeNumber";
 import { StatusTag } from "@/components/ui/StatusTag";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, Sabah3DExtra } from "@/types";
@@ -31,15 +30,33 @@ export function Sabah3DCard({ date, draw_no, status, data }: Sabah3DCardProps) {
       <div className="grid grid-cols-3 text-center py-4 gap-2">
         <div>
           <p className="text-[10px] text-muted mb-1">1st</p>
-          <PrizeNumber value={data.first} size="md" revealed={revealed} />
+          <span
+            className={`font-mono font-bold font-number text-3xl tracking-wide ${
+              revealed ? "text-foreground" : "text-muted opacity-70"
+            }`}
+          >
+            {revealed ? data.first : "----"}
+          </span>
         </div>
         <div>
           <p className="text-[10px] text-muted mb-1">2nd</p>
-          <PrizeNumber value={data.second} size="md" revealed={revealed} />
+          <span
+            className={`font-mono font-bold font-number text-3xl tracking-wide ${
+              revealed ? "text-foreground" : "text-muted opacity-70"
+            }`}
+          >
+            {revealed ? data.second : "----"}
+          </span>
         </div>
         <div>
           <p className="text-[10px] text-muted mb-1">3rd</p>
-          <PrizeNumber value={data.third} size="md" revealed={revealed} />
+          <span
+            className={`font-mono font-bold font-number text-3xl tracking-wide ${
+              revealed ? "text-foreground" : "text-muted opacity-70"
+            }`}
+          >
+            {revealed ? data.third : "----"}
+          </span>
         </div>
       </div>
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">

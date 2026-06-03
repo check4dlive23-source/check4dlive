@@ -59,7 +59,7 @@ export function NumberSearch() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-surface pb-16 sm:pb-0">
       <SubpageHeader title={t("smartSearch")} subtitle={t("searchSubtitle")} />
 
       <div className="mx-auto max-w-6xl px-4 py-6">

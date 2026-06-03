@@ -18,6 +18,10 @@ export function MagnumLifeCard({
   status,
   data,
 }: MagnumLifeCardProps) {
+  const revealed = status !== "pending";
+  const ballPending =
+    "flex h-11 w-11 items-center justify-center rounded-full border border-line/70 bg-surface-3/60 text-base font-bold font-number text-muted opacity-70";
+
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
       <header
@@ -33,24 +37,32 @@ export function MagnumLifeCard({
       </header>
       <section className="px-3 py-4">
         <p className="text-[10px] text-muted mb-2">Winning Numbers</p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {data.winning.map((n, i) => (
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+          {(revealed ? data.winning : data.winning.map(() => 0)).map((n, i) => (
             <span
               key={`w-${i}-${n}`}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-4 text-sm font-number border border-line"
+              className={
+                revealed
+                  ? "flex h-11 w-11 items-center justify-center rounded-full bg-surface-4 text-base font-bold font-number border border-line"
+                  : ballPending
+              }
             >
-              {n}
+              {revealed ? n : "—"}
             </span>
           ))}
         </div>
         <p className="text-[10px] text-muted mb-2">Bonus</p>
-        <div className="flex flex-wrap gap-2">
-          {data.bonus.map((n, i) => (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {(revealed ? data.bonus : data.bonus.map(() => 0)).map((n, i) => (
             <span
               key={`b-${i}-${n}`}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-3 text-sm font-number border-2 border-gold text-gold"
+              className={
+                revealed
+                  ? "flex h-11 w-11 items-center justify-center rounded-full bg-surface-3 text-base font-bold font-number border-2 border-gold text-gold"
+                  : ballPending
+              }
             >
-              {n}
+              {revealed ? n : "—"}
             </span>
           ))}
         </div>

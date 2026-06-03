@@ -1,29 +1,61 @@
 "use client";
 
-/** Ball size: compact = 32px (h-8 w-8), default = 36px */
+const BALL_BASE =
+  "flex items-center justify-center rounded-full bg-surface-4 font-bold font-number text-foreground border border-line";
+
+const BONUS_BASE =
+  "flex items-center justify-center rounded-md bg-[#0d0d14] font-bold font-number text-gold border-2 border-gold";
+
+/** Ball sizes: sm/md/lg — all rows centered with justify-center */
+const PENDING_BALL =
+  "flex items-center justify-center rounded-full bg-surface-3/60 font-bold font-number text-muted border border-line/70 opacity-70";
+
 export function LottoBalls({
   balls,
   bonus,
   hasBonus,
   size = "md",
+  revealed = true,
 }: {
   balls: number[];
   bonus?: number | null;
   hasBonus: boolean;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
+  revealed?: boolean;
 }) {
   const ballClass =
-    size === "sm"
-      ? "flex h-8 w-8 items-center justify-center rounded-full bg-surface-4 text-xs font-number text-foreground border border-line"
-      : "flex h-9 w-9 items-center justify-center rounded-full bg-surface-4 text-sm font-number text-foreground border border-line";
+    size === "md" || size === "lg"
+      ? `${BALL_BASE} h-12 w-12 text-lg`
+      : `${BALL_BASE} h-11 w-11 text-base`;
 
   const bonusClass =
-    size === "sm"
-      ? "flex h-8 w-8 items-center justify-center rounded-md bg-[#0d0d14] text-xs font-number text-gold border-2 border-gold"
-      : "flex h-8 w-8 items-center justify-center rounded-md bg-[#0d0d14] text-sm font-number text-gold border-2 border-gold";
+    size === "md" || size === "lg"
+      ? `${BONUS_BASE} h-12 w-12 text-lg`
+      : `${BONUS_BASE} h-11 w-11 text-base`;
+
+  const pendingSize =
+    size === "md" || size === "lg" ? "h-12 w-12 text-sm" : "h-11 w-11 text-sm";
+
+  if (!revealed) {
+    return (
+      <div className="flex flex-wrap items-center justify-center gap-2 py-1">
+        {balls.map((_, i) => (
+          <span key={`p-${i}`} className={`${PENDING_BALL} ${pendingSize}`}>
+            —
+          </span>
+        ))}
+        {hasBonus && (
+          <>
+            <span className="text-muted text-sm font-medium">+</span>
+            <span className={`${PENDING_BALL} ${pendingSize}`}>—</span>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center justify-center gap-2 py-1">
       {balls.map((ball, i) => (
         <span key={`${i}-${ball}`} className={ballClass}>
           {ball}
@@ -31,7 +63,7 @@ export function LottoBalls({
       ))}
       {hasBonus && typeof bonus === "number" && (
         <>
-          <span className="text-muted text-xs">+</span>
+          <span className="text-muted text-sm font-medium">+</span>
           <span className={bonusClass}>{bonus}</span>
         </>
       )}

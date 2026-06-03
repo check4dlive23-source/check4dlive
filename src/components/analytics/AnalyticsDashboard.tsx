@@ -151,7 +151,7 @@ export function AnalyticsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-surface pb-16 sm:pb-0">
       <SubpageHeader
         title={t("analyticsTitle")}
         subtitle={t("analyticsSubtitle")}

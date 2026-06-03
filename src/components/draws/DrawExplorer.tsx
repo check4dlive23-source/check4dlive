@@ -111,7 +111,7 @@ export function DrawExplorer() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-surface pb-16 sm:pb-0">
       <SubpageHeader title={t("drawExplorer")} subtitle={t("drawsSubtitle")} />
 
       <div className="mx-auto max-w-6xl px-4 py-4 space-y-4">

@@ -1,5 +1,6 @@
 "use client";
 
+import { todayMYT } from "@/lib/draw-time";
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { PrizeNumber } from "@/components/ui/PrizeNumber";
 import { StatusTag } from "@/components/ui/StatusTag";
@@ -42,6 +43,8 @@ export function ResultCard({ data }: ResultCardProps) {
     CONSOLATION_SLOT_COUNT
   );
   const revealed = data.status !== "pending";
+  const isTodayPending =
+    data.status === "pending" && data.date === todayMYT();
 
   const showZodiac =
     revealed && operator === "toto" && Boolean(data.zodiac);
@@ -69,7 +72,14 @@ export function ResultCard({ data }: ResultCardProps) {
             <span>{data.draw_no ?? "—"}</span>
           </div>
         </div>
-        <StatusTag status={data.status} />
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          <StatusTag status={data.status} />
+          {isTodayPending && (
+            <span className="text-[9px] text-muted whitespace-nowrap">
+              今日等待开彩
+            </span>
+          )}
+        </div>
       </header>
 
       <div className="grid grid-cols-3 border-b border-line bg-surface-3 text-center text-[10px] text-muted">

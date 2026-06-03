@@ -26,6 +26,8 @@ export function TotoLottoCombinedCard({
   draw_no,
   status,
 }: TotoLottoCombinedCardProps) {
+  const revealed = status !== "pending";
+
   return (
     <article className="rounded-xl border border-line bg-surface-2 overflow-hidden min-w-0">
       <header className="flex items-center gap-2 px-2.5 py-2 border-b border-line bg-surface-3">
@@ -42,7 +44,7 @@ export function TotoLottoCombinedCard({
       {games.map((game, idx) => (
         <section
           key={game.displayName}
-          className={`px-2.5 py-2 space-y-1.5 ${
+          className={`px-3 py-3 space-y-2 ${
             idx < games.length - 1 ? "border-b border-line" : ""
           }`}
         >
@@ -55,8 +57,9 @@ export function TotoLottoCombinedCard({
             bonus={game.bonus}
             hasBonus={game.hasBonus}
             size="sm"
+            revealed={revealed}
           />
-          <LottoJackpotLines data={game} compact />
+          {revealed && <LottoJackpotLines data={game} compact />}
         </section>
       ))}
 

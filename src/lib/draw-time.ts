@@ -40,11 +40,46 @@ function inWindow(
 
 const DRAW_DAYS_WSS = [0, 3, 6]; // Sun, Wed, Sat
 
+/** Whether today (MYT) is a scheduled draw day for the region — weekday only */
+export function isDrawDay(region: Region, now = new Date()): boolean {
+  const { day } = getMYTParts(now);
+  switch (region) {
+    case "west":
+    case "east":
+    case "singapore":
+      return DRAW_DAYS_WSS.includes(day);
+    case "cambodia":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/** Draw day + within 10 minutes before regional draw time (MYT) */
+export function isDrawDayAndNearDraw(region: Region, now = new Date()): boolean {
+  const { hour, minute } = getMYTParts(now);
+  if (!isDrawDay(region, now)) return false;
+
+  const t = hour * 60 + minute;
+  switch (region) {
+    case "west":
+      return t >= 18 * 60 + 50;
+    case "east":
+      return t >= 18 * 60 + 20;
+    case "singapore":
+      return t >= 18 * 60 + 20;
+    case "cambodia":
+      return t >= 18 * 60 + 50;
+    default:
+      return false;
+  }
+}
+
 /**
  * Regional live draw windows (MYT):
  * - west: Sun/Wed/Sat 19:00–20:00
  * - east: Sun/Wed/Sat 18:30–19:30
- * - cambodia: daily 18:00–19:00
+ * - cambodia: daily 19:00–20:00
  * - singapore 4D: Sun/Wed/Sat 18:30–19:30
  * - singapore Toto: Mon/Thu ~21:30 (21:30–22:30 window)
  */
@@ -69,7 +104,7 @@ export function isRegionLiveDraw(
         inWindow(hour, minute, 18, 30, 19, 30)
       );
     case "cambodia":
-      return inWindow(hour, minute, 18, 0, 19, 0);
+      return inWindow(hour, minute, 19, 0, 20, 0);
     case "singapore": {
       const sg4d =
         DRAW_DAYS_WSS.includes(day) &&

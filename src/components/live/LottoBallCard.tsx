@@ -13,6 +13,7 @@ interface LottoBallCardProps {
 
 export function LottoBallCard({ data }: LottoBallCardProps) {
   const logo = resolveLottoLogo(data);
+  const revealed = data.status !== "pending";
   const hasJackpot =
     data.jackpot1_amount != null ||
     data.jackpot2_amount != null ||
@@ -31,14 +32,15 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
         <StatusTag status={data.status} />
       </header>
 
-      <section className="px-2.5 py-2 space-y-2">
+      <section className="px-3 py-4 space-y-2">
         <LottoBalls
           balls={data.balls}
           bonus={data.bonus}
           hasBonus={data.hasBonus}
-          size="sm"
+          size="md"
+          revealed={revealed}
         />
-        {hasJackpot && <LottoJackpotLines data={data} compact />}
+        {revealed && hasJackpot && <LottoJackpotLines data={data} readable />}
       </section>
 
       <footer className="flex justify-between px-2.5 py-1.5 text-[10px] text-dim border-t border-line">
