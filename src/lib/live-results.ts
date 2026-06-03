@@ -56,29 +56,27 @@ export async function upsertDrawResults(
   if (!supabase) return;
 
   for (const [operator, row] of Object.entries(operators)) {
-    const rowDate = (row.date as string) ?? date;
-    await supabase
-      .from("draws")
-      .delete()
-      .eq("region", region)
-      .eq("operator", operator)
-      .eq("date", rowDate);
-
-    const { error } = await supabase.from("draws").insert({
-      date: (row.date as string) ?? date,
-      draw_no: row.draw_no ?? null,
-      operator,
-      region,
-      first_prize: row.first_prize ?? null,
-      second_prize: row.second_prize ?? null,
-      third_prize: row.third_prize ?? null,
-      special_numbers: row.special_numbers ?? null,
-      consolation_numbers: row.consolation_numbers ?? null,
-      jackpot1_amount: row.jackpot1_amount ?? null,
-      jackpot2_amount: row.jackpot2_amount ?? null,
-      zodiac: row.zodiac ?? null,
-      extra_data: row.extra_data ?? null,
-    });
+    const { error } = await supabase.from("draws").upsert(
+      {
+        date: (row.date as string) ?? date,
+        draw_no: row.draw_no ?? null,
+        operator,
+        region,
+        first_prize: row.first_prize ?? null,
+        second_prize: row.second_prize ?? null,
+        third_prize: row.third_prize ?? null,
+        special_numbers: row.special_numbers ?? null,
+        consolation_numbers: row.consolation_numbers ?? null,
+        jackpot1_amount: row.jackpot1_amount ?? null,
+        jackpot2_amount: row.jackpot2_amount ?? null,
+        zodiac: row.zodiac ?? null,
+        extra_data: row.extra_data ?? null,
+      },
+      {
+        onConflict: "operator,date",
+        ignoreDuplicates: false,
+      }
+    );
 
     if (error) {
       throw new Error(`upsert ${operator}: ${error.message}`);
