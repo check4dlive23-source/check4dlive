@@ -123,8 +123,8 @@ export const mockDraws = {
       "6597",
       "2200",
     ],
-    jackpot1_amount: null as number | null,
-    jackpot2_amount: null as number | null,
+    jackpot1_amount: 3_294_949.54,
+    jackpot2_amount: 174_867.89,
   },
 };
 
@@ -158,7 +158,7 @@ function toWestDrawResult(
     consolation_numbers: d.consolation_numbers,
     jackpot1_amount: d.jackpot1_amount ?? undefined,
     jackpot2_amount: d.jackpot2_amount ?? undefined,
-    zodiac: "zodiac" in d ? d.zodiac : undefined,
+    zodiac: key === "toto" && "zodiac" in d ? d.zodiac : undefined,
   };
 }
 
@@ -191,7 +191,7 @@ export const westJackpots: Jackpot4DResult[] = [
 
 const MOCK_DATE = "2026-05-31";
 
-const special10 = [
+const special13 = [
   "9088",
   "5042",
   "8300",
@@ -202,6 +202,9 @@ const special10 = [
   "8253",
   "3787",
   "9745",
+  "----",
+  "----",
+  "----",
 ];
 
 const consolation10 = [
@@ -348,7 +351,7 @@ export const eastMain4D: DrawResult[] = [
     first_prize: "3341",
     second_prize: "7782",
     third_prize: "0195",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
   {
@@ -362,7 +365,7 @@ export const eastMain4D: DrawResult[] = [
     first_prize: "5520",
     second_prize: "1934",
     third_prize: "8671",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
   {
@@ -376,7 +379,7 @@ export const eastMain4D: DrawResult[] = [
     first_prize: "4418",
     second_prize: "2903",
     third_prize: "6752",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
 ];
@@ -440,7 +443,7 @@ export const cambodiaMain4D: DrawResult[] = [
     first_prize: "8821",
     second_prize: "3047",
     third_prize: "5196",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
   {
@@ -454,7 +457,7 @@ export const cambodiaMain4D: DrawResult[] = [
     first_prize: "1274",
     second_prize: "6503",
     third_prize: "9381",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
   {
@@ -468,7 +471,7 @@ export const cambodiaMain4D: DrawResult[] = [
     first_prize: "7032",
     second_prize: "1845",
     third_prize: "4268",
-    special_numbers: special10,
+    special_numbers: special13,
     consolation_numbers: consolation10,
   },
 ];

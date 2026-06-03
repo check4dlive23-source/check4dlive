@@ -12,11 +12,16 @@ const SPECIAL_SLOTS: Record<string, number> = {
   gd: 13,
   perdana: 13,
   hari: 13,
-  sgpools: 13,
+  sgpools: 10,
 };
 
 export function specialSlotCount(operator: OperatorId | string): number {
   return SPECIAL_SLOTS[operator] ?? 13;
+}
+
+/** Alias used by UI — damacai/sgpools: 10, others per SPECIAL_SLOTS */
+export function getSpecialCount(operator: string): number {
+  return specialSlotCount(operator);
 }
 
 export function padPrizeSlots(

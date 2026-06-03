@@ -22,7 +22,7 @@ const config: Config = {
         live: "#22c55e",
       },
       fontFamily: {
-        number: ["var(--font-rajdhani)", "sans-serif"],
+        number: ["var(--font-roboto-mono)", "ui-monospace", "monospace"],
         sans: ["var(--font-noto-sans-sc)", "sans-serif"],
       },
     },

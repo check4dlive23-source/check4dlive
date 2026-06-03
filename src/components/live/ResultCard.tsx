@@ -7,8 +7,8 @@ import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import {
   CONSOLATION_SLOT_COUNT,
+  getSpecialCount,
   padPrizeSlots,
-  specialSlotCount,
 } from "@/lib/prize-slots";
 import type { DrawResult, OperatorId } from "@/types";
 
@@ -31,20 +31,26 @@ interface ResultCardProps {
 
 export function ResultCard({ data }: ResultCardProps) {
   const { t } = useLang();
-  const brand = brandColors[data.operator];
-  const spCount = specialSlotCount(data.operator);
+  const operator = data.operator;
+  const brand = brandColors[operator];
+  const spCount = getSpecialCount(operator);
   const specialSlots = padPrizeSlots(data.special_numbers, spCount);
+  const specialFirstRow = specialSlots.slice(0, 10);
+  const specialLastRow = spCount > 10 ? specialSlots.slice(10) : [];
   const consolationSlots = padPrizeSlots(
     data.consolation_numbers,
     CONSOLATION_SLOT_COUNT
   );
   const revealed = data.status !== "pending";
 
+  const showZodiac =
+    revealed && operator === "toto" && Boolean(data.zodiac);
+
   const showJackpot =
     revealed &&
-    (data.operator === "magnum" ||
-      data.operator === "damacai" ||
-      data.operator === "toto") &&
+    (operator === "magnum" ||
+      operator === "damacai" ||
+      operator === "toto") &&
     (data.jackpot1_amount ?? 0) > 0;
 
   return (
@@ -72,17 +78,17 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="py-1.5">{t("thirdPrize")}</div>
       </div>
       <div className="grid grid-cols-3 border-b border-line text-center py-1.5">
-        <div className="border-r border-line flex flex-col items-center gap-0.5">
-          <PrizeNumber value={data.first_prize} revealed={revealed} />
-          {data.operator === "toto" && data.zodiac && (
+        <div className="border-r border-line flex flex-col items-center gap-0.5 px-1">
+          <PrizeNumber value={data.first_prize} size="lg" revealed={revealed} />
+          {showZodiac && (
             <span className="text-[10px] text-gold">{data.zodiac}</span>
           )}
         </div>
-        <div className="border-r border-line">
-          <PrizeNumber value={data.second_prize} revealed={revealed} />
+        <div className="border-r border-line px-1">
+          <PrizeNumber value={data.second_prize} size="lg" revealed={revealed} />
         </div>
-        <div>
-          <PrizeNumber value={data.third_prize} revealed={revealed} />
+        <div className="px-1">
+          <PrizeNumber value={data.third_prize} size="lg" revealed={revealed} />
         </div>
       </div>
 
@@ -90,10 +96,26 @@ export function ResultCard({ data }: ResultCardProps) {
         <p className="text-[10px] text-muted mb-1.5 uppercase tracking-wider">
           {t("specialSection")}
         </p>
-        <div className="grid grid-cols-5 gap-1">
-          {specialSlots.map((n, i) => (
-            <PrizeNumber key={`sp-${i}`} value={n} size="sm" revealed={revealed} />
-          ))}
+        <div className="space-y-1">
+          <div className="grid grid-cols-5 gap-1">
+            {specialFirstRow.map((n, i) => (
+              <PrizeNumber
+                key={`sp-${i}`}
+                value={n}
+                size="sm"
+                revealed={revealed}
+              />
+            ))}
+          </div>
+          {specialLastRow.length > 0 && (
+            <div className="grid grid-cols-5 gap-1">
+              {specialLastRow.map((n, i) => (
+                <div key={`sp-last-${i}`} className={i === 0 ? "col-start-2" : ""}>
+                  <PrizeNumber value={n} size="sm" revealed={revealed} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

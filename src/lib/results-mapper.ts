@@ -83,18 +83,32 @@ function padDrawPrizes(
   };
 }
 
+function withPaddedPrizes(draw: DrawResult): DrawResult {
+  const operator = draw.operator;
+  const prizes = padDrawPrizes(
+    operator,
+    draw.special_numbers,
+    draw.consolation_numbers
+  );
+  return {
+    ...draw,
+    ...prizes,
+    zodiac: operator === "toto" ? draw.zodiac : undefined,
+  };
+}
+
 export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null
 ): DrawResult {
   if (!api) {
     if (mock.operator === "sgpools") {
-      return {
+      return withPaddedPrizes({
         ...mock,
         special_numbers: [],
-      };
+      });
     }
-    return mock;
+    return withPaddedPrizes(mock);
   }
   const fromApi = dbRowToDrawResult(api);
   const operator = fromApi.operator;
@@ -107,21 +121,23 @@ export function mergeDrawResult(
   );
 
   if (!api.first_prize || api.first_prize === "----") {
-    return {
+    return withPaddedPrizes({
       ...mock,
       date,
       draw_no,
       status: fromApi.status,
       ...prizes,
-    };
+    });
   }
 
-  return {
+  return withPaddedPrizes({
     ...fromApi,
     date,
     draw_no,
     displayName: fromApi.displayName || mock.displayName,
     subtitle: fromApi.subtitle ?? mock.subtitle,
     ...prizes,
-  };
+    jackpot1_amount: fromApi.jackpot1_amount ?? mock.jackpot1_amount,
+    jackpot2_amount: fromApi.jackpot2_amount ?? mock.jackpot2_amount,
+  });
 }
