@@ -165,7 +165,7 @@ export function LiveTerminal() {
     <>
       <div className="min-h-screen bg-surface">
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-md">
-          <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+          <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <h1 className="text-lg font-bold text-foreground truncate">
                 Check 4D Live
@@ -190,13 +190,13 @@ export function LiveTerminal() {
             </button>
           </div>
           </div>
-          <div className="mx-auto max-w-7xl px-4 pb-2">
+          <div className="mx-auto max-w-7xl px-2 sm:px-4 pb-2">
             <RegionTabs active={region} onChange={setRegion} />
           </div>
           <DrawScheduleBar region={region} isLive={isLive} />
         </header>
 
-        <div className="mx-auto max-w-7xl px-4 py-3">
+        <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3">
           <main className="min-w-0">
             {/* ADSENSE_SLOT_TOP */}
 
@@ -214,7 +214,7 @@ export function LiveTerminal() {
                 {/* ADSENSE_SLOT_BETWEEN */}
 
                 <SectionTitle>{t("magnumOther")}</SectionTitle>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <MagnumGoldCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
@@ -230,7 +230,7 @@ export function LiveTerminal() {
                 </div>
 
                 <SectionTitle>{t("totoOther")}</SectionTitle>
-                <div className="grid grid-cols-2 gap-3 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                   <div className="flex flex-col gap-3">
                     <FiveDCard
                       displayName="Sports Toto 5D"
