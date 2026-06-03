@@ -98,6 +98,10 @@ export async function fetchDrawsFromDb(
     .eq("date", date)
     .order("created_at", { ascending: false });
 
+  console.log(
+    `[fetchDrawsFromDb] region=${region} date=${date} count=${data?.length} error=${error?.message}`
+  );
+
   if (error) throw new Error(error.message);
 
   const byOperator: Record<string, DrawRow> = {};
