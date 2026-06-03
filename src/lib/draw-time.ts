@@ -132,12 +132,25 @@ export function shouldScrapeOnLive(region: Region): boolean {
   );
 }
 
-export function getRefreshIntervalMs(isLive: boolean): number {
-  return isLive ? 15_000 : 60_000;
+/** MYT 18:50–19:30 — peak draw window for faster polling */
+export function isDrawWindowMYT(now = new Date()): boolean {
+  const { hour, minute } = getMYTParts(now);
+  const t = hour * 60 + minute;
+  return t >= 18 * 60 + 50 && t < 19 * 60 + 30;
 }
 
-export function getResultsPollIntervalMs(isLive?: boolean): number {
-  return getRefreshIntervalMs(isLive ?? false);
+export function getRefreshIntervalMs(now = new Date()): number {
+  return isDrawWindowMYT(now) ? 15_000 : 120_000;
+}
+
+export function getRefreshIntervalLabelKey(
+  now = new Date()
+): "every15Sec" | "every2Min" {
+  return isDrawWindowMYT(now) ? "every15Sec" : "every2Min";
+}
+
+export function getResultsPollIntervalMs(now = new Date()): number {
+  return getRefreshIntervalMs(now);
 }
 
 export const LIVE_CACHE_MS = 15_000;

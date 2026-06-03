@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { todayMYT } from "@/lib/draw-time";
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { PrizeNumber } from "@/components/ui/PrizeNumber";
@@ -43,8 +44,14 @@ export function ResultCard({ data }: ResultCardProps) {
     CONSOLATION_SLOT_COUNT
   );
   const revealed = data.status !== "pending";
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    setToday(todayMYT());
+  }, []);
+
   const isTodayPending =
-    data.status === "pending" && data.date === todayMYT();
+    data.status === "pending" && Boolean(today) && data.date === today;
 
   const showZodiac =
     revealed && operator === "toto" && Boolean(data.zodiac);

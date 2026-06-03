@@ -6,7 +6,6 @@ import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { MainNav } from "@/components/layout/MainNav";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
-import { getRefreshIntervalMs } from "@/lib/draw-time";
 import {
   cambodiaMain4D,
   damacai3Plus3D,
@@ -27,6 +26,7 @@ import {
   type DbDrawRow,
   mergeDrawResult,
 } from "@/lib/results-mapper";
+import { todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
 import type { DrawResult, Region } from "@/types";
 import { Damacai3Plus3DCard } from "./Damacai3Plus3DCard";
@@ -77,16 +77,13 @@ function mergeRegionDraws(
   mocks: DrawResult[],
   operators: Record<string, DbDrawRow>,
   keys: readonly string[],
-  isDrawDay: boolean
+  isDrawDay: boolean,
+  today: string
 ): DrawResult[] {
   return keys.map((op) => {
     const mock = mocks.find((d) => d.operator === op)!;
-    return mergeDrawResult(mock, operators[op], isDrawDay);
+    return mergeDrawResult(mock, operators[op], isDrawDay, today);
   });
-}
-
-function getRefreshInterval(isLive: boolean): number {
-  return getRefreshIntervalMs(isLive);
 }
 
 export function LiveTerminal() {
@@ -98,68 +95,110 @@ export function LiveTerminal() {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [luckyOpen, setLuckyOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [updateTime, setUpdateTime] = useState("");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | undefined;
+    setUpdateTime(
+      lastUpdate ? formatTimeMYT(lastUpdate) : formatTimeMYT(new Date())
+    );
+  }, [lastUpdate]);
 
-    const poll = async () => {
-      try {
-        const res = await fetch(`/api/results?region=${region}&t=${Date.now()}`);
-        const data = await res.json();
-        const live = Boolean(data.isLive);
-        if (data.operators) {
-          setResults(data.operators as Record<string, DbDrawRow>);
-          setIsLive(live);
-          setIsDrawDay(Boolean(data.isDrawDay));
+  useEffect(() => {
+    if (!mounted) return;
+
+    let es: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let closed = false;
+
+    const connect = () => {
+      if (closed) return;
+      es?.close();
+      es = new EventSource(`/api/results/stream?region=${region}`);
+
+      es.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.error) {
+            console.error("SSE error:", data.error);
+            return;
+          }
+          setResults((data.operators ?? {}) as Record<string, DbDrawRow>);
+          setIsLive(data.isLive ?? false);
+          setIsDrawDay(data.isDrawDay ?? false);
           setLastUpdate(new Date());
+        } catch (err) {
+          console.error("SSE parse failed:", err);
         }
-        if (interval) clearInterval(interval);
-        interval = setInterval(poll, getRefreshInterval(live));
-      } catch (err) {
-        console.error("Failed to fetch results:", err);
-      }
+      };
+
+      es.onerror = () => {
+        es?.close();
+        if (!closed) {
+          reconnectTimer = setTimeout(connect, 5000);
+        }
+      };
     };
 
-    poll();
-    interval = setInterval(poll, 30_000);
+    connect();
 
     return () => {
-      if (interval) clearInterval(interval);
+      closed = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      es?.close();
     };
-  }, [region]);
+  }, [mounted, region]);
+
+  const drawDayActive = mounted && isDrawDay;
 
   const westMain4DDisplay = useMemo(
-    () => mergeRegionDraws(westMain4D, results, WEST_OPERATORS, isDrawDay),
-    [results, isDrawDay]
+    () =>
+      mergeRegionDraws(
+        westMain4D,
+        results,
+        WEST_OPERATORS,
+        drawDayActive,
+        today
+      ),
+    [results, drawDayActive, today]
   );
 
   const eastMain4DDisplay = useMemo(
-    () => mergeRegionDraws(eastMain4D, results, EAST_OPERATORS, isDrawDay),
-    [results, isDrawDay]
+    () =>
+      mergeRegionDraws(
+        eastMain4D,
+        results,
+        EAST_OPERATORS,
+        drawDayActive,
+        today
+      ),
+    [results, drawDayActive, today]
   );
 
   const cambodiaMain4DDisplay = useMemo(
     () =>
-      mergeRegionDraws(cambodiaMain4D, results, CAMBODIA_OPERATORS, isDrawDay),
-    [results, isDrawDay]
+      mergeRegionDraws(
+        cambodiaMain4D,
+        results,
+        CAMBODIA_OPERATORS,
+        drawDayActive,
+        today
+      ),
+    [results, drawDayActive, today]
   );
 
   const singapore4DDisplay = useMemo(
-    () => mergeDrawResult(singapore4D, results["sgpools"], isDrawDay),
-    [results, isDrawDay]
+    () =>
+      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, today),
+    [results, drawDayActive, today]
   );
 
   const magnumDraw = westMain4DDisplay[0];
   const damacaiDraw = westMain4DDisplay[1];
   const totoDraw = westMain4DDisplay[2];
-
-  const updateTime = lastUpdate
-    ? formatTimeMYT(lastUpdate)
-    : formatTimeMYT(new Date());
 
   return (
     <>
@@ -218,13 +257,13 @@ export function LiveTerminal() {
                   <MagnumGoldCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={isDrawDay ? "pending" : magnumDraw.status}
+                    status={drawDayActive ? "pending" : magnumDraw.status}
                     data={magnumGold}
                   />
                   <MagnumLifeCard
                     date={magnumDraw.date}
                     draw_no={magnumDraw.draw_no}
-                    status={isDrawDay ? "pending" : magnumDraw.status}
+                    status={drawDayActive ? "pending" : magnumDraw.status}
                     data={magnumLife}
                   />
                 </div>
@@ -259,7 +298,7 @@ export function LiveTerminal() {
                 <Damacai3Plus3DCard
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}
-                  status={isDrawDay ? "pending" : damacaiDraw.status}
+                  status={drawDayActive ? "pending" : damacaiDraw.status}
                   data={damacai3Plus3D}
                 />
               </>
@@ -283,7 +322,7 @@ export function LiveTerminal() {
                   <Sabah3DCard
                     date={eastMain4DDisplay[0]?.date}
                     draw_no={eastMain4DDisplay[0]?.draw_no}
-                    status={isDrawDay ? "pending" : "drawn"}
+                    status={drawDayActive ? "pending" : "drawn"}
                     data={sabah3D}
                   />
                   {sabahLottoGames.map((g) => (
@@ -291,7 +330,7 @@ export function LiveTerminal() {
                       key={g.displayName}
                       data={{
                         ...g,
-                        status: isDrawDay ? "pending" : g.status,
+                        status: drawDayActive ? "pending" : g.status,
                       }}
                     />
                   ))}
@@ -322,7 +361,7 @@ export function LiveTerminal() {
                   <LottoBallCard
                     data={{
                       ...singaporeToto,
-                      status: isDrawDay ? "pending" : singaporeToto.status,
+                      status: drawDayActive ? "pending" : singaporeToto.status,
                     }}
                   />
                 </CardGrid>
@@ -331,9 +370,7 @@ export function LiveTerminal() {
 
             <p className="mt-8 text-center text-xs text-dim">
               {t("updatedAt")}{" "}
-              <span suppressHydrationWarning>
-                {mounted ? updateTime : "--:--:--"}
-              </span>
+              <span>{updateTime || "--:--:--"}</span>
             </p>
           </main>
           {/* ADSENSE_SLOT_SIDEBAR */}

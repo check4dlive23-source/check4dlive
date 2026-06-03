@@ -1,4 +1,7 @@
-import { getRefreshIntervalMs } from "@/lib/draw-time";
+import {
+  getRefreshIntervalMs,
+  isDrawDayAndNearDraw,
+} from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
 import type { Region } from "@/types";
 
@@ -12,31 +15,35 @@ export async function GET(request: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
-      let intervalMs = 60_000;
       let timer: ReturnType<typeof setInterval> | null = null;
 
-      const send = (event: string, payload: unknown) => {
+      const send = (payload: unknown) => {
         controller.enqueue(
-          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`)
+          encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
         );
       };
 
       const poll = async () => {
         try {
           const payload = await getRegionResults(region);
-          intervalMs = getRefreshIntervalMs(payload.isLive);
-          send("results", {
+          const drawDay = isDrawDayAndNearDraw(region);
+          const intervalMs = getRefreshIntervalMs();
+
+          send({
             operators: payload.operators,
             isLive: payload.isLive,
+            isDrawDay: drawDay,
             date: payload.date,
             region: payload.region,
             source: payload.source,
+            refreshIntervalMs: intervalMs,
           });
+
           if (timer) clearInterval(timer);
           timer = setInterval(poll, intervalMs);
         } catch (e) {
-          send("error", {
-            message: e instanceof Error ? e.message : "poll failed",
+          send({
+            error: e instanceof Error ? e.message : "poll failed",
           });
         }
       };

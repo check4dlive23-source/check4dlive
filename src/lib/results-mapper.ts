@@ -1,4 +1,3 @@
-import { todayMYT } from "@/lib/draw-time";
 import { padPrizeSlots, specialSlotCount } from "@/lib/prize-slots";
 import type { DrawResult, DrawStatus, OperatorId, Region } from "@/types";
 
@@ -127,11 +126,10 @@ function buildDrawDayPending(mock: DrawResult, today: string): DrawResult {
 export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null,
-  isDrawDay = false
+  isDrawDay = false,
+  today = ""
 ): DrawResult {
-  const today = todayMYT();
-
-  if (isDrawDay && !hasTodayDrawnResult(api, today)) {
+  if (isDrawDay && today && !hasTodayDrawnResult(api, today)) {
     return buildDrawDayPending(mock, today);
   }
 
