@@ -70,15 +70,12 @@ export async function runIngest(): Promise<IngestResult> {
     }
 
     try {
-      await supabase
-        .from("draws")
-        .delete()
-        .eq("operator", draw.operator)
-        .eq("date", draw.date);
-
       const { data: row, error } = await supabase
         .from("draws")
-        .insert(toDbRow(draw))
+        .upsert(toDbRow(draw), {
+          onConflict: "operator,date",
+          ignoreDuplicates: false,
+        })
         .select("id")
         .single();
 

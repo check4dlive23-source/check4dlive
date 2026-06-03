@@ -61,6 +61,8 @@ CREATE TABLE IF NOT EXISTS analytics_cache (
 
 -- ─── Indexes ──────────────────────────────────────────────────────────────
 
+CREATE UNIQUE INDEX IF NOT EXISTS draws_operator_date_unique ON draws(operator, date);
+
 CREATE INDEX IF NOT EXISTS idx_draws_date ON draws(date DESC);
 CREATE INDEX IF NOT EXISTS idx_draws_operator ON draws(operator);
 CREATE INDEX IF NOT EXISTS idx_draws_region_date ON draws(region, date DESC);
