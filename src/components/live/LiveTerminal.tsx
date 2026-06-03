@@ -26,7 +26,6 @@ import {
   type DbDrawRow,
   mergeDrawResult,
 } from "@/lib/results-mapper";
-import { todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
 import type { DrawResult, Region } from "@/types";
 import { Damacai3Plus3DCard } from "./Damacai3Plus3DCard";
@@ -161,9 +160,9 @@ export function LiveTerminal() {
         results,
         WEST_OPERATORS,
         drawDayActive,
-        today
+        ""
       ),
-    [results, drawDayActive, today]
+    [results, isDrawDay]
   );
 
   const eastMain4DDisplay = useMemo(
@@ -173,9 +172,9 @@ export function LiveTerminal() {
         results,
         EAST_OPERATORS,
         drawDayActive,
-        today
+        ""
       ),
-    [results, drawDayActive, today]
+    [results, isDrawDay]
   );
 
   const cambodiaMain4DDisplay = useMemo(
@@ -185,15 +184,15 @@ export function LiveTerminal() {
         results,
         CAMBODIA_OPERATORS,
         drawDayActive,
-        today
+        ""
       ),
-    [results, drawDayActive, today]
+    [results, isDrawDay]
   );
 
   const singapore4DDisplay = useMemo(
     () =>
-      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, today),
-    [results, drawDayActive, today]
+      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, ""),
+    [results, isDrawDay]
   );
 
   const magnumDraw = westMain4DDisplay[0];
