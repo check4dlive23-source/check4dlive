@@ -40,14 +40,21 @@ export function LottoBalls({
     return (
       <div className="flex flex-wrap items-center justify-center gap-2 py-1">
         {balls.map((_, i) => (
-          <span key={`p-${i}`} className={`${PENDING_BALL} ${pendingSize}`}>
-            —
+          <span
+            key={`p-${i}`}
+            className={`${PENDING_BALL} ${pendingSize} text-[10px] tracking-tight`}
+          >
+            ----
           </span>
         ))}
         {hasBonus && (
           <>
             <span className="text-muted text-sm font-medium">+</span>
-            <span className={`${PENDING_BALL} ${pendingSize}`}>—</span>
+            <span
+              className={`${PENDING_BALL} ${pendingSize} text-[10px] tracking-tight`}
+            >
+              ----
+            </span>
           </>
         )}
       </div>

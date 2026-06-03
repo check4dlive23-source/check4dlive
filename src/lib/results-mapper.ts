@@ -98,6 +98,32 @@ function withPaddedPrizes(draw: DrawResult): DrawResult {
   };
 }
 
+function hasTodayDrawnResult(
+  api: DbDrawRow | null | undefined,
+  today: string
+): boolean {
+  return !!(
+    api &&
+    (api.date as string) === today &&
+    api.first_prize &&
+    api.first_prize !== "----" &&
+    /^\d{4}$/.test(api.first_prize)
+  );
+}
+
+function buildDrawDayPending(mock: DrawResult, today: string): DrawResult {
+  return withPaddedPrizes({
+    ...mock,
+    date: today,
+    status: "pending",
+    first_prize: "----",
+    second_prize: "----",
+    third_prize: "----",
+    special_numbers: Array(specialSlotCount(mock.operator)).fill("----"),
+    consolation_numbers: Array(10).fill("----"),
+  });
+}
+
 export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null,
@@ -105,17 +131,8 @@ export function mergeDrawResult(
 ): DrawResult {
   const today = todayMYT();
 
-  if (isDrawDay && (!api || (api.date as string) !== today)) {
-    return withPaddedPrizes({
-      ...mock,
-      date: today,
-      status: "pending",
-      first_prize: "----",
-      second_prize: "----",
-      third_prize: "----",
-      special_numbers: Array(specialSlotCount(mock.operator)).fill("----"),
-      consolation_numbers: Array(10).fill("----"),
-    });
+  if (isDrawDay && !hasTodayDrawnResult(api, today)) {
+    return buildDrawDayPending(mock, today);
   }
 
   if (!api) {
