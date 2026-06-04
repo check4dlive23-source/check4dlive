@@ -3,6 +3,7 @@
  * Persists latest check4dresult draws for fallback (all regions, any prize state).
  * Live draw updates use live-ingest cron — not this job.
  */
+import { syncOfficialSourcesV2 } from "@/lib/live-results";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   fetchAllCheck4dDraws,
@@ -23,6 +24,7 @@ export interface IngestResult {
   inserted: number;
   regions: Region[];
   operators: string[];
+  v2?: { upserted: number; operators: string[]; errors: string[] };
   errors?: string[];
 }
 
@@ -105,11 +107,21 @@ export async function runIngest(): Promise<IngestResult> {
     }
   }
 
+  let v2: IngestResult["v2"];
+  try {
+    v2 = await syncOfficialSourcesV2();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push(`v2 sync: ${msg}`);
+    v2 = { upserted: 0, operators: [], errors: [msg] };
+  }
+
   return {
     success: errors.length === 0,
     inserted,
     regions: INGEST_REGIONS,
     operators,
+    v2,
     errors: errors.length ? errors : undefined,
   };
 }

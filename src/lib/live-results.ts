@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import {
+  upsertDrawResultsV2,
+  type DrawResultV2Row,
+} from "@/lib/draw-results-v2";
+import { fetchDamacaiTodayDraw } from "@/lib/ingest/damacai-api";
+import { fetchMagnumTodayDraw } from "@/lib/ingest/magnum-api";
+import {
   fetchAllCheck4dDraws,
   type ParsedWestDraw,
 } from "@/lib/ingest/parse-check4d";
@@ -138,12 +144,56 @@ export interface RegionResultsPayload {
   source: "live" | "cache" | "db" | "none";
 }
 
+/** Daily sync: Damacai blob API + Magnum JSON API → draw_results_v2 */
+export async function syncOfficialSourcesV2(): Promise<{
+  upserted: number;
+  operators: string[];
+  errors: string[];
+}> {
+  const supabase = createClient();
+  if (!supabase) {
+    return { upserted: 0, operators: [], errors: ["Supabase not configured"] };
+  }
+
+  const rows: DrawResultV2Row[] = [];
+  const errors: string[] = [];
+
+  try {
+    const damacai = await fetchDamacaiTodayDraw();
+    if (damacai) rows.push(damacai);
+  } catch (e) {
+    errors.push(
+      `damacai: ${e instanceof Error ? e.message : "fetch failed"}`
+    );
+  }
+
+  try {
+    const magnum = await fetchMagnumTodayDraw();
+    if (magnum) rows.push(magnum);
+  } catch (e) {
+    errors.push(`magnum: ${e instanceof Error ? e.message : "fetch failed"}`);
+  }
+
+  const { upserted, errors: upsertErrs } = await upsertDrawResultsV2(
+    supabase,
+    rows
+  );
+  errors.push(...upsertErrs);
+
+  return {
+    upserted,
+    operators: rows.map((r) => r.operator),
+    errors,
+  };
+}
+
 /** Cron-only: one check4dresult fetch, upsert all live regions into Supabase */
 export async function runLiveCronIngest(): Promise<{
   skipped: boolean;
   scraped?: Region[];
   operators?: number;
   date?: string;
+  v2?: { upserted: number; operators: string[]; errors: string[] };
   error?: string;
 }> {
   const regions: Region[] = ["west", "east", "cambodia", "singapore"];
@@ -166,11 +216,14 @@ export async function runLiveCronIngest(): Promise<{
       }
     }
 
+    const v2 = await syncOfficialSourcesV2();
+
     return {
       skipped: false,
       scraped: liveRegions,
       operators: totalCount,
       date,
+      v2,
     };
   } catch (e) {
     return {

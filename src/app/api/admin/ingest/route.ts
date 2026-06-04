@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       inserted: result.inserted,
       regions: result.regions,
       operators: result.operators,
+      v2: result.v2,
       errors: result.errors,
     });
   } catch (e) {
