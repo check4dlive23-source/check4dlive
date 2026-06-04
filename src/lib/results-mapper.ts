@@ -153,12 +153,14 @@ export function mergeDrawResult(
   );
 
   if (!api.first_prize || api.first_prize === "----") {
+    const spCount = specialSlotCount(operator);
     return withPaddedPrizes({
       ...mock,
       date,
       draw_no,
       status: fromApi.status,
-      ...prizes,
+      special_numbers: padPrizeSlots(api.special_numbers, spCount),
+      consolation_numbers: padPrizeSlots(api.consolation_numbers, 10),
     });
   }
 
