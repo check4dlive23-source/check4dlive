@@ -159,6 +159,19 @@ export function LiveTerminal() {
 
   useEffect(() => {
     if (!mounted) return;
+    fetch(`/api/results?region=${region}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.operators) {
+          setResults(data.operators);
+          setIsInitialized(true);
+        }
+      })
+      .catch(() => {});
+  }, [mounted, region]);
+
+  useEffect(() => {
+    if (!mounted) return;
 
     let es: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
