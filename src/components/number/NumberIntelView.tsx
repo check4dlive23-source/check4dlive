@@ -2,8 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
@@ -94,7 +93,13 @@ interface NumberIntelViewProps {
 export function NumberIntelView({ data }: NumberIntelViewProps) {
   const { t } = useLang();
   const [copied, setCopied] = useState(false);
+  const [operatorFilter, setOperatorFilter] = useState<OperatorFilter>("all");
   const { stats, extras } = data;
+
+  const filteredHistory = useMemo(() => {
+    if (operatorFilter === "all") return data.history.items;
+    return data.history.items.filter((row) => row.operator === operatorFilter);
+  }, [data.history.items, operatorFilter]);
   const lastPos = stats.last_seen_position
     ? parsePosition(stats.last_seen_position).label
     : "—";
@@ -310,62 +315,69 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("recentAppearances")}
           </h2>
-          <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {OPERATOR_FILTERS.map((op) => {
+              const active = operatorFilter === op.id;
+              return (
+                <button
+                  key={op.id}
+                  type="button"
+                  onClick={() => setOperatorFilter(op.id)}
+                  className="font-mono uppercase rounded"
+                  style={{
+                    fontSize: "10px",
+                    padding: "4px 8px",
+                    border: active ? "1px solid var(--cyan)" : "1px solid transparent",
+                    color: active ? "var(--cyan)" : "var(--text-dim)",
+                    background: "transparent",
+                  }}
+                >
+                  {op.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto max-h-[480px] overflow-y-auto">
             {data.history.items.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
+            ) : filteredHistory.length === 0 ? (
+              <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
-              <>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                      <th className="px-3 py-2">{t("dateLabel")}</th>
-                      <th className="px-3 py-2">{t("operator")}</th>
-                      <th className="px-3 py-2">{t("prizePosition")}</th>
-                      <th className="px-3 py-2">{t("drawNoCol")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.history.items.map((row, i) => (
-                      <tr
-                        key={`${row.date}-${row.operator}-${i}`}
-                        className="border-b border-line/50"
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-surface-2 z-10">
+                  <tr className="border-b border-line text-left text-muted text-xs uppercase">
+                    <th className="px-3 py-2">{t("dateLabel")}</th>
+                    <th className="px-3 py-2">{t("operator")}</th>
+                    <th className="px-3 py-2">{t("prizePosition")}</th>
+                    <th className="px-3 py-2">{t("drawNoCol")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHistory.map((row, i) => (
+                    <tr
+                      key={`${row.date}-${row.operator}-${i}`}
+                      className="border-b border-line/50"
+                    >
+                      <td className="px-3 py-2 text-foreground">
+                        {formatDrawDate(row.date)}
+                      </td>
+                      <td className="px-3 py-2 text-foreground">
+                        {OPERATOR_LABELS[row.operator] ?? row.operator}
+                      </td>
+                      <td
+                        className={`px-3 py-2 font-medium ${
+                          POSITION_COLORS[row.position_tier]
+                        }`}
                       >
-                        <td className="px-3 py-2 text-foreground">
-                          {formatDrawDate(row.date)}
-                        </td>
-                        <td className="px-3 py-2 text-foreground">
-                          {OPERATOR_LABELS[row.operator] ?? row.operator}
-                        </td>
-                        <td
-                          className={`px-3 py-2 font-medium ${
-                            POSITION_COLORS[row.position_tier]
-                          }`}
-                        >
-                          {row.position_label}
-                        </td>
-                        <td className="px-3 py-2 font-number text-muted">
-                          {row.draw_no ?? "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="flex items-center justify-between text-sm px-4 py-3 border-t border-line bg-surface-2">
-                  <span className="text-muted">
-                    {t("page")} {data.history.page} /{" "}
-                    {Math.max(1, Math.ceil(data.history.total / data.history.pageSize))}
-                  </span>
-                  <HistoryPagination
-                    page={data.history.page}
-                    totalPages={Math.max(
-                      1,
-                      Math.ceil(data.history.total / data.history.pageSize)
-                    )}
-                    number={data.number}
-                  />
-                </div>
-              </>
+                        {row.position_label}
+                      </td>
+                      <td className="px-3 py-2 font-number text-muted">
+                        {row.draw_no ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         </section>
