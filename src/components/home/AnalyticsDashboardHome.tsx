@@ -352,18 +352,18 @@ export function AnalyticsDashboardHome() {
                     <Link
                       key={row.number}
                       href={`/number/${row.number}`}
-                      className="block border-b py-2 transition-colors hover:bg-[var(--surface-3)]"
+                      className="block border-b py-1.5"
                       style={{ borderColor: "var(--border-dim)" }}
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className="w-6 shrink-0 font-mono text-[10px] tabular-nums"
+                          className="w-5 shrink-0 font-mono text-[10px] tabular-nums"
                           style={{ color: "var(--text-dim)" }}
                         >
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         <span
-                          className="shrink-0 font-mono text-[30px] font-medium tabular-nums"
+                          className="shrink-0 font-mono text-[24px] font-medium tabular-nums"
                           style={{
                             color: "var(--cyan)",
                             letterSpacing: "0.08em",
@@ -372,40 +372,40 @@ export function AnalyticsDashboardHome() {
                           {row.number}
                         </span>
                         <span
-                          className="ml-auto font-mono text-xs tabular-nums"
+                          className="ml-auto font-mono text-[11px] tabular-nums"
                           style={{ color: "var(--green)" }}
                         >
                           FREQ {row.total_hits}
                         </span>
                         {gap !== null && (
                           <span
-                            className="font-mono text-[11px] tabular-nums"
+                            className="font-mono text-[10px] tabular-nums"
                             style={{ color: "var(--text-dim)" }}
                           >
                             GAP {gap}D
                           </span>
                         )}
-                      </div>
-                      <div className="mt-1 flex items-center gap-2 pl-8">
-                        <div
-                          className="h-1.5 flex-1 overflow-hidden"
-                          style={{ backgroundColor: "var(--surface-3)" }}
-                        >
-                          <div
-                            className="h-full font-mono text-[8px] leading-none"
-                            style={{
-                              width: `${barPct}%`,
-                              backgroundColor: "var(--cyan)",
-                              opacity: 0.85,
-                            }}
-                          />
-                        </div>
                         <span
-                          className="shrink-0 font-sans text-[10px] uppercase tracking-[0.08em]"
+                          className="w-14 shrink-0 text-right font-mono text-[10px] uppercase tracking-[0.08em]"
                           style={{ color: label.color }}
                         >
                           {label.text}
                         </span>
+                      </div>
+                      <div className="mt-0.5">
+                        <div
+                          className="h-px w-full overflow-hidden"
+                          style={{ backgroundColor: "var(--surface-3)" }}
+                        >
+                          <div
+                            className="h-full"
+                            style={{
+                              width: `${barPct}%`,
+                              backgroundColor: "var(--cyan)",
+                              opacity: 0.4,
+                            }}
+                          />
+                        </div>
                       </div>
                     </Link>
                   );
@@ -420,17 +420,17 @@ export function AnalyticsDashboardHome() {
                   <Link
                     key={row.number}
                     href={`/number/${row.number}`}
-                    className="flex items-center gap-2 border-b py-2 transition-colors hover:bg-[var(--surface-3)]"
+                    className="flex items-center gap-2 border-b py-1.5"
                     style={{ borderColor: "var(--border-dim)" }}
                   >
                     <span
-                      className="w-6 shrink-0 font-mono text-[10px] tabular-nums"
+                      className="w-5 shrink-0 font-mono text-[10px] tabular-nums"
                       style={{ color: "var(--text-dim)" }}
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <span
-                      className="shrink-0 font-mono text-[26px] font-medium tabular-nums"
+                      className="shrink-0 font-mono text-[22px] font-medium tabular-nums"
                       style={{
                         color: "var(--muted)",
                         letterSpacing: "0.08em",
