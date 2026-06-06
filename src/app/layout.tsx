@@ -20,6 +20,7 @@ const robotoMono = Roboto_Mono({
   subsets: ["latin"],
   weight: ["500", "700"],
   variable: "--font-roboto-mono",
+  display: "optional",
 });
 
 export const metadata: Metadata = {
