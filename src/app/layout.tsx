@@ -17,16 +17,51 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Check4D Live — Malaysian 4D Lottery Data Terminal",
+  title: {
+    default: "Check4D Intelligence Terminal — Malaysia 4D Analytics",
+    template: "%s | Check4D",
+  },
   description:
-    "Real-time Malaysian 4D lottery results and analytics. Data terminal for Magnum, Damacai, Toto, Sabah, Sarawak, Cambodia & Singapore Pools.",
+    "Malaysia's most comprehensive 4D lottery intelligence platform. 40 years of historical data across Magnum, Damacai, Toto, Cash Sweep & Singapore Pools. Real-time results, number analytics and pattern analysis.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://check4dlive.com"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://check4dlive.vercel.app"
   ),
+  keywords: [
+    "4D lottery Malaysia",
+    "Magnum 4D",
+    "Damacai",
+    "Sports Toto",
+    "4D results",
+    "4D history",
+    "lucky number",
+    "nombor 4D",
+    "4D analytics",
+    "Check4D",
+  ],
   openGraph: {
-    title: "Check4D Live",
-    description: "Malaysian 4D lottery data terminal — live results & analytics",
+    title: "Check4D Intelligence Terminal",
+    description: "40 years of Malaysia 4D lottery data. Real-time results & number analytics.",
     type: "website",
+    locale: "en_MY",
+    siteName: "Check4D",
+  },
+  twitter: {
+    card: "summary",
+    title: "Check4D Intelligence Terminal",
+    description: "40 years of Malaysia 4D lottery data.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+    },
+  },
+  alternates: {
+    canonical: "https://check4dlive.vercel.app",
   },
 };
 
@@ -36,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="dark">
+    <html lang="en-MY" className="dark">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
