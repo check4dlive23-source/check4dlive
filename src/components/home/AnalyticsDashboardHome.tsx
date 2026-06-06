@@ -34,7 +34,8 @@ const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
 
 function heatLabel(level: HeatLevel): { text: string; color: string } {
   if (level === "hot") return { text: "HOT", color: "var(--green)" };
-  return { text: "NORMAL", color: "var(--muted)" };
+  if (level === "cold") return { text: "COLD", color: "var(--muted)" };
+  return { text: "—", color: "var(--text-dim)" };
 }
 
 function gapDays(lastSeen: string | null, today: string): number | null {
@@ -226,7 +227,7 @@ export function AnalyticsDashboardHome() {
     <div className="min-h-screen bg-[var(--bg)]">
       <div
         className="mx-auto w-full max-w-[640px] px-4"
-        style={{ paddingTop: 16, paddingBottom: 80 }}
+        style={{ paddingTop: 16, paddingBottom: 96 }}
       >
         {/* Terminal Header */}
         <header
@@ -394,7 +395,7 @@ export function AnalyticsDashboardHome() {
                       </div>
                       <div className="mt-0.5">
                         <div
-                          className="h-px w-full overflow-hidden"
+                          className="h-0.5 w-full overflow-hidden"
                           style={{ backgroundColor: "var(--surface-3)" }}
                         >
                           <div
@@ -402,7 +403,7 @@ export function AnalyticsDashboardHome() {
                             style={{
                               width: `${barPct}%`,
                               backgroundColor: "var(--cyan)",
-                              opacity: 0.4,
+                              opacity: 0.6,
                             }}
                           />
                         </div>
