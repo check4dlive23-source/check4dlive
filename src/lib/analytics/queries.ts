@@ -1,3 +1,4 @@
+import { readCache, writeCache } from "@/lib/analytics/cache";
 import { createClient } from "@/lib/supabase/server";
 import { calculateHeatScore } from "@/lib/heat-score";
 import {
@@ -71,7 +72,7 @@ async function historyCount(): Promise<number> {
   return count ?? 0;
 }
 
-export async function getHotNumbers(
+export async function computeHotNumbers(
   period: "30d" | "100draws"
 ): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
   const empty = isAnalyticsEmpty(await historyCount());
@@ -136,7 +137,23 @@ export async function getHotNumbers(
   return { rows: rows.length ? rows : MOCK_HOT.slice(0, 20), source: "db" };
 }
 
-export async function getColdNumbers(
+export async function getHotNumbers(
+  period: "30d" | "100draws"
+): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
+  const cacheKey = period === "30d" ? "hot_30d" : "hot_100draws";
+  const cached = await readCache(cacheKey);
+  if (Array.isArray(cached)) {
+    return { rows: cached as HotNumberRow[], source: "db" };
+  }
+
+  const result = await computeHotNumbers(period);
+  if (result.source === "db") {
+    await writeCache(cacheKey, result.rows);
+  }
+  return result;
+}
+
+export async function computeColdNumbers(
   minGap: number
 ): Promise<{ rows: ColdNumberRow[]; source: "db" | "mock" }> {
   const empty = isAnalyticsEmpty(await historyCount());
@@ -185,6 +202,23 @@ export async function getColdNumbers(
   return { rows: rows.length ? rows : MOCK_COLD, source: "db" };
 }
 
+export async function getColdNumbers(
+  minGap: number
+): Promise<{ rows: ColdNumberRow[]; source: "db" | "mock" }> {
+  if (minGap === 30) {
+    const cached = await readCache("cold_30");
+    if (Array.isArray(cached)) {
+      return { rows: cached as ColdNumberRow[], source: "db" };
+    }
+  }
+
+  const result = await computeColdNumbers(minGap);
+  if (minGap === 30 && result.source === "db") {
+    await writeCache("cold_30", result.rows);
+  }
+  return result;
+}
+
 function emptyDigitGrid(): DigitAnalysis["thousands"] {
   return Array.from({ length: 10 }, (_, d) => ({ digit: d, count: 0 }));
 }
@@ -213,7 +247,18 @@ function buildDigitAnalysis(
   };
 }
 
-export async function getDigitAnalysis(): Promise<{
+function isDigitAnalysis(cached: unknown): cached is DigitAnalysis {
+  return (
+    typeof cached === "object" &&
+    cached !== null &&
+    "thousands" in cached &&
+    "hundreds" in cached &&
+    "tens" in cached &&
+    "units" in cached
+  );
+}
+
+export async function computeDigitAnalysis(): Promise<{
   data: DigitAnalysis;
   source: "db" | "mock";
 }> {
@@ -236,6 +281,22 @@ export async function getDigitAnalysis(): Promise<{
   return { data: buildDigitAnalysis(entries), source: "db" };
 }
 
+export async function getDigitAnalysis(): Promise<{
+  data: DigitAnalysis;
+  source: "db" | "mock";
+}> {
+  const cached = await readCache("digit");
+  if (isDigitAnalysis(cached)) {
+    return { data: cached, source: "db" };
+  }
+
+  const result = await computeDigitAnalysis();
+  if (result.source === "db") {
+    await writeCache("digit", result.data);
+  }
+  return result;
+}
+
 const TWIN_EXAMPLES = ["0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999"];
 const SEQ_EXAMPLES = ["0123", "1234", "2345", "3456", "4567", "5678", "6789", "7890"];
 const PAIR_EXAMPLES = ["0011", "1122", "2233", "3344", "4455", "5566", "6677", "7788", "8899", "9900"];
@@ -254,7 +315,7 @@ function isRepeatingPair(n: string): boolean {
   return /^(\d)\1(\d)\2$/.test(n) && n[0] !== n[2];
 }
 
-export async function getPatterns(): Promise<{
+export async function computePatterns(): Promise<{
   rows: PatternRow[];
   source: "db" | "mock";
 }> {
@@ -315,4 +376,20 @@ export async function getPatterns(): Promise<{
     rows: rows.length ? rows : MOCK_PATTERNS,
     source: "db",
   };
+}
+
+export async function getPatterns(): Promise<{
+  rows: PatternRow[];
+  source: "db" | "mock";
+}> {
+  const cached = await readCache("patterns");
+  if (Array.isArray(cached)) {
+    return { rows: cached as PatternRow[], source: "db" };
+  }
+
+  const result = await computePatterns();
+  if (result.source === "db") {
+    await writeCache("patterns", result.rows);
+  }
+  return result;
 }
