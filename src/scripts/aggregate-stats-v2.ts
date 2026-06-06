@@ -116,7 +116,7 @@ async function listOperators(supabase: SupabaseLike): Promise<string[]> {
     from += PAGE;
   }
 
-  return [...set].sort();
+  return Array.from(set).sort();
 }
 
 /** Aggregate one operator and upsert its rows into number_stats_v2. */
