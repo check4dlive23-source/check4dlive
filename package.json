@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "import:damacai": "tsx src/scripts/import-damacai-history.ts",
-    "import:magnum": "tsx src/scripts/import-magnum-history.ts"
+    "import:magnum": "tsx src/scripts/import-magnum-history.ts",
+    "import:toto": "tsx src/scripts/import-toto-history.ts",
+    "import:singapore": "tsx src/scripts/import-singapore-history.ts",
+    "import:cashsweep": "tsx src/scripts/import-cashsweep-history.ts",
+    "import:sabah88": "tsx src/scripts/import-sabah88-history.ts",
+    "import:stc": "tsx src/scripts/import-stc-history.ts",
+    "aggregate:v2": "tsx src/scripts/aggregate-stats-v2.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

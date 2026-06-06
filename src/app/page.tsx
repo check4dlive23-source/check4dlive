@@ -1,5 +1,5 @@
-import { LiveTerminal } from "@/components/live/LiveTerminal";
+import { AnalyticsDashboardHome } from "@/components/home/AnalyticsDashboardHome";
 
 export default function HomePage() {
-  return <LiveTerminal />;
+  return <AnalyticsDashboardHome />;
 }

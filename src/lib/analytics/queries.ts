@@ -15,6 +15,10 @@ import type {
 } from "@/types/analytics";
 import type { HeatLevel } from "@/types/number-intelligence";
 
+type SupabaseLike = NonNullable<ReturnType<typeof createClient>>;
+
+const PAGE_SIZE = 1000;
+
 function heatLevel(
   total: number,
   currentGap: number,
@@ -27,11 +31,42 @@ function heatLevel(
   return "normal";
 }
 
+/**
+ * Page through number_stats_v2 (default 1000/page) and return all matching
+ * rows. Returns null on query error so callers can fall back to mock data.
+ */
+async function pageAllStatsV2(
+  supabase: SupabaseLike,
+  select: string,
+  sinceDate?: string
+): Promise<Record<string, unknown>[] | null> {
+  const out: Record<string, unknown>[] = [];
+  let from = 0;
+
+  for (;;) {
+    let query = supabase
+      .from("number_stats_v2")
+      .select(select)
+      .range(from, from + PAGE_SIZE - 1);
+    if (sinceDate) query = query.gte("last_seen_date", sinceDate);
+
+    const { data, error } = await query;
+    if (error) return null;
+    if (!data || data.length === 0) break;
+
+    out.push(...(data as Record<string, unknown>[]));
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+
+  return out;
+}
+
 async function historyCount(): Promise<number> {
   const supabase = createClient();
   if (!supabase) return 0;
   const { count } = await supabase
-    .from("draw_history")
+    .from("number_stats_v2")
     .select("*", { count: "exact", head: true });
   return count ?? 0;
 }
@@ -45,40 +80,31 @@ export async function getHotNumbers(
   const supabase = createClient();
   if (!supabase) return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
 
-  let historyQuery = supabase
-    .from("draw_history")
-    .select("number, date, position");
-
+  let sinceDate: string | undefined;
   if (period === "30d") {
     const since = new Date();
     since.setDate(since.getDate() - 30);
-    historyQuery = historyQuery.gte("date", since.toISOString().split("T")[0]);
-  } else {
-    const { data: recentDraws } = await supabase
-      .from("draws")
-      .select("id")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    const ids = (recentDraws ?? []).map((d) => d.id);
-    if (ids.length === 0) return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
-    historyQuery = historyQuery.in("draw_id", ids);
+    sinceDate = since.toISOString().split("T")[0];
   }
 
-  const { data, error } = await historyQuery;
-  if (error || !data?.length) {
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances, first_prize_count, last_seen_date",
+    sinceDate
+  );
+  if (!data || !data.length) {
     return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
   }
 
-  const map = new Map<
-    string,
-    { total: number; first: number; last: string }
-  >();
+  // number_stats_v2 is per (number, operator); collapse to one row per number.
+  const map = new Map<string, { total: number; first: number; last: string }>();
   for (const row of data) {
     const n = row.number as string;
     const cur = map.get(n) ?? { total: 0, first: 0, last: "" };
-    cur.total += 1;
-    if (row.position === "first") cur.first += 1;
-    if (!cur.last || row.date > cur.last) cur.last = row.date as string;
+    cur.total += (row.total_appearances as number) ?? 0;
+    cur.first += (row.first_prize_count as number) ?? 0;
+    const ls = (row.last_seen_date as string) ?? "";
+    if (ls && (!cur.last || ls > cur.last)) cur.last = ls;
     map.set(n, cur);
   }
 
@@ -119,43 +145,64 @@ export async function getColdNumbers(
   const supabase = createClient();
   if (!supabase) return { rows: MOCK_COLD, source: "mock" };
 
-  const { data, error } = await supabase
-    .from("number_stats")
-    .select("number, last_seen_date, current_gap_days, total_hits")
-    .gte("current_gap_days", minGap)
-    .order("current_gap_days", { ascending: false })
-    .limit(50);
-
-  if (error || !data?.length) {
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances, last_seen_date"
+  );
+  if (!data || !data.length) {
     return { rows: MOCK_COLD, source: "mock" };
   }
 
-  const rows: ColdNumberRow[] = data.map((r) => ({
-    number: r.number as string,
-    last_seen_date: (r.last_seen_date as string) ?? null,
-    gap_days: (r.current_gap_days as number) ?? minGap,
-    total_hits: (r.total_hits as number) ?? 0,
-  }));
+  // Collapse to one row per number: most-recent sighting across any operator.
+  const map = new Map<string, { total: number; last: string | null }>();
+  for (const row of data) {
+    const n = row.number as string;
+    const cur = map.get(n) ?? { total: 0, last: null };
+    cur.total += (row.total_appearances as number) ?? 0;
+    const ls = (row.last_seen_date as string) ?? null;
+    if (ls && (!cur.last || ls > cur.last)) cur.last = ls;
+    map.set(n, cur);
+  }
 
-  return { rows, source: "db" };
+  const now = Date.now();
+  const rows: ColdNumberRow[] = Array.from(map.entries())
+    .map(([number, v]) => {
+      const gap = v.last
+        ? Math.floor((now - new Date(v.last).getTime()) / 86_400_000)
+        : Number.MAX_SAFE_INTEGER;
+      return {
+        number,
+        last_seen_date: v.last,
+        gap_days: gap,
+        total_hits: v.total,
+      };
+    })
+    .filter((r) => r.gap_days >= minGap)
+    // last_seen_date ASC == longest gap first (coldest at top).
+    .sort((a, b) => b.gap_days - a.gap_days)
+    .slice(0, 20);
+
+  return { rows: rows.length ? rows : MOCK_COLD, source: "db" };
 }
 
 function emptyDigitGrid(): DigitAnalysis["thousands"] {
   return Array.from({ length: 10 }, (_, d) => ({ digit: d, count: 0 }));
 }
 
-function buildDigitAnalysis(numbers: string[]): DigitAnalysis {
+function buildDigitAnalysis(
+  entries: { num: string; weight: number }[]
+): DigitAnalysis {
   const grids = [
     emptyDigitGrid(),
     emptyDigitGrid(),
     emptyDigitGrid(),
     emptyDigitGrid(),
   ];
-  for (const num of numbers) {
+  for (const { num, weight } of entries) {
     if (!/^\d{4}$/.test(num)) continue;
     for (let i = 0; i < 4; i++) {
       const d = parseInt(num[i], 10);
-      grids[i][d].count += 1;
+      grids[i][d].count += weight;
     }
   }
   return {
@@ -176,17 +223,17 @@ export async function getDigitAnalysis(): Promise<{
   const supabase = createClient();
   if (!supabase) return { data: MOCK_DIGIT, source: "mock" };
 
-  const { data, error } = await supabase
-    .from("draw_history")
-    .select("number")
-    .limit(5000);
-
-  if (error || !data?.length) {
+  const data = await pageAllStatsV2(supabase, "number, total_appearances");
+  if (!data || !data.length) {
     return { data: MOCK_DIGIT, source: "mock" };
   }
 
-  const numbers = data.map((r) => r.number as string);
-  return { data: buildDigitAnalysis(numbers), source: "db" };
+  // Weight each number's digit contribution by its total appearances.
+  const entries = data.map((r) => ({
+    num: r.number as string,
+    weight: (r.total_appearances as number) ?? 0,
+  }));
+  return { data: buildDigitAnalysis(entries), source: "db" };
 }
 
 const TWIN_EXAMPLES = ["0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999"];
@@ -217,18 +264,16 @@ export async function getPatterns(): Promise<{
   const supabase = createClient();
   if (!supabase) return { rows: MOCK_PATTERNS, source: "mock" };
 
-  const { data, error } = await supabase
-    .from("draw_history")
-    .select("number");
-
-  if (error || !data?.length) {
+  const data = await pageAllStatsV2(supabase, "number, total_appearances");
+  if (!data || !data.length) {
     return { rows: MOCK_PATTERNS, source: "mock" };
   }
 
+  // Weighted hit counts: sum total_appearances per number across operators.
   const counts = new Map<string, number>();
   for (const row of data) {
     const n = row.number as string;
-    counts.set(n, (counts.get(n) ?? 0) + 1);
+    counts.set(n, (counts.get(n) ?? 0) + ((row.total_appearances as number) ?? 0));
   }
 
   const rows: PatternRow[] = [];

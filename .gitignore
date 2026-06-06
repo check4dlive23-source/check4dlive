@@ -40,3 +40,8 @@ tmp-*.html
 mkcert.exe
 
 .vercel
+
+# debug logs, root-level html dumps, and probe scripts
+*.log
+/*.html
+scripts/probe-*.mjs

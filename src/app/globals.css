@@ -14,12 +14,26 @@
   --dim: #38385a;
   --gold: #f5c842;
   --green: #22c55e;
+
+  /* TradingView-style design tokens */
+  --surface-1: #0d0f17; /* base background */
+  --surface-2: #13151f; /* card / panel background */
+  --surface-3: #1a1d2e; /* hover / highlight background */
+  --border-dim: rgba(255, 255, 255, 0.06); /* divider */
+  --border-mid: rgba(255, 255, 255, 0.12); /* card border */
+  --accent-green: #26a69a; /* hot / active */
+  --accent-red: #ef5350; /* cold */
+  --accent-amber: #f5a623; /* drawing / live */
+  --text-primary: #eeeef5;
+  --text-secondary: #8b8fa8;
+  --text-dim: #4a4e6a;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 html,
 body {
   min-height: 100%;
-  background-color: #0d0d14;
+  background-color: var(--surface-1);
   color: #eeeef5;
 }
 

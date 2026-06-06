@@ -242,23 +242,35 @@ function parseOperatorBlock(
 }
 
 export async function fetchCheck4dOrgHtml(dateIso: string): Promise<string> {
-  const res = await fetch(`${CHECK4D_ORG_BASE}/${dateIso}`, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-      Accept:
-        "text/html,application/xhtml+xml,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-      "Accept-Encoding": "gzip, deflate, br",
-      Referer: "https://www.check4d.org/",
-      Connection: "keep-alive",
-      "Upgrade-Insecure-Requests": "1",
-    },
-    cache: "no-store",
-  });
+  const url = `${CHECK4D_ORG_BASE}/${dateIso}`;
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    Accept:
+      "text/html,application/xhtml+xml,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    Referer: "https://www.check4d.org/",
+    Connection: "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+  };
 
-  if (!res.ok) return "";
-  return res.text();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers,
+        cache: "no-store",
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (res.ok) return res.text();
+    } catch {
+      /* retry on timeout / network error */
+    }
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+  }
+
+  return "";
 }
 
 export function parseCheck4dOrg(html: string, dateIso: string): ParsedDraw[] {

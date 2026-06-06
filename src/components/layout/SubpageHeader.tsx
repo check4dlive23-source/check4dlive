@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
-import { MainNav } from "@/components/layout/MainNav";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 
@@ -32,7 +31,6 @@ export function SubpageHeader({
               >
                 {t("home")}
               </Link>
-              <MainNav />
             </div>
             <div className="flex items-center gap-2">
               <button

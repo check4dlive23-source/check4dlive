@@ -1,4 +1,5 @@
 import { AppProviders } from "@/components/providers/AppProviders";
+import { MainNav } from "@/components/layout/MainNav";
 import type { Metadata } from "next";
 import { Noto_Sans_SC, Rajdhani, Roboto_Mono } from "next/font/google";
 import "./globals.css";
@@ -46,7 +47,10 @@ export default function RootLayout({
         className={`${rajdhani.variable} ${notoSansSC.variable} ${robotoMono.variable} font-sans antialiased`}
       >
         {/* ADSENSE_SLOT_TOP — layout-level placeholder */}
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          <MainNav />
+          <main className="sm:pt-14">{children}</main>
+        </AppProviders>
       </body>
     </html>
   );

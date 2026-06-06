@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
-import { MainNav } from "@/components/layout/MainNav";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 import {
@@ -295,7 +294,7 @@ export function LiveTerminal() {
   return (
     <>
       <div className="min-h-screen bg-surface pb-16 sm:pb-0">
-        <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-md">
+        <header className="sticky top-0 sm:top-14 z-40 border-b border-line bg-surface/95 backdrop-blur-md">
           <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <h1 className="text-lg font-bold text-foreground truncate">
@@ -309,7 +308,6 @@ export function LiveTerminal() {
               )}
             </div>
           <div className="flex shrink-0 items-center gap-2">
-            <MainNav />
             <LanguageToggle />
             <button
               type="button"
