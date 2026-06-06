@@ -43,39 +43,16 @@ const OPERATOR_LABELS: Record<string, string> = {
   sgpools: "Singapore Pools",
 };
 
-function HistoryPagination({
-  page,
-  totalPages,
-  number,
-}: {
-  page: number;
-  totalPages: number;
-  number: string;
-}) {
-  const { t } = useLang();
-  const router = useRouter();
+type OperatorFilter = "all" | "magnum" | "damacai" | "toto" | "sarawak" | "sgpools";
 
-  return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        disabled={page <= 1}
-        onClick={() => router.push(`/number/${number}?page=${page - 1}`)}
-        className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
-      >
-        {t("previous")}
-      </button>
-      <button
-        type="button"
-        disabled={page >= totalPages}
-        onClick={() => router.push(`/number/${number}?page=${page + 1}`)}
-        className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
-      >
-        {t("next")}
-      </button>
-    </div>
-  );
-}
+const OPERATOR_FILTERS: { id: OperatorFilter; label: string }[] = [
+  { id: "all", label: "全部" },
+  { id: "magnum", label: "Magnum" },
+  { id: "damacai", label: "Damacai" },
+  { id: "toto", label: "Toto" },
+  { id: "sarawak", label: "Cash Sweep" },
+  { id: "sgpools", label: "SG Pools" },
+];
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
