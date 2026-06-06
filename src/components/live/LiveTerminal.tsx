@@ -154,6 +154,7 @@ export function LiveTerminal() {
 
   useEffect(() => {
     setResults({});
+    setIsInitialized(false);
   }, [region]);
 
   useEffect(() => {
