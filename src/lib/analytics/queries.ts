@@ -54,7 +54,7 @@ async function pageAllStatsV2(
     if (error) return null;
     if (!data || data.length === 0) break;
 
-    out.push(...(data as Record<string, unknown>[]));
+    out.push(...(data as unknown as Record<string, unknown>[]));
     if (data.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
   }
