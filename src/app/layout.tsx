@@ -1,25 +1,18 @@
 import { AppProviders } from "@/components/providers/AppProviders";
 import { MainNav } from "@/components/layout/MainNav";
 import type { Metadata } from "next";
-import { Noto_Sans_SC, Rajdhani, Roboto_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const rajdhani = Rajdhani({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-rajdhani",
+  variable: "--font-geist",
+  display: "swap",
 });
 
-const notoSansSC = Noto_Sans_SC({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-noto-sans-sc",
-});
-
-const robotoMono = Roboto_Mono({
-  subsets: ["latin"],
-  weight: ["500", "700"],
-  variable: "--font-roboto-mono",
+  variable: "--font-jetbrains",
   display: "optional",
 });
 
@@ -45,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="dark">
       <body
-        className={`${rajdhani.variable} ${notoSansSC.variable} ${robotoMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         {/* ADSENSE_SLOT_TOP — layout-level placeholder */}
         <AppProviders>

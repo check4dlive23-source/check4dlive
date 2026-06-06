@@ -107,48 +107,70 @@ function IconLive({ className }: IconProps) {
 }
 
 const DESKTOP_LINKS = [
-  { href: "/analytics", label: "分析" },
-  { href: "/draws", label: "开彩记录" },
-  { href: "/search", label: "搜索" },
+  { href: "/analytics", label: "ANALYSIS", alsoHome: true },
+  { href: "/draws", label: "RECORDS", alsoHome: false },
+  { href: "/search", label: "SEARCH", alsoHome: false },
 ] as const;
 
 const MOBILE_TABS = [
-  { href: "/analytics", label: "分析", Icon: IconAnalytics, live: false },
-  { href: "/draws", label: "记录", Icon: IconRecords, live: false },
-  { href: "/search", label: "搜索", Icon: IconSearch, live: false },
-  { href: "/live", label: "实时", Icon: IconLive, live: true },
+  { href: "/analytics", label: "ANALYSIS", Icon: IconAnalytics, live: false, alsoHome: true },
+  { href: "/draws", label: "RECORDS", Icon: IconRecords, live: false, alsoHome: false },
+  { href: "/search", label: "SEARCH", Icon: IconSearch, live: false, alsoHome: false },
+  { href: "/live", label: "LIVE", Icon: IconLive, live: true, alsoHome: false },
 ] as const;
 
 export function MainNav() {
   const pathname = usePathname();
   const live = useAnyRegionLive();
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string, alsoHome = false) =>
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (alsoHome && pathname === "/");
 
   return (
     <>
       {/* Desktop top bar */}
-      <nav className="fixed inset-x-0 top-0 z-40 hidden h-14 items-center justify-between gap-6 border-b border-[var(--border-dim)] bg-[var(--surface-2)] px-4 sm:flex">
+      <nav
+        className="fixed inset-x-0 top-0 z-40 hidden h-14 items-center justify-between gap-6 px-4 sm:flex"
+        style={{
+          backgroundColor: "var(--surface-2)",
+          borderBottom: "1px solid var(--border-dim)",
+        }}
+      >
         <Link
           href="/"
-          className="font-[family-name:var(--font-mono)] text-base font-bold tracking-tight text-[var(--text-primary)]"
+          className="font-display text-sm font-semibold uppercase"
+          style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
         >
-          Check4D
+          CHECK4D
         </Link>
 
         <div className="flex items-center gap-6">
           {DESKTOP_LINKS.map((item) => {
-            const active = isActive(item.href);
+            const active = isActive(item.href, item.alsoHome);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`border-b-2 pb-0.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-[var(--accent-green)] text-[var(--text-primary)]"
-                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
+                className="border-b pb-0.5 font-sans text-[11px] uppercase tracking-[0.08em] transition-colors"
+                style={{
+                  borderBottomWidth: "1px",
+                  borderBottomColor: active ? "var(--cyan)" : "transparent",
+                  color: active
+                    ? "var(--cyan)"
+                    : "var(--text-dim)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "var(--text-secondary)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "var(--text-dim)";
+                  }
+                }}
               >
                 {item.label}
               </Link>
@@ -158,16 +180,25 @@ export function MainNav() {
 
         <Link
           href="/live"
-          className="inline-flex items-center gap-1.5 text-sm font-medium"
+          className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.08em]"
         >
           {live ? (
-            <span className="inline-flex items-center gap-1.5 text-[var(--accent-amber)]">
-              实时开彩
-              <span className="h-2 w-2 rounded-full bg-[var(--accent-amber)] animate-pulse" />
+            <span
+              className="inline-flex items-center gap-1.5"
+              style={{ color: "var(--green)" }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full animate-pulse"
+                style={{ backgroundColor: "var(--green)" }}
+              />
+              LIVE
             </span>
           ) : (
-            <span className="text-[var(--text-dim)] hover:text-[var(--text-secondary)] transition-colors">
-              开彩时间表
+            <span
+              className="transition-colors"
+              style={{ color: "var(--text-dim)" }}
+            >
+              SCHEDULE
             </span>
           )}
         </Link>
@@ -175,11 +206,15 @@ export function MainNav() {
 
       {/* Mobile bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex h-14 sm:hidden border-t border-[var(--border-dim)] bg-[var(--surface-2)] pb-safe"
+        className="fixed bottom-0 left-0 right-0 z-50 flex h-14 sm:hidden pb-safe"
+        style={{
+          backgroundColor: "var(--surface-2)",
+          borderTop: "1px solid var(--border-dim)",
+        }}
         aria-label="Main navigation"
       >
-        {MOBILE_TABS.map(({ href, label, Icon, live: isLiveTab }) => {
-          const active = isActive(href);
+        {MOBILE_TABS.map(({ href, label, Icon, live: isLiveTab, alsoHome }) => {
+          const active = isActive(href, alsoHome);
           const showLiveDot = isLiveTab && live;
           return (
             <Link
@@ -187,18 +222,21 @@ export function MainNav() {
               href={href}
               className="relative flex flex-1 flex-col items-center justify-center gap-0.5"
               style={{
-                color: active
-                  ? "var(--accent-green)"
-                  : "var(--text-secondary)",
+                color: active ? "var(--cyan)" : "var(--text-dim)",
               }}
             >
               <span className="relative">
                 <Icon />
                 {showLiveDot && (
-                  <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-[var(--accent-amber)] animate-pulse" />
+                  <span
+                    className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full animate-pulse"
+                    style={{ backgroundColor: "var(--green)" }}
+                  />
                 )}
               </span>
-              <span className="text-[10px] leading-none">{label}</span>
+              <span className="font-sans text-[9px] uppercase leading-none tracking-[0.06em]">
+                {label}
+              </span>
             </Link>
           );
         })}

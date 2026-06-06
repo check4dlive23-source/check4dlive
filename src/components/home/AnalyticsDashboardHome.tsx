@@ -13,26 +13,40 @@ import type {
 } from "@/types/analytics";
 import type { HeatLevel } from "@/types/number-intelligence";
 
-const MONO = "font-[family-name:var(--font-mono)]";
-
 const TABS = [
-  { key: "hot", label: "热号" },
-  { key: "cold", label: "冷号" },
-  { key: "digit", label: "数字分析" },
-  { key: "patterns", label: "模式" },
+  { key: "hot", label: "HOT MOMENTUM" },
+  { key: "cold", label: "COLD REVERSAL" },
+  { key: "digit", label: "DIGIT STRENGTH" },
+  { key: "patterns", label: "PATTERN SIGNALS" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
-const PATTERN_LABELS: Record<string, string> = {
-  "Twin (AAAA)": "四同 AAAA",
-  Sequential: "顺子",
-  "Repeating pair (AABB)": "对子 AABB",
-};
+const DRAW_COUNT = 52784;
+const COVERAGE = "1985–2026";
+const MARKETS = "MY · SG · KH";
 
-function heatText(level: HeatLevel): { label: string; color: string } {
-  if (level === "hot") return { label: "热", color: "var(--accent-green)" };
-  if (level === "cold") return { label: "冷", color: "var(--accent-red)" };
-  return { label: "常", color: "var(--text-secondary)" };
+const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
+  { key: "thousands", label: "THOUSANDS" },
+  { key: "hundreds", label: "HUNDREDS" },
+  { key: "tens", label: "TENS" },
+  { key: "units", label: "UNITS" },
+];
+
+function heatLabel(level: HeatLevel): { text: string; color: string } {
+  if (level === "hot") return { text: "HOT", color: "var(--green)" };
+  return { text: "NORMAL", color: "var(--muted)" };
+}
+
+function gapDays(lastSeen: string | null, today: string): number | null {
+  if (!lastSeen || !today) return null;
+  const diff = new Date(today).getTime() - new Date(lastSeen).getTime();
+  return Math.max(0, Math.round(diff / 86_400_000));
+}
+
+function weekdayUpper(dateStr: string): string {
+  if (!dateStr) return "---";
+  const d = new Date(`${dateStr}T12:00:00`);
+  return d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
 }
 
 function Skeleton() {
@@ -41,9 +55,36 @@ function Skeleton() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="h-12 w-full animate-pulse rounded bg-[var(--surface-2)]"
+          className="h-14 w-full animate-pulse bg-[var(--surface-3)]"
         />
       ))}
+    </div>
+  );
+}
+
+function StatCell({
+  value,
+  label,
+  valueColor = "var(--text-primary)",
+}: {
+  value: string;
+  label: string;
+  valueColor?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span
+        className="font-mono text-sm tabular-nums"
+        style={{ color: valueColor }}
+      >
+        {value}
+      </span>
+      <span
+        className="font-sans text-[10px] uppercase tracking-[0.1em]"
+        style={{ color: "var(--text-dim)" }}
+      >
+        {label}
+      </span>
     </div>
   );
 }
@@ -51,30 +92,50 @@ function Skeleton() {
 function DigitRow({ label, data }: { label: string; data: DigitFrequency[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
   const min = Math.min(...data.map((d) => d.count));
+
   return (
-    <div className="flex items-center gap-3 border-b border-[var(--border-dim)] py-3">
-      <span className="w-8 shrink-0 text-xs text-[var(--text-dim)]">{label}</span>
+    <div className="flex items-center gap-3 border-b border-[var(--border-dim)] py-2.5">
+      <span
+        className="w-20 shrink-0 font-sans text-[10px] uppercase tracking-[0.1em]"
+        style={{ color: "var(--text-dim)" }}
+      >
+        {label}
+      </span>
       <div className="flex flex-1 gap-1">
         {data.map((cell) => {
-          const color =
-            cell.count === max
-              ? "var(--accent-green)"
-              : cell.count === min
-                ? "var(--text-dim)"
-                : "var(--text-secondary)";
+          const isMax = cell.count === max;
+          const isMin = cell.count === min;
+          const barColor = isMax
+            ? "var(--green)"
+            : isMin
+              ? "var(--text-dim)"
+              : "var(--cyan)";
           const pct = Math.round((cell.count / max) * 100);
           return (
             <div
               key={cell.digit}
               className="flex min-w-0 flex-1 flex-col items-center gap-1"
             >
-              <span className={`${MONO} text-[10px]`} style={{ color }}>
+              <span
+                className="font-mono text-[10px] tabular-nums"
+                style={{
+                  color: isMax
+                    ? "var(--green)"
+                    : isMin
+                      ? "var(--text-dim)"
+                      : "var(--text-secondary)",
+                }}
+              >
                 {cell.digit}
               </span>
-              <div className="h-1 w-full overflow-hidden rounded-sm bg-[var(--surface-3)]">
+              <div className="h-1 w-full overflow-hidden bg-[var(--surface-3)]">
                 <div
-                  className="h-full rounded-sm"
-                  style={{ width: `${pct}%`, backgroundColor: color }}
+                  className="h-full"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: barColor,
+                    opacity: isMin ? 0.35 : isMax ? 1 : 0.65,
+                  }}
                 />
               </div>
             </div>
@@ -117,10 +178,10 @@ export function AnalyticsDashboardHome() {
         setHot(h.rows ?? []);
         setCold(c.rows ?? []);
         setDigit({
-          thousands: d.thousands ?? [],
-          hundreds: d.hundreds ?? [],
-          tens: d.tens ?? [],
-          units: d.units ?? [],
+          thousands: d.thousands ?? d.data?.thousands ?? [],
+          hundreds: d.hundreds ?? d.data?.hundreds ?? [],
+          tens: d.tens ?? d.data?.tens ?? [],
+          units: d.units ?? d.data?.units ?? [],
         });
         setPatterns(p.rows ?? []);
       } finally {
@@ -132,6 +193,11 @@ export function AnalyticsDashboardHome() {
     };
   }, []);
 
+  const hotMaxHits = useMemo(
+    () => Math.max(...hot.map((r) => r.total_hits), 1),
+    [hot]
+  );
+
   const grouped = useMemo(() => {
     const m = new Map<string, PatternRow[]>();
     for (const r of patterns) {
@@ -139,7 +205,9 @@ export function AnalyticsDashboardHome() {
       arr.push(r);
       m.set(r.pattern, arr);
     }
-    Array.from(m.values()).forEach(arr => arr.sort((a, b) => b.hit_count - a.hit_count));
+    Array.from(m.values()).forEach((arr) =>
+      arr.sort((a, b) => b.hit_count - a.hit_count)
+    );
     return Array.from(m.entries());
   }, [patterns]);
 
@@ -155,28 +223,51 @@ export function AnalyticsDashboardHome() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--surface-1)]">
+    <div className="min-h-screen bg-[var(--bg)]">
       <div
         className="mx-auto w-full max-w-[640px] px-4"
         style={{ paddingTop: 16, paddingBottom: 80 }}
       >
-        {/* Header */}
-        <header className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className={`${MONO} text-lg text-[var(--text-primary)]`}>
-              号码分析终端
+        {/* Terminal Header */}
+        <header
+          className="border px-4 py-3"
+          style={{
+            borderColor: "var(--border-cyan)",
+            backgroundColor: "var(--surface-2)",
+          }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <h1
+              className="font-display text-[13px] font-semibold uppercase"
+              style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
+            >
+              CHECK4D TERMINAL
             </h1>
-            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
-              基于 40 年历史数据 · 西马 / 东马 / 新加坡
-            </p>
+            <span
+              className="shrink-0 font-mono text-[11px] tabular-nums"
+              style={{ color: "var(--text-dim)" }}
+            >
+              {today || "----------"}
+            </span>
           </div>
-          <span className={`${MONO} shrink-0 text-xs text-[var(--text-dim)]`}>
-            {today || "----------"}
-          </span>
+
+          <div
+            className="my-3 h-px"
+            style={{ backgroundColor: "var(--border-dim)" }}
+          />
+
+          <div className="flex items-end justify-between gap-4">
+            <StatCell
+              value={DRAW_COUNT.toLocaleString("en-US")}
+              label="DRAWS"
+            />
+            <StatCell value={COVERAGE} label="COVERAGE" />
+            <StatCell value={MARKETS} label="MARKETS" valueColor="var(--cyan)" />
+          </div>
         </header>
 
         {/* Quick search */}
-        <form onSubmit={submitSearch} className="mt-4 flex items-stretch gap-2">
+        <form onSubmit={submitSearch} className="mt-4 flex items-stretch">
           <input
             value={num}
             onChange={(e) => {
@@ -184,28 +275,46 @@ export function AnalyticsDashboardHome() {
               if (err) setErr(false);
             }}
             inputMode="numeric"
-            placeholder="输入号码 0000–9999"
-            className={`${MONO} flex-1 rounded-md border bg-[var(--surface-2)] px-3 py-2 text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-dim)] ${
-              err
-                ? "border-[var(--accent-red)]"
-                : "border-[var(--border-dim)] focus:border-[var(--border-mid)]"
-            }`}
+            placeholder="SEARCH NUMBER  0000 → 9999"
+            className="min-w-0 flex-1 border px-3 py-2.5 font-mono text-[15px] uppercase tabular-nums outline-none placeholder:normal-case placeholder:tracking-normal"
+            style={{
+              backgroundColor: "var(--surface-3)",
+              color: "var(--text-primary)",
+              borderColor: err ? "var(--red)" : "var(--border-dim)",
+            }}
+            onFocus={(e) => {
+              if (!err) e.currentTarget.style.borderColor = "var(--border-cyan)";
+            }}
+            onBlur={(e) => {
+              if (!err) e.currentTarget.style.borderColor = "var(--border-dim)";
+            }}
           />
           <button
             type="submit"
-            className="shrink-0 rounded-md border border-[var(--border-dim)] px-4 text-sm font-medium text-[var(--accent-green)]"
+            className="shrink-0 border border-l-0 px-4 font-mono text-lg"
+            style={{
+              color: "var(--cyan)",
+              backgroundColor: "var(--surface-3)",
+              borderColor: err ? "var(--red)" : "var(--border-dim)",
+            }}
           >
-            搜索
+            →
           </button>
         </form>
         {err && (
-          <p className="mt-1 text-xs text-[var(--accent-red)]">
-            请输入 4 位数字（0000–9999）
+          <p
+            className="mt-1 font-sans text-[10px] uppercase tracking-[0.08em]"
+            style={{ color: "var(--red)" }}
+          >
+            Enter 4-digit number (0000–9999)
           </p>
         )}
 
         {/* Tabs */}
-        <div className="mt-5 flex gap-5 border-b border-[var(--border-dim)]">
+        <div
+          className="mt-5 flex gap-3 overflow-x-auto border-b scrollbar-hide"
+          style={{ borderColor: "var(--border-dim)" }}
+        >
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
@@ -213,11 +322,11 @@ export function AnalyticsDashboardHome() {
                 key={t.key}
                 type="button"
                 onClick={() => setTab(t.key)}
-                className={`-mb-px border-b-2 pb-2 text-sm transition-colors ${
-                  active
-                    ? "border-[var(--accent-green)] text-[var(--text-primary)]"
-                    : "border-transparent text-[var(--text-secondary)]"
-                }`}
+                className="-mb-px shrink-0 border-b-2 pb-2 font-sans text-[11px] uppercase tracking-[0.08em] transition-colors"
+                style={{
+                  borderBottomColor: active ? "var(--cyan)" : "transparent",
+                  color: active ? "var(--cyan)" : "var(--text-dim)",
+                }}
               >
                 {t.label}
               </button>
@@ -229,45 +338,74 @@ export function AnalyticsDashboardHome() {
         {loading ? (
           <Skeleton />
         ) : (
-          <div className="pt-1">
-            {/* Hot */}
+          <div>
+            {/* HOT MOMENTUM */}
             {tab === "hot" && (
               <div>
-                {hot.slice(0, 10).map((row, i) => {
-                  const h = heatText(row.heat_level);
+                {hot.slice(0, 20).map((row, i) => {
+                  const label = heatLabel(row.heat_level);
+                  const gap = gapDays(row.last_seen, today);
+                  const barPct = Math.round(
+                    (row.total_hits / hotMaxHits) * 100
+                  );
                   return (
                     <Link
                       key={row.number}
                       href={`/number/${row.number}`}
-                      className="flex items-center gap-3 border-b border-[var(--border-dim)] py-3"
+                      className="block border-b py-2 transition-colors hover:bg-[var(--surface-3)]"
+                      style={{ borderColor: "var(--border-dim)" }}
                     >
-                      <span
-                        className={`${MONO} w-8 shrink-0 text-xs text-[var(--text-dim)]`}
-                      >
-                        #{i + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-6 shrink-0 font-mono text-[10px] tabular-nums"
+                          style={{ color: "var(--text-dim)" }}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className="shrink-0 font-mono text-[30px] font-medium tabular-nums"
+                          style={{
+                            color: "var(--cyan)",
+                            letterSpacing: "0.08em",
+                          }}
+                        >
+                          {row.number}
+                        </span>
+                        <span
+                          className="ml-auto font-mono text-xs tabular-nums"
+                          style={{ color: "var(--green)" }}
+                        >
+                          FREQ {row.total_hits}
+                        </span>
+                        {gap !== null && (
                           <span
-                            className={`${MONO} text-2xl text-[var(--accent-green)]`}
+                            className="font-mono text-[11px] tabular-nums"
+                            style={{ color: "var(--text-dim)" }}
                           >
-                            {row.number}
+                            GAP {gap}D
                           </span>
-                          <span
-                            className={`${MONO} text-sm text-[var(--text-secondary)]`}
-                          >
-                            +{row.total_hits}次
-                          </span>
-                          <span
-                            className="ml-auto text-xs font-medium"
-                            style={{ color: h.color }}
-                          >
-                            {h.label}
-                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 pl-8">
+                        <div
+                          className="h-1.5 flex-1 overflow-hidden"
+                          style={{ backgroundColor: "var(--surface-3)" }}
+                        >
+                          <div
+                            className="h-full font-mono text-[8px] leading-none"
+                            style={{
+                              width: `${barPct}%`,
+                              backgroundColor: "var(--cyan)",
+                              opacity: 0.85,
+                            }}
+                          />
                         </div>
-                        <p className="mt-0.5 text-xs text-[var(--text-dim)]">
-                          最近: {row.last_seen ?? "—"}
-                        </p>
+                        <span
+                          className="shrink-0 font-sans text-[10px] uppercase tracking-[0.08em]"
+                          style={{ color: label.color }}
+                        >
+                          {label.text}
+                        </span>
                       </div>
                     </Link>
                   );
@@ -275,69 +413,88 @@ export function AnalyticsDashboardHome() {
               </div>
             )}
 
-            {/* Cold */}
+            {/* COLD REVERSAL */}
             {tab === "cold" && (
               <div>
-                {cold.slice(0, 10).map((row) => (
+                {cold.slice(0, 20).map((row, i) => (
                   <Link
                     key={row.number}
                     href={`/number/${row.number}`}
-                    className="flex items-center gap-3 border-b border-[var(--border-dim)] py-3"
+                    className="flex items-center gap-2 border-b py-2 transition-colors hover:bg-[var(--surface-3)]"
+                    style={{ borderColor: "var(--border-dim)" }}
                   >
                     <span
-                      className={`${MONO} shrink-0 text-xl text-[var(--accent-red)]`}
+                      className="w-6 shrink-0 font-mono text-[10px] tabular-nums"
+                      style={{ color: "var(--text-dim)" }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className="shrink-0 font-mono text-[26px] font-medium tabular-nums"
+                      style={{
+                        color: "var(--muted)",
+                        letterSpacing: "0.08em",
+                      }}
                     >
                       {row.number}
                     </span>
                     <span
-                      className={`${MONO} text-sm text-[var(--text-secondary)]`}
+                      className="font-mono text-sm tabular-nums"
+                      style={{ color: "var(--amber)" }}
                     >
-                      冷藏{" "}
-                      <span className="text-[var(--accent-amber)]">
-                        {row.gap_days}
-                      </span>{" "}
-                      天
+                      {row.gap_days}D
                     </span>
-                    <span className="ml-auto text-xs text-[var(--text-dim)]">
-                      最近: {row.last_seen_date ?? "—"}
+                    <span
+                      className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
+                      style={{ color: "var(--text-dim)" }}
+                    >
+                      LAST {row.last_seen_date ?? "—"}
                     </span>
                   </Link>
                 ))}
               </div>
             )}
 
-            {/* Digit */}
+            {/* DIGIT STRENGTH */}
             {tab === "digit" && digit && (
               <div>
-                <DigitRow label="千位" data={digit.thousands} />
-                <DigitRow label="百位" data={digit.hundreds} />
-                <DigitRow label="十位" data={digit.tens} />
-                <DigitRow label="个位" data={digit.units} />
+                {DIGIT_ROWS.map(({ key, label }) => (
+                  <DigitRow key={key} label={label} data={digit[key]} />
+                ))}
               </div>
             )}
 
-            {/* Patterns */}
+            {/* PATTERN SIGNALS */}
             {tab === "patterns" && (
               <div className="space-y-4 pt-2">
                 {grouped.map(([pattern, rows]) => (
                   <div key={pattern}>
-                    <h3 className="mb-1 text-xs text-[var(--text-secondary)]">
-                      {PATTERN_LABELS[pattern] ?? pattern}
+                    <h3
+                      className="mb-1 font-sans text-[10px] uppercase tracking-[0.1em]"
+                      style={{ color: "var(--text-dim)" }}
+                    >
+                      {pattern}
                     </h3>
                     <div>
-                      {rows.map((r, i) => (
+                      {rows.map((r, idx) => (
                         <Link
-                          key={`${r.example}-${i}`}
+                          key={`${r.example}-${idx}`}
                           href={`/number/${r.example}`}
-                          className="flex items-center justify-between border-b border-[var(--border-dim)] py-1.5"
+                          className="flex items-center justify-between border-b py-1.5 transition-colors hover:bg-[var(--surface-3)]"
+                          style={{ borderColor: "var(--border-dim)" }}
                         >
                           <span
-                            className={`${MONO} text-sm text-[var(--text-primary)]`}
+                            className="font-mono text-sm tabular-nums"
+                            style={{
+                              color: "var(--text-primary)",
+                              letterSpacing: "0.08em",
+                            }}
                           >
                             {r.example}
                           </span>
                           <span
-                            className={`${MONO} text-xs text-[var(--text-dim)]`}
+                            className="font-mono text-xs tabular-nums"
+                            style={{ color: "var(--text-dim)" }}
                           >
                             {r.hit_count}
                           </span>
@@ -351,10 +508,22 @@ export function AnalyticsDashboardHome() {
           </div>
         )}
 
-        {/* Bottom draw-status bar */}
-        <div className="mt-6 border-t border-[var(--border-dim)] pt-3">
-          <p className="text-xs text-[var(--text-dim)]">
-            今日开彩：大马万字 · 多多 · 大马彩
+        {/* Bottom status bar */}
+        <div
+          className="mt-6 space-y-1 border-t pt-3"
+          style={{ borderColor: "var(--border-dim)" }}
+        >
+          <p
+            className="font-sans text-[11px] uppercase tracking-[0.08em]"
+            style={{ color: "var(--text-dim)" }}
+          >
+            TODAY&nbsp;&nbsp;{weekdayUpper(today)} {today || "----------"}
+          </p>
+          <p
+            className="font-sans text-[11px] uppercase tracking-[0.08em]"
+            style={{ color: "var(--text-dim)" }}
+          >
+            SCHEDULED&nbsp;&nbsp;MAGNUM · DAMACAI · TOTO
           </p>
         </div>
       </div>
