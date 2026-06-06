@@ -139,7 +139,7 @@ export function AnalyticsDashboardHome() {
       arr.push(r);
       m.set(r.pattern, arr);
     }
-    for (const arr of m.values()) arr.sort((a, b) => b.hit_count - a.hit_count);
+    Array.from(m.values()).forEach(arr => arr.sort((a, b) => b.hit_count - a.hit_count));
     return Array.from(m.entries());
   }, [patterns]);
 
