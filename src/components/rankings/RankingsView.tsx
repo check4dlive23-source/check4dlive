@@ -12,6 +12,7 @@ import type {
   HotNumberRow,
   PatternRow,
 } from "@/types/analytics";
+import { PageLayout } from "@/components/layout/PageLayout";
 import type { HeatLevel } from "@/types/number-intelligence";
 
 const TABS = [
@@ -326,37 +327,11 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const showSkeleton = loading;
 
   return (
-    <div
-      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
-      style={{ backgroundColor: "#070710" }}
+    <PageLayout
+      title="RANK"
+      titleAccent="INGS"
+      subtitle="TOP 100 · 40 YEARS DATA"
     >
-      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
-        <div style={{ padding: "0 22px", marginBottom: 20 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 18,
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              color: "#fff",
-            }}
-          >
-            RANK<span style={{ color: "#00E5FF" }}>INGS</span>
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 8,
-              letterSpacing: "0.35em",
-              color: "rgba(0,229,255,0.6)",
-              marginTop: 2,
-            }}
-          >
-            TOP 100 · 40 YEARS DATA
-          </div>
-        </div>
-
-        <div style={{ padding: "0 22px" }}>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
           <button
             type="button"
@@ -882,8 +857,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         >
           DATA SOURCE: MAGNUM · DAMACAI · TOTO · CASH SWEEP · SINGAPORE POOLS
         </footer>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

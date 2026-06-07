@@ -29,7 +29,7 @@ export function TotoLottoCombinedCard({
   const revealed = status !== "pending";
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden min-w-0">
+    <article className="subpage-card overflow-hidden min-w-0">
       <header className="flex items-center gap-2 px-2.5 py-2 border-b border-line bg-surface-3">
         <LogoBadge operator="toto_lotto" />
         <div className="min-w-0 flex-1">

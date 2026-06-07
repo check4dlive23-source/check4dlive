@@ -11,7 +11,7 @@ interface JackpotCardProps {
 
 export function JackpotCard({ data }: JackpotCardProps) {
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
         <LogoBadge operator={data.operator} />
         <div className="min-w-0 flex-1">

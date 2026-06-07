@@ -23,7 +23,7 @@ export function MagnumLifeCard({
     "flex h-11 w-11 items-center justify-center rounded-full border border-line/70 bg-surface-3/60 text-base font-bold font-number text-muted opacity-70";
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header
         className="flex items-center gap-2 px-3 py-2.5 border-b border-line"
         style={{ backgroundColor: "#FFD70018" }}

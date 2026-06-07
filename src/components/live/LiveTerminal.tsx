@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 import {
@@ -93,7 +94,7 @@ function LoadingSkeleton({ cols = 3 }: { cols?: 2 | 3 }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl border border-line bg-surface-2 overflow-hidden animate-pulse"
+          className="subpage-card overflow-hidden animate-pulse"
         >
           <div className="h-12 bg-surface-3 border-b border-line" />
           <div className="h-10 bg-surface-3 border-b border-line" />
@@ -307,63 +308,37 @@ export function LiveTerminal() {
 
   return (
     <>
-      <div
-        className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
-        style={{ backgroundColor: "#070710" }}
+      <PageLayout
+        title="LI"
+        titleAccent="VE"
+        subtitle="REAL-TIME · ALL REGIONS"
       >
-        <div style={{ paddingTop: 72, paddingBottom: 100 }}>
-          <div
-            className="flex items-start justify-between gap-3"
-            style={{ padding: "0 22px", marginBottom: 20 }}
-          >
-            <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: 18,
-                  fontWeight: 900,
-                  letterSpacing: "0.08em",
-                  color: "#fff",
-                }}
-              >
-                LI<span style={{ color: "#00E5FF" }}>VE</span>
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-jetbrains)",
-                  fontSize: 8,
-                  letterSpacing: "0.35em",
-                  color: "rgba(0,229,255,0.6)",
-                  marginTop: 2,
-                }}
-              >
-                REAL-TIME · ALL REGIONS
-              </div>
-              {isLive && (
-                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-live/15 border border-live/30 px-2 py-0.5 text-[10px] font-bold text-live uppercase">
-                  <span className="h-1.5 w-1.5 rounded-full bg-live animate-pulse" />
-                  LIVE
-                </span>
-              )}
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <LanguageToggle />
-              <button
-                type="button"
-                onClick={() => setLuckyOpen(true)}
-                className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
-                aria-haspopup="dialog"
-              >
-                {t("lucky")}
-              </button>
-            </div>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          {isLive ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-live/15 border border-live/30 px-2 py-0.5 text-[10px] font-bold text-live uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-live animate-pulse" />
+              LIVE
+            </span>
+          ) : (
+            <span />
+          )}
+          <div className="flex shrink-0 items-center gap-2">
+            <LanguageToggle />
+            <button
+              type="button"
+              onClick={() => setLuckyOpen(true)}
+              className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
+              aria-haspopup="dialog"
+            >
+              {t("lucky")}
+            </button>
           </div>
+        </div>
 
-          <div style={{ padding: "0 22px" }}>
-            <RegionTabs active={region} onChange={setRegion} />
-            <DrawScheduleBar region={region} isLive={isLive} />
+        <RegionTabs active={region} onChange={setRegion} />
+        <DrawScheduleBar region={region} isLive={isLive} />
 
-          <main className="min-w-0 pt-3">
+        <main className="min-w-0 pt-3">
             {/* ADSENSE_SLOT_TOP */}
 
             {!isInitialized ? (
@@ -505,11 +480,9 @@ export function LiveTerminal() {
               {t("updatedAt")}{" "}
               <span>{updateTime || "--:--:--"}</span>
             </p>
-          </main>
-          {/* ADSENSE_SLOT_SIDEBAR */}
-          </div>
-        </div>
-      </div>
+        </main>
+        {/* ADSENSE_SLOT_SIDEBAR */}
+      </PageLayout>
       <LuckyModal open={luckyOpen} onClose={() => setLuckyOpen(false)} />
     </>
   );

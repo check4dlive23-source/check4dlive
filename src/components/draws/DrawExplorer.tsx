@@ -16,6 +16,7 @@ import {
   specialSlotCount,
 } from "@/lib/prize-slots";
 import { OPERATORS } from "@/lib/history-search";
+import { PageLayout } from "@/components/layout/PageLayout";
 import type { DrawListItem } from "@/types/analytics";
 
 const OPERATOR_LABELS: Record<string, string> = {
@@ -173,38 +174,11 @@ export function DrawExplorer() {
   };
 
   return (
-    <div
-      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
-      style={{ backgroundColor: "#070710" }}
+    <PageLayout
+      title="DRAW "
+      titleAccent="RECORDS"
+      subtitle="BY DATE & OPERATOR · FULL HISTORY"
     >
-      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
-        <div style={{ padding: "0 22px", marginBottom: 20 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 18,
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              color: "#fff",
-            }}
-          >
-            DRAW{" "}
-            <span style={{ color: "#00E5FF" }}>RECORDS</span>
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 8,
-              letterSpacing: "0.35em",
-              color: "rgba(0,229,255,0.6)",
-              marginTop: 2,
-            }}
-          >
-            BY DATE &amp; OPERATOR · FULL HISTORY
-          </div>
-        </div>
-
-        <div style={{ padding: "0 22px" }}>
         {/* Quick date filters */}
         <div className="flex flex-wrap gap-1.5">
           {QUICK_FILTERS.map(({ mode, label }) => {
@@ -447,7 +421,8 @@ export function DrawExplorer() {
                           className="border-b"
                           style={{
                             borderColor: "var(--border-dim)",
-                            backgroundColor: "var(--surface-2)",
+                            background:
+                              "linear-gradient(135deg, #0d1f3c, #0a0e1a)",
                           }}
                         >
                           <td colSpan={7} className="px-3 py-3">
@@ -541,8 +516,6 @@ export function DrawExplorer() {
             </button>
           </div>
         </div>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

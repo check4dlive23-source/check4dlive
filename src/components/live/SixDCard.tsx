@@ -28,7 +28,7 @@ export function SixDCard({
     : "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3/60 border border-line/70 rounded py-2 text-muted opacity-70 tracking-wide";
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
         <LogoBadge operator="toto_6d" />
         <div className="flex-1">

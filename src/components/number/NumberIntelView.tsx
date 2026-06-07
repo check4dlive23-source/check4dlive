@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
@@ -82,7 +83,7 @@ function OperatorLogo({
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-line bg-surface-3 px-3 py-2 text-center">
+    <div className="subpage-card px-3 py-2 text-center">
       <p className="text-[10px] text-muted uppercase tracking-wide">{label}</p>
       <p className="font-number text-lg text-foreground mt-0.5">{value}</p>
     </div>
@@ -142,37 +143,12 @@ export function NumberIntelView({
     : "—";
 
   return (
-    <div
-      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
-      style={{ backgroundColor: "#070710" }}
+    <PageLayout
+      title="NUMB"
+      titleAccent="ER"
+      subtitle="INTELLIGENCE · 40 YEARS DATA"
     >
-      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
-        <div style={{ padding: "0 22px", marginBottom: 20 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 18,
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              color: "#fff",
-            }}
-          >
-            NUMB<span style={{ color: "#00E5FF" }}>ER</span>
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 8,
-              letterSpacing: "0.35em",
-              color: "rgba(0,229,255,0.6)",
-              marginTop: 2,
-            }}
-          >
-            INTELLIGENCE · 40 YEARS DATA
-          </div>
-        </div>
-
-        <div style={{ padding: "0 22px" }} className="space-y-8">
+        <div className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
@@ -266,7 +242,7 @@ export function NumberIntelView({
             <StatCell label={t("consolation")} value={stats.consolation_hits} />
           </div>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-            <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
+            <div className="subpage-card px-3 py-2">
               <span className="text-muted">{t("lastSeen")}: </span>
               <span className="text-foreground">
                 {stats.last_seen_date
@@ -274,7 +250,7 @@ export function NumberIntelView({
                   : t("never")}
               </span>
             </div>
-            <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
+            <div className="subpage-card px-3 py-2">
               <span className="text-muted">{t("currentGap")}: </span>
               <span className="text-foreground font-number">
                 {stats.current_gap_days != null
@@ -289,12 +265,17 @@ export function NumberIntelView({
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("recentAppearances")}
           </h2>
-          <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto max-h-[480px] overflow-y-auto">
+          <div className="subpage-card overflow-x-auto max-h-[480px] overflow-y-auto">
             {historyGroups.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-surface-2 z-10">
+                <thead
+                  className="sticky top-0 z-10"
+                  style={{
+                    background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)",
+                  }}
+                >
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
                     <th className="px-3 py-2">{t("dateLabel")}</th>
                     <th className="px-3 py-2">{t("number")}</th>
@@ -366,7 +347,6 @@ export function NumberIntelView({
           </div>
         </section>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

@@ -29,7 +29,7 @@ export function DrawScheduleBar({ region, isLive }: DrawScheduleBarProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-3">
-      <p className="text-xs text-muted rounded-lg border border-line bg-surface-2 px-3 py-2 text-center sm:text-left">
+      <p className="subpage-card text-xs text-muted px-3 py-2 text-center sm:text-left">
         {t("nextDraw")}: {nextDrawText || "—"}
         <span className="text-dim mx-2 hidden sm:inline">|</span>
         <span className="block sm:inline mt-1 sm:mt-0">

@@ -20,7 +20,7 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
     data.jackpot_amount != null;
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header className="flex items-center gap-2 px-2.5 py-2 border-b border-line bg-surface-3">
         <LogoBadge operator={logo} />
         <div className="min-w-0 flex-1">

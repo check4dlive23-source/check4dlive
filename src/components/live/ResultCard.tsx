@@ -64,7 +64,7 @@ export function ResultCard({ data }: ResultCardProps) {
     (data.jackpot1_amount ?? 0) > 0;
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header
         className="flex items-start gap-2 px-2 py-1.5 border-b border-line"
         style={{ backgroundColor: `${brand}18` }}

@@ -44,7 +44,7 @@ export function Damacai3Plus3DCard({
   const revealed = status !== "pending";
 
   return (
-    <article className="rounded-xl border border-line bg-surface-2 overflow-hidden">
+    <article className="subpage-card overflow-hidden">
       <header
         className="flex items-center gap-2 px-2 py-2 border-b border-line"
         style={{ backgroundColor: "#1a3a8f18" }}
