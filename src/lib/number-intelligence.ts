@@ -44,6 +44,17 @@ const V2_TO_OPERATOR_ID: Record<string, OperatorId> = {
   stc: "sandakan",
 };
 
+/** Map URL ?operators= values → draw_results_v2 / number_stats_v2 operator column */
+const URL_TO_V2_OPERATOR: Record<string, string> = {
+  magnum: "magnum",
+  damacai: "damacai",
+  toto: "toto",
+  cashsweep: "cashsweep",
+  sabah: "sabah88",
+  sandakan: "stc",
+  singapore: "singapore",
+};
+
 const HISTORY_FROM = "1985-01-01";
 
 interface StatsV2Row {
@@ -81,6 +92,12 @@ type SupabaseLike = NonNullable<ReturnType<typeof createClient>>;
 
 function toOperatorId(v2Operator: string): OperatorId {
   return V2_TO_OPERATOR_ID[v2Operator] ?? (v2Operator as OperatorId);
+}
+
+function resolveV2Operators(operators?: string[]): string[] | undefined {
+  if (!operators?.length) return undefined;
+  const mapped = operators.map((op) => URL_TO_V2_OPERATOR[op] ?? op);
+  return mapped.length > 0 ? mapped : undefined;
 }
 
 function drawMatchOrFilter(number: string): string {
@@ -358,19 +375,24 @@ function permutationsOf(digits: string[]): string[] {
 async function pageAllDrawMatches(
   supabase: SupabaseLike,
   number: string,
-  since: string
+  since: string,
+  v2Operators?: string[]
 ): Promise<DrawRowV2[]> {
   const out: DrawRowV2[] = [];
   let from = 0;
 
   for (;;) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("draw_results_v2")
       .select(
         "draw_date, draw_no, operator, first_prize, second_prize, third_prize, special_numbers, consolation_numbers"
       )
       .or(drawMatchOrFilter(number))
-      .gte("draw_date", since)
+      .gte("draw_date", since);
+    if (v2Operators?.length) {
+      query = query.in("operator", v2Operators);
+    }
+    const { data, error } = await query
       .order("draw_date", { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
 
@@ -387,16 +409,21 @@ async function pageAllDrawMatches(
 
 async function countRecentDraws(
   supabase: SupabaseLike,
-  since: string
+  since: string,
+  v2Operators?: string[]
 ): Promise<number> {
   const seen = new Set<string>();
   let from = 0;
 
   for (;;) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("draw_results_v2")
       .select("draw_date, operator")
-      .gte("draw_date", since)
+      .gte("draw_date", since);
+    if (v2Operators?.length) {
+      query = query.in("operator", v2Operators);
+    }
+    const { data, error } = await query
       .order("draw_date", { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
 
@@ -415,16 +442,21 @@ async function countRecentDraws(
 
 async function buildRelatedNumbers(
   supabase: SupabaseLike,
-  number: string
+  number: string,
+  v2Operators?: string[]
 ): Promise<RelatedNumber[]> {
   const related: RelatedNumber[] = [];
   const last2 = number.slice(2);
 
-  const { data: sameTailRows, error: tailErr } = await supabase
+  let sameTailQuery = supabase
     .from("number_stats_v2")
     .select("number, total_appearances")
     .like("number", `%${last2}`)
     .neq("number", number);
+  if (v2Operators?.length) {
+    sameTailQuery = sameTailQuery.in("operator", v2Operators);
+  }
+  const { data: sameTailRows, error: tailErr } = await sameTailQuery;
 
   if (tailErr) throw new Error(tailErr.message);
 
@@ -450,10 +482,14 @@ async function buildRelatedNumbers(
     .slice(0, 6);
 
   if (perms.length > 0) {
-    const { data: permRows, error: permErr } = await supabase
+    let permQuery = supabase
       .from("number_stats_v2")
       .select("number, total_appearances")
       .in("number", perms);
+    if (v2Operators?.length) {
+      permQuery = permQuery.in("operator", v2Operators);
+    }
+    const { data: permRows, error: permErr } = await permQuery;
 
     if (permErr) throw new Error(permErr.message);
 
@@ -483,10 +519,11 @@ async function buildRelatedNumbers(
 async function buildExtras(
   supabase: SupabaseLike,
   number: string,
-  stats: NumberStatsPayload
+  stats: NumberStatsPayload,
+  v2Operators?: string[]
 ): Promise<NumberIntelligenceExtras> {
   const since = monthsAgoIso(24);
-  const totalDraws = await countRecentDraws(supabase, since);
+  const totalDraws = await countRecentDraws(supabase, since, v2Operators);
   const winPct =
     totalDraws > 0
       ? Math.round((stats.total_hits / totalDraws) * 10000) / 100
@@ -499,7 +536,11 @@ async function buildExtras(
     predictedNext = d.toISOString().split("T")[0];
   }
 
-  const related_numbers = await buildRelatedNumbers(supabase, number);
+  const related_numbers = await buildRelatedNumbers(
+    supabase,
+    number,
+    v2Operators
+  );
 
   return {
     total_draws_analyzed: totalDraws,
@@ -549,7 +590,7 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
 
 export async function getNumberIntelligence(
   rawNumber: string,
-  options?: { page?: number; pageSize?: number }
+  options?: { page?: number; pageSize?: number; operators?: string[] }
 ): Promise<NumberIntelligenceResponse | null> {
   const number = normalize4D(rawNumber);
   if (!isValid4D(number)) return null;
@@ -561,10 +602,19 @@ export async function getNumberIntelligence(
   if (!supabase) return emptyResponse(number);
 
   const since24mo = monthsAgoIso(24);
+  const v2Operators = resolveV2Operators(options?.operators);
+
+  let statsQuery = supabase
+    .from("number_stats_v2")
+    .select("*")
+    .eq("number", number);
+  if (v2Operators?.length) {
+    statsQuery = statsQuery.in("operator", v2Operators);
+  }
 
   const [statsResult, drawRows] = await Promise.all([
-    supabase.from("number_stats_v2").select("*").eq("number", number),
-    pageAllDrawMatches(supabase, number, HISTORY_FROM),
+    statsQuery,
+    pageAllDrawMatches(supabase, number, HISTORY_FROM, v2Operators),
   ]);
 
   if (statsResult.error) throw new Error(statsResult.error.message);
@@ -592,7 +642,7 @@ export async function getNumberIntelligence(
     .slice(from, from + pageSize)
     .map(toRecentAppearance);
 
-  const extras = await buildExtras(supabase, number, stats);
+  const extras = await buildExtras(supabase, number, stats, v2Operators);
 
   return {
     number,

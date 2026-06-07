@@ -43,6 +43,37 @@ const OPERATOR_LABELS: Record<string, string> = {
   sgpools: "Singapore Pools",
 };
 
+const OPERATOR_LOGOS: Record<string, string> = {
+  magnum: "/logos/magnum.gif",
+  damacai: "/logos/damacai.gif",
+  toto: "/logos/toto.gif",
+  cashsweep: "/logos/cashsweep.gif",
+  sarawak: "/logos/cashsweep.gif",
+  sabah: "/logos/sabah88.gif",
+  sandakan: "/logos/sandakan.gif",
+  singapore: "/logos/sgpools.gif",
+  sgpools: "/logos/sgpools.gif",
+};
+
+function OperatorLogo({
+  operatorKey,
+  height = 20,
+}: {
+  operatorKey: string;
+  height?: number;
+}) {
+  const src = OPERATOR_LOGOS[operatorKey];
+  if (!src) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={operatorKey}
+      style={{ height, width: "auto", display: "block" }}
+    />
+  );
+}
+
 type OperatorFilter = "all" | "magnum" | "damacai" | "toto" | "sarawak" | "sgpools";
 
 const OPERATOR_FILTERS: { id: OperatorFilter; label: string }[] = [
@@ -65,9 +96,10 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
 
 interface NumberIntelViewProps {
   data: NumberIntelligenceResponse;
+  operators?: string[];
 }
 
-export function NumberIntelView({ data }: NumberIntelViewProps) {
+export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) {
   const { t } = useLang();
   const [copied, setCopied] = useState(false);
   const [operatorFilter, setOperatorFilter] = useState<OperatorFilter>("all");
@@ -102,6 +134,19 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
               <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
                 {data.number}
               </h1>
+              {operators.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-muted">筛选：</span>
+                  {operators.map((op) => (
+                    <span
+                      key={op}
+                      className="inline-flex items-center rounded border border-line bg-surface-3 px-2 py-1"
+                    >
+                      <OperatorLogo operatorKey={op} />
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex flex-col items-end gap-2">
               <HeatBadge level={stats.heat_level} />
@@ -202,31 +247,6 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
           </div>
         </section>
 
-        {extras.related_numbers.length > 0 && (
-          <section>
-            <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-              {t("relatedNumbers")}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {extras.related_numbers.map((r) => (
-                <Link
-                  key={r.number}
-                  href={`/number/${r.number}`}
-                  className="rounded-lg border border-line bg-surface-2 px-3 py-2 hover:border-gold/40"
-                >
-                  <span className="font-number text-lg text-gold">{r.number}</span>
-                  <span className="block text-[10px] text-muted">
-                    {r.reason === "same_last2"
-                      ? t("sameLast2")
-                      : t("permutation")}{" "}
-                    · {r.total_hits} {t("hits")}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("appearanceTimeline")}
@@ -326,7 +346,6 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
                     <th className="px-3 py-2">{t("dateLabel")}</th>
                     <th className="px-3 py-2">{t("operator")}</th>
                     <th className="px-3 py-2">{t("prizePosition")}</th>
-                    <th className="px-3 py-2">{t("drawNoCol")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,7 +358,12 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
                         {formatDrawDate(row.date)}
                       </td>
                       <td className="px-3 py-2 text-foreground">
-                        {OPERATOR_LABELS[row.operator] ?? row.operator}
+                        <span className="inline-flex items-center gap-2">
+                          <OperatorLogo operatorKey={row.operator} />
+                          <span>
+                            {OPERATOR_LABELS[row.operator] ?? row.operator}
+                          </span>
+                        </span>
                       </td>
                       <td
                         className={`px-3 py-2 font-medium ${
@@ -347,9 +371,6 @@ export function NumberIntelView({ data }: NumberIntelViewProps) {
                         }`}
                       >
                         {row.position_label}
-                      </td>
-                      <td className="px-3 py-2 font-number text-muted">
-                        {row.draw_no ?? "—"}
                       </td>
                     </tr>
                   ))}

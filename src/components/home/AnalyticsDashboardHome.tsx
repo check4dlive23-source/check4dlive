@@ -25,6 +25,16 @@ const DRAW_COUNT = 52784;
 const COVERAGE = "1985–2026";
 const MARKETS = "MY · SG · KH";
 
+const SEARCH_OPERATORS = [
+  { id: "magnum", logo: "/logos/magnum.gif" },
+  { id: "damacai", logo: "/logos/damacai.gif" },
+  { id: "toto", logo: "/logos/toto.gif" },
+  { id: "cashsweep", logo: "/logos/cashsweep.gif" },
+  { id: "sabah", logo: "/logos/sabah88.gif" },
+  { id: "sandakan", logo: "/logos/sandakan.gif" },
+  { id: "singapore", logo: "/logos/sgpools.gif" },
+] as const;
+
 const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
   { key: "thousands", label: "THOUSANDS" },
   { key: "hundreds", label: "HUNDREDS" },
@@ -160,6 +170,7 @@ export function AnalyticsDashboardHome() {
   const [today, setToday] = useState("");
   const [num, setNum] = useState("");
   const [err, setErr] = useState(false);
+  const [selectedOps, setSelectedOps] = useState<string[]>([]);
 
   useEffect(() => {
     setToday(todayMYT());
@@ -212,12 +223,20 @@ export function AnalyticsDashboardHome() {
     return Array.from(m.entries());
   }, [patterns]);
 
+  const toggleOperator = (id: string) => {
+    setSelectedOps((prev) =>
+      prev.includes(id) ? prev.filter((op) => op !== id) : [...prev, id]
+    );
+  };
+
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const n = num.trim();
     if (/^\d{4}$/.test(n)) {
       setErr(false);
-      router.push(`/number/${n}`);
+      const ops = selectedOps.length > 0 ? selectedOps.join(",") : "";
+      const url = ops ? `/number/${n}?operators=${ops}` : `/number/${n}`;
+      router.push(url);
     } else {
       setErr(true);
     }
@@ -310,6 +329,36 @@ export function AnalyticsDashboardHome() {
             Enter 4-digit number (0000–9999)
           </p>
         )}
+
+        <div className="mt-2 flex gap-1.5 overflow-x-auto scrollbar-hide">
+          {SEARCH_OPERATORS.map((op) => {
+            const active = selectedOps.includes(op.id);
+            return (
+              <button
+                key={op.id}
+                type="button"
+                onClick={() => toggleOperator(op.id)}
+                className="shrink-0 rounded"
+                style={{
+                  padding: "6px 10px",
+                  border: active
+                    ? "1px solid var(--cyan)"
+                    : "1px solid var(--border-dim)",
+                  background: active
+                    ? "rgba(0,229,255,0.08)"
+                    : "transparent",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={op.logo}
+                  alt={op.id}
+                  style={{ height: 20, width: "auto", display: "block" }}
+                />
+              </button>
+            );
+          })}
+        </div>
 
         {/* Tabs */}
         <div

@@ -33,6 +33,7 @@ export function generateStaticParams() {
 
 type PageProps = {
   params: { number: string };
+  searchParams: { operators?: string };
 };
 
 export async function generateMetadata({
@@ -61,19 +62,22 @@ export async function generateMetadata({
   };
 }
 
-export default async function NumberPage({ params }: PageProps) {
+export default async function NumberPage({ params, searchParams }: PageProps) {
   const number = normalize4D(params.number);
   if (!isValid4D(number)) {
     notFound();
   }
 
+  const operators = searchParams.operators?.split(",").filter(Boolean) ?? [];
+
   const data = await getNumberIntelligence(number, {
     page: 1,
     pageSize: 500,
+    operators,
   });
   if (!data) {
     notFound();
   }
 
-  return <NumberIntelView data={data} />;
+  return <NumberIntelView data={data} operators={operators} />;
 }
