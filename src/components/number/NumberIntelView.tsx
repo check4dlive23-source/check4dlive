@@ -1,26 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import { parsePosition } from "@/lib/number-intelligence";
 import type { NumberIntelligenceResponse } from "@/types/number-intelligence";
-
-const AppearanceTimeline = dynamic(
-  () => import("./AppearanceTimeline").then((m) => m.AppearanceTimeline),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-64 flex items-center justify-center text-sm text-muted">
-        Loading chart…
-      </div>
-    ),
-  }
-);
 
 const POSITION_COLORS: Record<string, string> = {
   first: "text-gold",
@@ -55,6 +43,16 @@ const OPERATOR_LOGOS: Record<string, string> = {
   sgpools: "/logos/sgpools.gif",
 };
 
+const SEARCH_OPERATORS = [
+  { id: "magnum", logo: "/logos/magnum.gif" },
+  { id: "damacai", logo: "/logos/damacai.gif" },
+  { id: "toto", logo: "/logos/toto.gif" },
+  { id: "cashsweep", logo: "/logos/cashsweep.gif" },
+  { id: "sabah", logo: "/logos/sabah88.gif" },
+  { id: "sandakan", logo: "/logos/sandakan.gif" },
+  { id: "singapore", logo: "/logos/sgpools.gif" },
+] as const;
+
 function OperatorLogo({
   operatorKey,
   height = 20,
@@ -74,17 +72,6 @@ function OperatorLogo({
   );
 }
 
-type OperatorFilter = "all" | "magnum" | "damacai" | "toto" | "sarawak" | "sgpools";
-
-const OPERATOR_FILTERS: { id: OperatorFilter; label: string }[] = [
-  { id: "all", label: "全部" },
-  { id: "magnum", label: "Magnum" },
-  { id: "damacai", label: "Damacai" },
-  { id: "toto", label: "Toto" },
-  { id: "sarawak", label: "Cash Sweep" },
-  { id: "sgpools", label: "SG Pools" },
-];
-
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-lg border border-line bg-surface-3 px-3 py-2 text-center">
@@ -101,14 +88,22 @@ interface NumberIntelViewProps {
 
 export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) {
   const { t } = useLang();
+  const router = useRouter();
+  const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const [operatorFilter, setOperatorFilter] = useState<OperatorFilter>("all");
   const { stats, extras } = data;
 
-  const filteredHistory = useMemo(() => {
-    if (operatorFilter === "all") return data.history.items;
-    return data.history.items.filter((row) => row.operator === operatorFilter);
-  }, [data.history.items, operatorFilter]);
+  const toggleOperator = (id: string) => {
+    const next = operators.includes(id)
+      ? operators.filter((op) => op !== id)
+      : [...operators, id];
+    const url =
+      next.length > 0
+        ? `${pathname}?operators=${next.join(",")}`
+        : pathname;
+    router.push(url);
+  };
+
   const lastPos = stats.last_seen_position
     ? parsePosition(stats.last_seen_position).label
     : "—";
@@ -134,19 +129,35 @@ export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) 
               <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
                 {data.number}
               </h1>
-              {operators.length > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-muted">筛选：</span>
-                  {operators.map((op) => (
-                    <span
-                      key={op}
-                      className="inline-flex items-center rounded border border-line bg-surface-3 px-2 py-1"
+              <div className="mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {SEARCH_OPERATORS.map((op) => {
+                  const active = operators.includes(op.id);
+                  return (
+                    <button
+                      key={op.id}
+                      type="button"
+                      onClick={() => toggleOperator(op.id)}
+                      className="shrink-0 rounded"
+                      style={{
+                        padding: "6px 10px",
+                        border: active
+                          ? "1px solid var(--cyan)"
+                          : "1px solid var(--border-dim)",
+                        background: active
+                          ? "rgba(0,229,255,0.08)"
+                          : "transparent",
+                      }}
                     >
-                      <OperatorLogo operatorKey={op} />
-                    </span>
-                  ))}
-                </div>
-              )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={op.logo}
+                        alt={op.id}
+                        style={{ height: 20, width: "auto", display: "block" }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2">
               <HeatBadge level={stats.heat_level} />
@@ -249,95 +260,10 @@ export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) 
 
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            {t("appearanceTimeline")}
-          </h2>
-          <div className="rounded-xl border border-line bg-surface-2 p-4">
-            <AppearanceTimeline data={data.timeline} />
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-            {t("breakdownByOperator")}
-          </h2>
-          <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto">
-            {data.breakdown.length === 0 ? (
-              <p className="p-4 text-sm text-muted">{t("noResults")}</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2">{t("operator")}</th>
-                    <th className="px-3 py-2 text-center">{t("totalHits")}</th>
-                    <th className="px-3 py-2 text-center">{t("firstHits")}</th>
-                    <th className="px-3 py-2 text-center">{t("secondHits")}</th>
-                    <th className="px-3 py-2 text-center">{t("thirdHits")}</th>
-                    <th className="px-3 py-2 text-center">{t("special")}</th>
-                    <th className="px-3 py-2 text-center">{t("consolation")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.breakdown.map((row) => (
-                    <tr key={row.operator} className="border-b border-line/50">
-                      <td className="px-3 py-2 font-medium text-foreground">
-                        {row.label}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number">
-                        {row.total}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number text-gold">
-                        {row.first}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number text-slate-300">
-                        {row.second}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number text-amber-600">
-                        {row.third}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number text-sky-400">
-                        {row.special}
-                      </td>
-                      <td className="px-3 py-2 text-center font-number text-muted">
-                        {row.consolation}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("recentAppearances")}
           </h2>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {OPERATOR_FILTERS.map((op) => {
-              const active = operatorFilter === op.id;
-              return (
-                <button
-                  key={op.id}
-                  type="button"
-                  onClick={() => setOperatorFilter(op.id)}
-                  className="font-mono uppercase rounded"
-                  style={{
-                    fontSize: "10px",
-                    padding: "4px 8px",
-                    border: active ? "1px solid var(--cyan)" : "1px solid transparent",
-                    color: active ? "var(--cyan)" : "var(--text-dim)",
-                    background: "transparent",
-                  }}
-                >
-                  {op.label}
-                </button>
-              );
-            })}
-          </div>
           <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto max-h-[480px] overflow-y-auto">
             {data.history.items.length === 0 ? (
-              <p className="p-4 text-sm text-muted">{t("noResults")}</p>
-            ) : filteredHistory.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
@@ -349,7 +275,7 @@ export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) 
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredHistory.map((row, i) => (
+                  {data.history.items.map((row, i) => (
                     <tr
                       key={`${row.date}-${row.operator}-${i}`}
                       className="border-b border-line/50"
