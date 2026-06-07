@@ -20,7 +20,7 @@ export function DrawScheduleBar({ region, isLive }: DrawScheduleBarProps) {
     const update = () => {
       const next = getNextDrawDate(region);
       setNextDrawText(`${next.day} ${next.dateLabel}`);
-      setRefreshLabel(t(getRefreshIntervalLabelKey()));
+      setRefreshLabel(t(getRefreshIntervalLabelKey(region)));
     };
     update();
     const id = setInterval(update, 30_000);
@@ -39,7 +39,7 @@ export function DrawScheduleBar({ region, isLive }: DrawScheduleBarProps) {
           <>
             <span className="text-dim mx-2 hidden sm:inline">|</span>
             <span className="block sm:inline text-live">
-              {t("duringLiveDraw")}: {t("every15Sec")}
+              {t("duringLiveDraw")}: {t("every3Sec")}
             </span>
           </>
         )}

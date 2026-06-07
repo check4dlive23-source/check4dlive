@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         try {
           const payload = await getRegionResults(region);
           const drawDay = isDrawDayAndNearDraw(region);
-          const intervalMs = getRefreshIntervalMs();
+          const intervalMs = getRefreshIntervalMs(region);
 
           send({
             operators: payload.operators,
@@ -45,6 +45,8 @@ export async function GET(request: Request) {
           send({
             error: e instanceof Error ? e.message : "poll failed",
           });
+          if (timer) clearInterval(timer);
+          timer = setInterval(poll, getRefreshIntervalMs(region));
         }
       };
 
