@@ -38,7 +38,6 @@ const CHECK4D_PAGES = [
   "https://www.check4dresult.com/singapore-4d-result",
   "https://www.check4dresult.com/grand-dragon-lotto",
   "https://www.check4dresult.com/cambodia/",
-  "https://www.check4dresult.com/east-malaysia/",
 ] as const;
 
 function escapeRegExp(s: string): string {
@@ -304,10 +303,17 @@ export async function fetchAllCheck4dDraws(): Promise<ParsedDraw[]> {
       for (const draw of parseCheck4dHtml(html)) {
         byKey.set(`${draw.operator}:${draw.date}`, draw);
       }
-    } catch {
-      /* skip unreachable regional pages */
+    } catch (err) {
+      console.warn(
+        `[parse-check4d] failed to fetch ${url}:`,
+        err instanceof Error ? err.message : err
+      );
     }
   }
 
-  return Array.from(byKey.values());
+  const draws = Array.from(byKey.values());
+  console.log(
+    `[parse-check4d] fetched ${draws.length} draws from ${CHECK4D_PAGES.length} pages`
+  );
+  return draws;
 }
