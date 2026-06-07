@@ -41,7 +41,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <div
-        className="mx-auto w-full max-w-[640px] px-4"
+        className="mx-auto w-full max-w-[640px] lg:max-w-4xl px-4"
         style={{ paddingTop: 16, paddingBottom: 96 }}
       >
         <header

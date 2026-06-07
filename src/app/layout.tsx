@@ -78,7 +78,7 @@ export default function RootLayout({
         {/* ADSENSE_SLOT_TOP — layout-level placeholder */}
         <AppProviders>
           <MainNav />
-          <main className="sm:pt-14">{children}</main>
+          <main className="lg:pl-48">{children}</main>
         </AppProviders>
       </body>
     </html>

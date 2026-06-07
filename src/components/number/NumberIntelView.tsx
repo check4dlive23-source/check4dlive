@@ -145,7 +145,7 @@ export function NumberIntelView({
   return (
     <div className="min-h-screen bg-surface">
       <header className="border-b border-line bg-surface-2">
-        <div className="mx-auto max-w-5xl px-4 py-4">
+        <div className="mx-auto max-w-[640px] lg:max-w-4xl px-4 py-4">
           <Link
             href="/"
             className="text-xs text-muted hover:text-foreground transition-colors"
@@ -237,7 +237,7 @@ export function NumberIntelView({
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 space-y-8">
+      <main className="mx-auto max-w-[640px] lg:max-w-4xl px-4 py-6 space-y-8">
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("overview")}
