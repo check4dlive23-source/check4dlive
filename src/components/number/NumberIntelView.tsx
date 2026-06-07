@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { HeatBadge } from "./HeatBadge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import { parsePosition } from "@/lib/number-intelligence";
-import type { NumberIntelligenceResponse } from "@/types/number-intelligence";
+import type {
+  NumberIntelMode,
+  NumberIntelligenceResponse,
+} from "@/types/number-intelligence";
 
 const POSITION_COLORS: Record<string, string> = {
   first: "text-gold",
@@ -42,6 +45,12 @@ const OPERATOR_LOGOS: Record<string, string> = {
   singapore: "/logos/sgpools.gif",
   sgpools: "/logos/sgpools.gif",
 };
+
+const MODE_OPTIONS: { id: NumberIntelMode; labelKey: "modeSingle" | "modeReverse" | "modeFull" }[] = [
+  { id: "single", labelKey: "modeSingle" },
+  { id: "reverse", labelKey: "modeReverse" },
+  { id: "full", labelKey: "modeFull" },
+];
 
 const SEARCH_OPERATORS = [
   { id: "magnum", logo: "/logos/magnum.gif" },
@@ -84,24 +93,46 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
 interface NumberIntelViewProps {
   data: NumberIntelligenceResponse;
   operators?: string[];
+  mode?: NumberIntelMode;
 }
 
-export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) {
+function buildNumberPageUrl(
+  pathname: string,
+  operators: string[],
+  mode: NumberIntelMode
+): string {
+  const params = new URLSearchParams();
+  if (operators.length > 0) {
+    params.set("operators", operators.join(","));
+  }
+  if (mode !== "single") {
+    params.set("mode", mode);
+  }
+  const qs = params.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
+export function NumberIntelView({
+  data,
+  operators = [],
+  mode = "single",
+}: NumberIntelViewProps) {
   const { t } = useLang();
   const router = useRouter();
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
   const { stats, extras } = data;
+  const historyGroups = data.history.groups;
 
   const toggleOperator = (id: string) => {
     const next = operators.includes(id)
       ? operators.filter((op) => op !== id)
       : [...operators, id];
-    const url =
-      next.length > 0
-        ? `${pathname}?operators=${next.join(",")}`
-        : pathname;
-    router.push(url);
+    router.push(buildNumberPageUrl(pathname, next, mode));
+  };
+
+  const setMode = (nextMode: NumberIntelMode) => {
+    router.push(buildNumberPageUrl(pathname, operators, nextMode));
   };
 
   const lastPos = stats.last_seen_position
@@ -154,6 +185,30 @@ export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) 
                         alt={op.id}
                         style={{ height: 20, width: "auto", display: "block" }}
                       />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                {MODE_OPTIONS.map((opt) => {
+                  const active = mode === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setMode(opt.id)}
+                      className="rounded text-xs font-medium px-3 py-1.5 transition-colors"
+                      style={{
+                        border: active
+                          ? "1px solid var(--cyan)"
+                          : "1px solid var(--border-dim)",
+                        background: active
+                          ? "rgba(0,229,255,0.08)"
+                          : "transparent",
+                        color: active ? "var(--cyan)" : "var(--text-muted)",
+                      }}
+                    >
+                      {t(opt.labelKey)}
                     </button>
                   );
                 })}
@@ -263,42 +318,75 @@ export function NumberIntelView({ data, operators = [] }: NumberIntelViewProps) 
             {t("recentAppearances")}
           </h2>
           <div className="rounded-xl border border-line bg-surface-2 overflow-x-auto max-h-[480px] overflow-y-auto">
-            {data.history.items.length === 0 ? (
+            {historyGroups.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-surface-2 z-10">
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
                     <th className="px-3 py-2">{t("dateLabel")}</th>
+                    <th className="px-3 py-2">{t("number")}</th>
                     <th className="px-3 py-2">{t("operator")}</th>
                     <th className="px-3 py-2">{t("prizePosition")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.history.items.map((row, i) => (
-                    <tr
-                      key={`${row.date}-${row.operator}-${i}`}
-                      className="border-b border-line/50"
-                    >
-                      <td className="px-3 py-2 text-foreground">
-                        {formatDrawDate(row.date)}
-                      </td>
-                      <td className="px-3 py-2 text-foreground">
-                        <span className="inline-flex items-center gap-2">
-                          <OperatorLogo operatorKey={row.operator} />
-                          <span>
-                            {OPERATOR_LABELS[row.operator] ?? row.operator}
+                  {historyGroups.map((group) => (
+                    <Fragment key={group.number}>
+                      <tr className="border-t border-line">
+                        <td colSpan={4} className="px-3 py-2">
+                          <span
+                            className="font-mono text-sm tabular-nums"
+                            style={{
+                              color:
+                                group.items.length > 0
+                                  ? "var(--cyan)"
+                                  : "var(--text-dim)",
+                            }}
+                          >
+                            {group.number}
+                            {" — "}
+                            {group.items.length > 0
+                              ? t("historyGroupCount").replace(
+                                  "{count}",
+                                  String(group.items.length)
+                                )
+                              : t("historyGroupEmpty")}
                           </span>
-                        </span>
-                      </td>
-                      <td
-                        className={`px-3 py-2 font-medium ${
-                          POSITION_COLORS[row.position_tier]
-                        }`}
-                      >
-                        {row.position_label}
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                      {group.items.map((row, i) => (
+                        <tr
+                          key={`${group.number}-${row.date}-${row.operator}-${i}`}
+                          className="border-b border-line/50"
+                        >
+                          <td className="px-3 py-2 text-foreground">
+                            {formatDrawDate(row.date)}
+                          </td>
+                          <td
+                            className="px-3 py-2 font-mono tabular-nums"
+                            style={{ color: "var(--cyan)" }}
+                          >
+                            {group.number}
+                          </td>
+                          <td className="px-3 py-2 text-foreground">
+                            <span className="inline-flex items-center gap-2">
+                              <OperatorLogo operatorKey={row.operator} />
+                              <span>
+                                {OPERATOR_LABELS[row.operator] ?? row.operator}
+                              </span>
+                            </span>
+                          </td>
+                          <td
+                            className={`px-3 py-2 font-medium ${
+                              POSITION_COLORS[row.position_tier]
+                            }`}
+                          >
+                            {row.position_label}
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

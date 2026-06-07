@@ -5,7 +5,13 @@ import {
   normalize4D,
 } from "@/lib/number-intelligence";
 import type { Metadata } from "next";
+import type { NumberIntelMode } from "@/types/number-intelligence";
 import { notFound } from "next/navigation";
+
+function parseMode(raw?: string): NumberIntelMode {
+  if (raw === "reverse" || raw === "full") return raw;
+  return "single";
+}
 
 export const revalidate = 3600;
 
@@ -33,7 +39,7 @@ export function generateStaticParams() {
 
 type PageProps = {
   params: { number: string };
-  searchParams: { operators?: string };
+  searchParams: { operators?: string; mode?: string };
 };
 
 export async function generateMetadata({
@@ -69,15 +75,19 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
   }
 
   const operators = searchParams.operators?.split(",").filter(Boolean) ?? [];
+  const mode = parseMode(searchParams.mode);
 
   const data = await getNumberIntelligence(number, {
     page: 1,
     pageSize: 500,
     operators,
+    mode,
   });
   if (!data) {
     notFound();
   }
 
-  return <NumberIntelView data={data} operators={operators} />;
+  return (
+    <NumberIntelView data={data} operators={operators} mode={mode} />
+  );
 }

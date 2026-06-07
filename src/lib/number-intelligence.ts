@@ -3,6 +3,8 @@ import { calculateHeatScore } from "@/lib/heat-score";
 import type { OperatorId } from "@/types";
 import type {
   HeatLevel,
+  HistoryGroup,
+  NumberIntelMode,
   NumberIntelligenceResponse,
   NumberIntelligenceExtras,
   NumberStatsPayload,
@@ -359,6 +361,46 @@ function aggregateStatsV2(
   };
 }
 
+export function getReverseNumber(num: string): string {
+  return num.split("").reverse().join("");
+}
+
+export function getAllPermutations(num: string): string[] {
+  const digits = num.split("");
+  const out = new Set<string>();
+
+  function permute(arr: string[], prefix: string): void {
+    if (out.size >= 24) return;
+    if (arr.length === 0) {
+      out.add(prefix);
+      return;
+    }
+    for (let i = 0; i < arr.length; i++) {
+      const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+      permute(rest, prefix + arr[i]);
+      if (out.size >= 24) return;
+    }
+  }
+
+  permute(digits, "");
+  const unique = Array.from(out);
+  return [num, ...unique.filter((n) => n !== num)].slice(0, 24);
+}
+
+function resolveNumbersForMode(
+  number: string,
+  mode: NumberIntelMode
+): string[] {
+  if (mode === "reverse") {
+    const rev = getReverseNumber(number);
+    return rev === number ? [number] : [number, rev];
+  }
+  if (mode === "full") {
+    return getAllPermutations(number);
+  }
+  return [number];
+}
+
 function permutationsOf(digits: string[]): string[] {
   if (digits.length <= 1) return [digits.join("")];
   const out = new Set<string>();
@@ -574,7 +616,7 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
     breakdown: [],
     recent: [],
     history: {
-      items: [],
+      groups: [],
       page: 1,
       pageSize: 50,
       total: 0,
@@ -590,13 +632,20 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
 
 export async function getNumberIntelligence(
   rawNumber: string,
-  options?: { page?: number; pageSize?: number; operators?: string[] }
+  options?: {
+    page?: number;
+    pageSize?: number;
+    operators?: string[];
+    mode?: NumberIntelMode;
+  }
 ): Promise<NumberIntelligenceResponse | null> {
   const number = normalize4D(rawNumber);
   if (!isValid4D(number)) return null;
 
   const page = Math.max(1, Math.floor(options?.page ?? 1));
   const pageSize = Math.max(1, Math.floor(options?.pageSize ?? 50));
+  const mode = options?.mode ?? "single";
+  const numbersToQuery = resolveNumbersForMode(number, mode);
 
   const supabase = createClient();
   if (!supabase) return emptyResponse(number);
@@ -612,14 +661,19 @@ export async function getNumberIntelligence(
     statsQuery = statsQuery.in("operator", v2Operators);
   }
 
-  const [statsResult, drawRows] = await Promise.all([
+  const [statsResult, ...drawRowsByNumber] = await Promise.all([
     statsQuery,
-    pageAllDrawMatches(supabase, number, HISTORY_FROM, v2Operators),
+    ...numbersToQuery.map((n) =>
+      pageAllDrawMatches(supabase, n, HISTORY_FROM, v2Operators)
+    ),
   ]);
 
   if (statsResult.error) throw new Error(statsResult.error.message);
 
-  const allAppearances = drawRowsToAppearances(drawRows, number);
+  const primaryIdx = numbersToQuery.indexOf(number);
+  const primaryDrawRows =
+    drawRowsByNumber[primaryIdx >= 0 ? primaryIdx : 0] ?? [];
+  const allAppearances = drawRowsToAppearances(primaryDrawRows, number);
   const earliestDrawDate =
     allAppearances.length > 0
       ? allAppearances.reduce(
@@ -638,9 +692,20 @@ export async function getNumberIntelligence(
   const recent = allAppearances.slice(0, 20).map(toRecentAppearance);
 
   const from = (page - 1) * pageSize;
-  const historyItems = allAppearances
-    .slice(from, from + pageSize)
-    .map(toRecentAppearance);
+  const historyGroups: HistoryGroup[] = numbersToQuery.map((n, i) => {
+    const appearances = drawRowsToAppearances(drawRowsByNumber[i] ?? [], n);
+    let items = appearances.map(toRecentAppearance);
+    if (mode === "single") {
+      items = items.slice(from, from + pageSize);
+    }
+    return { number: n, items };
+  });
+
+  const historyTotal = numbersToQuery.reduce((sum, n, i) => {
+    return (
+      sum + drawRowsToAppearances(drawRowsByNumber[i] ?? [], n).length
+    );
+  }, 0);
 
   const extras = await buildExtras(supabase, number, stats, v2Operators);
 
@@ -651,10 +716,10 @@ export async function getNumberIntelligence(
     breakdown: buildBreakdown(recent24mo),
     recent,
     history: {
-      items: historyItems,
+      groups: historyGroups,
       page,
       pageSize,
-      total: allAppearances.length,
+      total: historyTotal,
     },
     extras,
   };

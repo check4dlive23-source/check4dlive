@@ -113,6 +113,11 @@ export const translations = {
     noDrawsFound: "无记录，请调整筛选或运行 ingest",
     drawsCount: "期",
     drawsSubtitle: "按日期与运营商浏览历史开彩记录",
+    modeSingle: "单号",
+    modeReverse: "来回",
+    modeFull: "全打",
+    historyGroupCount: "共 {count} 条",
+    historyGroupEmpty: "无记录",
   },
   en: {
     analytics: "📊 Analytics",
@@ -228,6 +233,11 @@ export const translations = {
     noDrawsFound: "No draws found. Adjust filters or run ingest.",
     drawsCount: "draws",
     drawsSubtitle: "Browse historical draws by date and operator",
+    modeSingle: "Single",
+    modeReverse: "Reverse",
+    modeFull: "Full Box",
+    historyGroupCount: "{count} records",
+    historyGroupEmpty: "No records",
   },
 } as const;
 

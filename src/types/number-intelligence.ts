@@ -57,8 +57,15 @@ export interface NumberIntelligenceExtras {
   related_numbers: RelatedNumber[];
 }
 
-export interface HistoryPage {
+export type NumberIntelMode = "single" | "reverse" | "full";
+
+export interface HistoryGroup {
+  number: string;
   items: RecentAppearance[];
+}
+
+export interface HistoryPage {
+  groups: HistoryGroup[];
   page: number;
   pageSize: number;
   total: number;
