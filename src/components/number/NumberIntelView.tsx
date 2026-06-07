@@ -14,11 +14,11 @@ import type {
 } from "@/types/number-intelligence";
 
 const POSITION_COLORS: Record<string, string> = {
-  first: "text-gold",
-  second: "text-slate-300",
-  third: "text-amber-700",
-  special: "text-sky-400",
-  consolation: "text-muted",
+  first: "text-[#FFD700]", // 金色 — 头奖
+  second: "text-[#C0C0C0]", // 银色 — 二奖
+  third: "text-[#CD7F32]", // 铜色 — 三奖
+  special: "text-[var(--cyan)]", // 青色 — 特别奖
+  consolation: "text-[var(--text-secondary)]", // 灰色 — 安慰奖
 };
 
 const OPERATOR_LABELS: Record<string, string> = {
