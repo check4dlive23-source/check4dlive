@@ -31,6 +31,60 @@ const TOP100_TABS = [
 ] as const;
 type Top100Tab = (typeof TOP100_TABS)[number]["key"];
 
+const SEARCH_OPERATORS = [
+  { id: "magnum", logo: "/logos/magnum.gif" },
+  { id: "damacai", logo: "/logos/damacai.gif" },
+  { id: "toto", logo: "/logos/toto.gif" },
+  { id: "cashsweep", logo: "/logos/cashsweep.gif" },
+  { id: "sabah", logo: "/logos/sabah88.gif" },
+  { id: "sandakan", logo: "/logos/sandakan.gif" },
+  { id: "singapore", logo: "/logos/sgpools.gif" },
+] as const;
+
+/** draw history v1 operator column */
+const OPERATOR_TO_DRAW: Record<string, string> = {
+  magnum: "magnum",
+  damacai: "damacai",
+  toto: "toto",
+  cashsweep: "sarawak",
+  sabah: "sabah",
+  sandakan: "sandakan",
+  singapore: "sgpools",
+};
+
+function operatorsQuery(operator: string): string {
+  return operator ? `&operators=${encodeURIComponent(operator)}` : "";
+}
+
+function operatorsSearch(operator: string, sinceDate?: string): string {
+  const params = new URLSearchParams();
+  if (operator) params.set("operators", operator);
+  if (sinceDate) params.set("since", sinceDate);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function sinceQuery(sinceDate?: string): string {
+  return sinceDate ? `&since=${encodeURIComponent(sinceDate)}` : "";
+}
+
+type Period = "all" | "30d" | "1y" | "5y";
+
+const PERIOD_OPTIONS: { id: Period; label: string }[] = [
+  { id: "all", label: "ALL" },
+  { id: "30d", label: "30D" },
+  { id: "1y", label: "1Y" },
+  { id: "5y", label: "5Y" },
+];
+
+function sinceDateFromPeriod(period: Period, today: string): string | undefined {
+  if (period === "all" || !today) return undefined;
+  const d = new Date(`${today}T12:00:00`);
+  const days = period === "30d" ? 30 : period === "1y" ? 365 : 1825;
+  d.setDate(d.getDate() - days);
+  return d.toISOString().split("T")[0];
+}
+
 const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
   { key: "thousands", label: "THOUSANDS" },
   { key: "hundreds", label: "HUNDREDS" },
@@ -154,12 +208,17 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const [top100Tab, setTop100Tab] = useState<Top100Tab>("hot");
   const [today, setToday] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedOperator, setSelectedOperator] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>("all");
 
   const [hotMomentum, setHotMomentum] = useState<HotNumberRow[]>([]);
   const [coldReversal, setColdReversal] = useState<ColdNumberRow[]>([]);
   const [digit, setDigit] = useState<DigitAnalysis | null>(null);
   const [patterns, setPatterns] = useState<PatternRow[]>([]);
   const [drawRecords, setDrawRecords] = useState<DrawListItem[]>([]);
+  const [top100Hot, setTop100Hot] = useState<HotNumberRow[]>(hot);
+  const [top100Cold, setTop100Cold] = useState<ColdNumberRow[]>(cold);
+  const [top100First, setTop100First] = useState<HotNumberRow[]>(firstPrize);
 
   useEffect(() => {
     setToday(todayMYT());
@@ -167,14 +226,29 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
+      const oq = operatorsQuery(selectedOperator);
+      const sq = sinceQuery(sinceDateFromPeriod(selectedPeriod, today));
+      const historyOp = selectedOperator
+        ? `&operator=${encodeURIComponent(OPERATOR_TO_DRAW[selectedOperator] ?? selectedOperator)}`
+        : "";
+      const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
       try {
-        const [h, c, d, p, draws] = await Promise.all([
-          fetch("/api/analytics/hot?period=30d").then((r) => r.json()),
-          fetch("/api/analytics/cold?min_gap=30").then((r) => r.json()),
-          fetch("/api/analytics/digit").then((r) => r.json()),
-          fetch("/api/analytics/patterns").then((r) => r.json()),
-          fetch("/api/history?page=1").then((r) => r.json()),
+        const [h, c, d, p, draws, hotTop, coldTop] = await Promise.all([
+          fetch(`/api/analytics/hot?period=30d${oq}${sq}`).then((r) => r.json()),
+          fetch(`/api/analytics/cold?min_gap=30${oq}${sq}`).then((r) => r.json()),
+          fetch(
+            `/api/analytics/digit${operatorsSearch(selectedOperator, sinceDate)}`
+          ).then((r) => r.json()),
+          fetch(
+            `/api/analytics/patterns${operatorsSearch(selectedOperator, sinceDate)}`
+          ).then((r) => r.json()),
+          fetch(`/api/history?page=1${historyOp}${sq}`).then((r) => r.json()),
+          fetch(`/api/analytics/hot?period=100draws${oq}${sq}`).then((r) =>
+            r.json()
+          ),
+          fetch(`/api/analytics/cold?min_gap=0${oq}${sq}`).then((r) => r.json()),
         ]);
         if (cancelled) return;
         setHotMomentum(h.rows ?? []);
@@ -187,6 +261,19 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         });
         setPatterns(p.rows ?? []);
         setDrawRecords(draws.items ?? []);
+
+        if (!selectedOperator && selectedPeriod === "all") {
+          setTop100Hot(hot);
+          setTop100Cold(cold);
+          setTop100First(firstPrize);
+        } else {
+          const hotRows = (hotTop.rows ?? []) as HotNumberRow[];
+          setTop100Hot(hotRows);
+          setTop100Cold((coldTop.rows ?? []) as ColdNumberRow[]);
+          setTop100First(
+            [...hotRows].sort((a, b) => b.first_hits - a.first_hits)
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -194,7 +281,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedOperator, selectedPeriod, today, hot, cold, firstPrize]);
 
   const momentumMaxHits = useMemo(
     () => Math.max(...hotMomentum.map((r) => r.total_hits), 1),
@@ -202,9 +289,15 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   );
 
   const top100HotMaxHits = useMemo(
-    () => Math.max(...hot.map((r) => r.total_hits), 1),
-    [hot]
+    () => Math.max(...top100Hot.map((r) => r.total_hits), 1),
+    [top100Hot]
   );
+
+  const filteredDrawRecords = useMemo(() => {
+    if (!selectedOperator) return drawRecords;
+    const drawOp = OPERATOR_TO_DRAW[selectedOperator] ?? selectedOperator;
+    return drawRecords.filter((r) => r.operator === drawOp);
+  }, [drawRecords, selectedOperator]);
 
   const groupedPatterns = useMemo(() => {
     const m = new Map<string, PatternRow[]>();
@@ -219,7 +312,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     return Array.from(m.entries());
   }, [patterns]);
 
-  const showSkeleton = loading && tab !== "top100";
+  const showSkeleton = loading;
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -257,6 +350,84 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             </span>
           </div>
         </header>
+
+        <div className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide">
+          <button
+            type="button"
+            onClick={() => setSelectedOperator("")}
+            className="shrink-0 rounded font-sans text-[10px] uppercase tracking-[0.06em]"
+            style={{
+              padding: "6px 10px",
+              border:
+                selectedOperator === ""
+                  ? "1px solid var(--cyan)"
+                  : "1px solid var(--border-dim)",
+              background:
+                selectedOperator === ""
+                  ? "rgba(0,229,255,0.08)"
+                  : "transparent",
+              color:
+                selectedOperator === ""
+                  ? "var(--cyan)"
+                  : "var(--text-dim)",
+            }}
+          >
+            ALL
+          </button>
+          {SEARCH_OPERATORS.map((op) => {
+            const active = selectedOperator === op.id;
+            return (
+              <button
+                key={op.id}
+                type="button"
+                onClick={() => setSelectedOperator(op.id)}
+                className="shrink-0 rounded"
+                style={{
+                  padding: "6px 10px",
+                  border: active
+                    ? "1px solid var(--cyan)"
+                    : "1px solid var(--border-dim)",
+                  background: active
+                    ? "rgba(0,229,255,0.08)"
+                    : "transparent",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={op.logo}
+                  alt={op.id}
+                  style={{ height: 20, width: "auto", display: "block" }}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-2 flex gap-1.5 overflow-x-auto scrollbar-hide">
+          {PERIOD_OPTIONS.map((opt) => {
+            const active = selectedPeriod === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setSelectedPeriod(opt.id)}
+                className="shrink-0 rounded font-mono text-[10px] uppercase tracking-[0.06em]"
+                style={{
+                  padding: "4px 10px",
+                  border: active
+                    ? "1px solid var(--cyan)"
+                    : "1px solid var(--border-dim)",
+                  background: active
+                    ? "rgba(0,229,255,0.08)"
+                    : "transparent",
+                  color: active ? "var(--cyan)" : "var(--text-dim)",
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
 
         <div
           className="mt-5 flex gap-3 overflow-x-auto border-b scrollbar-hide"
@@ -455,7 +626,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             {/* DRAW RECORDS */}
             {tab === "draws" && (
               <div>
-                {drawRecords.length === 0 ? (
+                {filteredDrawRecords.length === 0 ? (
                   <p
                     className="py-4 font-sans text-[11px]"
                     style={{ color: "var(--text-dim)" }}
@@ -463,7 +634,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     No draw records found.
                   </p>
                 ) : (
-                  drawRecords.slice(0, 10).map((row) => {
+                  filteredDrawRecords.slice(0, 10).map((row) => {
                     const logo = DRAW_OPERATOR_LOGOS[row.operator];
                     const label =
                       DRAW_OPERATOR_LABELS[row.operator] ?? row.operator;
@@ -553,7 +724,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
 
                 <div className="mt-1">
                   {top100Tab === "hot" &&
-                    hot.slice(0, 100).map((row, i) => {
+                    top100Hot.slice(0, 100).map((row, i) => {
                       const gap = gapDays(row.last_seen, today);
                       const barPct = Math.round(
                         (row.total_hits / top100HotMaxHits) * 100
@@ -616,7 +787,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     })}
 
                   {top100Tab === "cold" &&
-                    cold.slice(0, 100).map((row, i) => (
+                    top100Cold.slice(0, 100).map((row, i) => (
                       <Link
                         key={row.number}
                         href={`/number/${row.number}`}
@@ -654,7 +825,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     ))}
 
                   {top100Tab === "first" &&
-                    firstPrize.slice(0, 100).map((row, i) => (
+                    top100First.slice(0, 100).map((row, i) => (
                       <Link
                         key={row.number}
                         href={`/number/${row.number}`}
