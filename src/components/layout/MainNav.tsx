@@ -43,30 +43,6 @@ function IconAnalytics({ className }: IconProps) {
   );
 }
 
-function IconRecords({ className }: IconProps) {
-  return (
-    <svg
-      className={className}
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <line x1="8" y1="6" x2="20" y2="6" />
-      <line x1="8" y1="12" x2="20" y2="12" />
-      <line x1="8" y1="18" x2="20" y2="18" />
-      <circle cx="4" cy="6" r="1" />
-      <circle cx="4" cy="12" r="1" />
-      <circle cx="4" cy="18" r="1" />
-    </svg>
-  );
-}
-
 function IconLive({ className }: IconProps) {
   return (
     <svg
@@ -86,25 +62,27 @@ function IconLive({ className }: IconProps) {
   );
 }
 
-const DESKTOP_LINKS = [
-  { href: "/analytics", label: "ANALYSIS", alsoHome: true },
-  { href: "/draws", label: "RECORDS", alsoHome: false },
-] as const;
+function isIntelActive(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/number") ||
+    pathname.startsWith("/draws") ||
+    pathname.startsWith("/rankings")
+  );
+}
+
+function isLiveActive(pathname: string): boolean {
+  return pathname === "/live";
+}
 
 const MOBILE_TABS = [
-  { href: "/analytics", label: "ANALYSIS", Icon: IconAnalytics, live: false, alsoHome: true },
-  { href: "/draws", label: "RECORDS", Icon: IconRecords, live: false, alsoHome: false },
-  { href: "/live", label: "LIVE", Icon: IconLive, live: true, alsoHome: false },
+  { href: "/", label: "INTEL", Icon: IconAnalytics, showLiveDot: false },
+  { href: "/live", label: "LIVE", Icon: IconLive, showLiveDot: true },
 ] as const;
 
 export function MainNav() {
   const pathname = usePathname();
   const live = useAnyRegionLive();
-
-  const isActive = (href: string, alsoHome = false) =>
-    pathname === href ||
-    pathname.startsWith(`${href}/`) ||
-    (alsoHome && pathname === "/");
 
   return (
     <>
@@ -123,38 +101,6 @@ export function MainNav() {
         >
           CHECK4D
         </Link>
-
-        <div className="flex items-center gap-6">
-          {DESKTOP_LINKS.map((item) => {
-            const active = isActive(item.href, item.alsoHome);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="border-b pb-0.5 font-sans text-[11px] uppercase tracking-[0.08em] transition-colors"
-                style={{
-                  borderBottomWidth: "1px",
-                  borderBottomColor: active ? "var(--cyan)" : "transparent",
-                  color: active
-                    ? "var(--cyan)"
-                    : "var(--text-dim)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = "var(--text-secondary)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = "var(--text-dim)";
-                  }
-                }}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
 
         <Link
           href="/live"
@@ -191,9 +137,9 @@ export function MainNav() {
         }}
         aria-label="Main navigation"
       >
-        {MOBILE_TABS.map(({ href, label, Icon, live: isLiveTab, alsoHome }) => {
-          const active = isActive(href, alsoHome);
-          const showLiveDot = isLiveTab && live;
+        {MOBILE_TABS.map(({ href, label, Icon, showLiveDot }) => {
+          const active =
+            href === "/live" ? isLiveActive(pathname) : isIntelActive(pathname);
           return (
             <Link
               key={href}
@@ -205,7 +151,7 @@ export function MainNav() {
             >
               <span className="relative">
                 <Icon />
-                {showLiveDot && (
+                {showLiveDot && live && (
                   <span
                     className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full animate-pulse"
                     style={{ backgroundColor: "var(--green)" }}

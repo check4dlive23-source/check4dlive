@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { todayMYT } from "@/lib/draw-time";
+import { formatDrawDate } from "@/lib/number-utils";
 import type {
   ColdNumberRow,
   DigitAnalysis,
   DigitFrequency,
+  DrawListItem,
   HotNumberRow,
   PatternRow,
 } from "@/types/analytics";
@@ -18,6 +20,7 @@ const TABS = [
   { key: "cold", label: "COLD REVERSAL" },
   { key: "digit", label: "DIGIT STRENGTH" },
   { key: "patterns", label: "PATTERN SIGNALS" },
+  { key: "draws", label: "DRAW RECORDS" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -34,6 +37,29 @@ const SEARCH_OPERATORS = [
   { id: "sandakan", logo: "/logos/sandakan.gif" },
   { id: "singapore", logo: "/logos/sgpools.gif" },
 ] as const;
+
+const DRAW_OPERATOR_LOGOS: Record<string, string> = {
+  magnum: "/logos/magnum.gif",
+  damacai: "/logos/damacai.gif",
+  toto: "/logos/toto.gif",
+  sarawak: "/logos/cashsweep.gif",
+  sgpools: "/logos/sgpools.gif",
+  sabah: "/logos/sabah88.gif",
+  sandakan: "/logos/sandakan.gif",
+};
+
+const DRAW_OPERATOR_LABELS: Record<string, string> = {
+  magnum: "Magnum",
+  damacai: "Damacai",
+  toto: "Toto",
+  sarawak: "Cash Sweep",
+  sgpools: "SG Pools",
+  sabah: "Sabah",
+  sandakan: "Sandakan",
+  gd: "Grand Dragon",
+  perdana: "Perdana",
+  hari: "Lucky HH",
+};
 
 const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
   { key: "thousands", label: "THOUSANDS" },
@@ -165,6 +191,7 @@ export function AnalyticsDashboardHome() {
   const [cold, setCold] = useState<ColdNumberRow[]>([]);
   const [digit, setDigit] = useState<DigitAnalysis | null>(null);
   const [patterns, setPatterns] = useState<PatternRow[]>([]);
+  const [drawRecords, setDrawRecords] = useState<DrawListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [today, setToday] = useState("");
@@ -180,11 +207,12 @@ export function AnalyticsDashboardHome() {
     let cancelled = false;
     (async () => {
       try {
-        const [h, c, d, p] = await Promise.all([
+        const [h, c, d, p, draws] = await Promise.all([
           fetch("/api/analytics/hot?period=30d").then((r) => r.json()),
           fetch("/api/analytics/cold?min_gap=30").then((r) => r.json()),
           fetch("/api/analytics/digit").then((r) => r.json()),
           fetch("/api/analytics/patterns").then((r) => r.json()),
+          fetch("/api/history?page=1").then((r) => r.json()),
         ]);
         if (cancelled) return;
         setHot(h.rows ?? []);
@@ -196,6 +224,7 @@ export function AnalyticsDashboardHome() {
           units: d.units ?? d.data?.units ?? [],
         });
         setPatterns(p.rows ?? []);
+        setDrawRecords(draws.items ?? []);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -553,6 +582,77 @@ export function AnalyticsDashboardHome() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* DRAW RECORDS */}
+            {tab === "draws" && (
+              <div>
+                {drawRecords.length === 0 ? (
+                  <p
+                    className="py-4 font-sans text-[11px]"
+                    style={{ color: "var(--text-dim)" }}
+                  >
+                    No draw records found.
+                  </p>
+                ) : (
+                  drawRecords.slice(0, 10).map((row) => {
+                    const logo = DRAW_OPERATOR_LOGOS[row.operator];
+                    const label =
+                      DRAW_OPERATOR_LABELS[row.operator] ?? row.operator;
+                    return (
+                      <div
+                        key={row.id}
+                        className="flex items-center gap-2 border-b py-1.5"
+                        style={{ borderColor: "var(--border-dim)" }}
+                      >
+                        <span
+                          className="w-[72px] shrink-0 font-sans text-[10px] tabular-nums"
+                          style={{ color: "var(--text-dim)" }}
+                        >
+                          {formatDrawDate(row.date)}
+                        </span>
+                        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                          {logo && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={logo}
+                              alt={row.operator}
+                              className="shrink-0"
+                              style={{
+                                height: 16,
+                                width: "auto",
+                                display: "block",
+                              }}
+                            />
+                          )}
+                          <span
+                            className="truncate font-sans text-[10px] uppercase tracking-[0.06em]"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            {label}
+                          </span>
+                        </span>
+                        <span
+                          className="shrink-0 font-mono text-[15px] font-medium tabular-nums"
+                          style={{
+                            color: "var(--cyan)",
+                            letterSpacing: "0.08em",
+                          }}
+                        >
+                          {row.first_prize ?? "—"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+                <Link
+                  href="/draws"
+                  className="mt-3 inline-block font-sans text-[11px] transition-colors hover:underline"
+                  style={{ color: "var(--text-dim)" }}
+                >
+                  查看完整记录 →
+                </Link>
               </div>
             )}
           </div>

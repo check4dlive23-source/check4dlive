@@ -7,7 +7,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 静态页面
   const staticPages: MetadataRoute.Sitemap = [
     { url: base, lastModified: now, changeFrequency: "daily", priority: 1.0 },
-    { url: `${base}/analytics`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/draws`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/live`, lastModified: now, changeFrequency: "always", priority: 0.9 },
   ];
