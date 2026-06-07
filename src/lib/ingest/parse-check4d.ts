@@ -32,6 +32,16 @@ const COMPANY_MAP: Record<string, OperatorId> = {
   LUCKYHARI: "hari",
 };
 
+const REGION_PAGES: Partial<Record<Region, string[]>> = {
+  west: ["https://www.check4dresult.com/"],
+  east: ["https://www.check4dresult.com/sabah-sarawak-4d-results"],
+  cambodia: [
+    "https://www.check4dresult.com/grand-dragon-lotto",
+    "https://www.check4dresult.com/cambodia/",
+  ],
+  singapore: ["https://www.check4dresult.com/singapore-4d-result"],
+};
+
 const CHECK4D_PAGES = [
   "https://www.check4dresult.com/",
   "https://www.check4dresult.com/sabah-sarawak-4d-results",
@@ -294,10 +304,13 @@ export async function fetchCheck4dHtml(
 }
 
 /** Scrape west, east, and cambodia operators from all known check4dresult pages */
-export async function fetchAllCheck4dDraws(): Promise<ParsedDraw[]> {
+export async function fetchAllCheck4dDraws(
+  region?: Region
+): Promise<ParsedDraw[]> {
+  const pages = region ? (REGION_PAGES[region] ?? CHECK4D_PAGES) : CHECK4D_PAGES;
   const byKey = new Map<string, ParsedDraw>();
 
-  for (const url of CHECK4D_PAGES) {
+  for (const url of pages) {
     try {
       const html = await fetchCheck4dHtml(url);
       for (const draw of parseCheck4dHtml(html)) {
@@ -313,7 +326,7 @@ export async function fetchAllCheck4dDraws(): Promise<ParsedDraw[]> {
 
   const draws = Array.from(byKey.values());
   console.log(
-    `[parse-check4d] fetched ${draws.length} draws from ${CHECK4D_PAGES.length} pages`
+    `[parse-check4d] fetched ${draws.length} draws from ${pages.length} pages`
   );
   return draws;
 }
