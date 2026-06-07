@@ -18,7 +18,51 @@ import type { HeatLevel } from "@/types/number-intelligence";
 
 type SupabaseLike = NonNullable<ReturnType<typeof createClient>>;
 
+export type AnalyticsFilter = {
+  operators?: string[];
+  since?: string;
+  limit?: number;
+};
+
 const PAGE_SIZE = 1000;
+
+const URL_TO_V2: Record<string, string> = {
+  magnum: "magnum",
+  damacai: "damacai",
+  toto: "toto",
+  cashsweep: "cashsweep",
+  sabah: "sabah88",
+  sandakan: "stc",
+  singapore: "singapore",
+};
+
+function resolveV2Operators(operators?: string[]): string[] | undefined {
+  if (!operators?.length) return undefined;
+  const mapped = operators.map((op) => URL_TO_V2[op] ?? op);
+  return mapped.length > 0 ? mapped : undefined;
+}
+
+function hasAnalyticsFilter(filter?: AnalyticsFilter): boolean {
+  return Boolean(filter?.operators?.length || filter?.since);
+}
+
+export function parseAnalyticsFilter(
+  searchParams: URLSearchParams
+): AnalyticsFilter {
+  const operatorsParam = searchParams.get("operators");
+  const operators = operatorsParam
+    ? operatorsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : undefined;
+  const since = searchParams.get("since") ?? undefined;
+  const limitRaw = searchParams.get("limit");
+  const limit = limitRaw ? parseInt(limitRaw, 10) : undefined;
+
+  return {
+    operators: operators?.length ? operators : undefined,
+    since: since || undefined,
+    limit: limit != null && !Number.isNaN(limit) ? limit : undefined,
+  };
+}
 
 function heatLevel(
   total: number,
@@ -39,10 +83,12 @@ function heatLevel(
 async function pageAllStatsV2(
   supabase: SupabaseLike,
   select: string,
-  sinceDate?: string
+  sinceDate?: string,
+  operators?: string[]
 ): Promise<Record<string, unknown>[] | null> {
   const out: Record<string, unknown>[] = [];
   let from = 0;
+  const v2Operators = resolveV2Operators(operators);
 
   for (;;) {
     let query = supabase
@@ -50,6 +96,7 @@ async function pageAllStatsV2(
       .select(select)
       .range(from, from + PAGE_SIZE - 1);
     if (sinceDate) query = query.gte("last_seen_date", sinceDate);
+    if (v2Operators?.length) query = query.in("operator", v2Operators);
 
     const { data, error } = await query;
     if (error) return null;
@@ -74,16 +121,18 @@ async function historyCount(): Promise<number> {
 
 export async function computeHotNumbers(
   period: "30d" | "100draws",
-  limit = 20
+  limit = 20,
+  filter?: AnalyticsFilter
 ): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
+  const rowLimit = Math.max(1, Math.floor(filter?.limit ?? limit));
   const empty = isAnalyticsEmpty(await historyCount());
-  if (empty) return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
+  if (empty) return { rows: MOCK_HOT.slice(0, rowLimit), source: "mock" };
 
   const supabase = createClient();
-  if (!supabase) return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
+  if (!supabase) return { rows: MOCK_HOT.slice(0, rowLimit), source: "mock" };
 
-  let sinceDate: string | undefined;
-  if (period === "30d") {
+  let sinceDate = filter?.since;
+  if (!sinceDate && period === "30d") {
     const since = new Date();
     since.setDate(since.getDate() - 30);
     sinceDate = since.toISOString().split("T")[0];
@@ -92,10 +141,11 @@ export async function computeHotNumbers(
   const data = await pageAllStatsV2(
     supabase,
     "number, total_appearances, first_prize_count, last_seen_date",
-    sinceDate
+    sinceDate,
+    filter?.operators
   );
   if (!data || !data.length) {
-    return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
+    return { rows: MOCK_HOT.slice(0, rowLimit), source: "mock" };
   }
 
   // number_stats_v2 is per (number, operator); collapse to one row per number.
@@ -133,22 +183,31 @@ export async function computeHotNumbers(
       };
     })
     .sort((a, b) => b.total_hits - a.total_hits)
-    .slice(0, limit);
+    .slice(0, rowLimit);
 
-  return { rows: rows.length ? rows : MOCK_HOT.slice(0, limit), source: "db" };
+  return {
+    rows: rows.length ? rows : MOCK_HOT.slice(0, rowLimit),
+    source: "db",
+  };
 }
 
 export async function getHotNumbers(
-  period: "30d" | "100draws"
+  period: "30d" | "100draws",
+  filter?: AnalyticsFilter
 ): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
-  const cacheKey = period === "30d" ? "hot_30d" : "hot_100draws";
-  const cached = await readCache(cacheKey);
-  if (Array.isArray(cached)) {
-    return { rows: cached as HotNumberRow[], source: "db" };
+  const rowLimit = Math.max(1, Math.floor(filter?.limit ?? 20));
+
+  if (!hasAnalyticsFilter(filter)) {
+    const cacheKey = period === "30d" ? "hot_30d" : "hot_100draws";
+    const cached = await readCache(cacheKey);
+    if (Array.isArray(cached)) {
+      return { rows: (cached as HotNumberRow[]).slice(0, rowLimit), source: "db" };
+    }
   }
 
-  const result = await computeHotNumbers(period);
-  if (result.source === "db") {
+  const result = await computeHotNumbers(period, rowLimit, filter);
+  if (result.source === "db" && !hasAnalyticsFilter(filter)) {
+    const cacheKey = period === "30d" ? "hot_30d" : "hot_100draws";
     await writeCache(cacheKey, result.rows);
   }
   return result;
@@ -156,20 +215,24 @@ export async function getHotNumbers(
 
 export async function computeColdNumbers(
   minGap: number,
-  limit = 20
+  limit = 20,
+  filter?: AnalyticsFilter
 ): Promise<{ rows: ColdNumberRow[]; source: "db" | "mock" }> {
+  const rowLimit = Math.max(1, Math.floor(filter?.limit ?? limit));
   const empty = isAnalyticsEmpty(await historyCount());
-  if (empty) return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
+  if (empty) return { rows: MOCK_COLD.slice(0, rowLimit), source: "mock" };
 
   const supabase = createClient();
-  if (!supabase) return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
+  if (!supabase) return { rows: MOCK_COLD.slice(0, rowLimit), source: "mock" };
 
   const data = await pageAllStatsV2(
     supabase,
-    "number, total_appearances, last_seen_date"
+    "number, total_appearances, last_seen_date",
+    filter?.since,
+    filter?.operators
   );
   if (!data || !data.length) {
-    return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
+    return { rows: MOCK_COLD.slice(0, rowLimit), source: "mock" };
   }
 
   // Collapse to one row per number: most-recent sighting across any operator.
@@ -199,10 +262,10 @@ export async function computeColdNumbers(
     .filter((r) => r.gap_days >= minGap)
     // last_seen_date ASC == longest gap first (coldest at top).
     .sort((a, b) => b.gap_days - a.gap_days)
-    .slice(0, limit);
+    .slice(0, rowLimit);
 
   return {
-    rows: rows.length ? rows : MOCK_COLD.slice(0, limit),
+    rows: rows.length ? rows : MOCK_COLD.slice(0, rowLimit),
     source: "db",
   };
 }
@@ -288,17 +351,23 @@ export async function getTopFirstPrizeNumbers(
 }
 
 export async function getColdNumbers(
-  minGap: number
+  minGap: number,
+  filter?: AnalyticsFilter
 ): Promise<{ rows: ColdNumberRow[]; source: "db" | "mock" }> {
-  if (minGap === 30) {
+  const rowLimit = Math.max(1, Math.floor(filter?.limit ?? 20));
+
+  if (minGap === 30 && !hasAnalyticsFilter(filter)) {
     const cached = await readCache("cold_30");
     if (Array.isArray(cached)) {
-      return { rows: cached as ColdNumberRow[], source: "db" };
+      return {
+        rows: (cached as ColdNumberRow[]).slice(0, rowLimit),
+        source: "db",
+      };
     }
   }
 
-  const result = await computeColdNumbers(minGap);
-  if (minGap === 30 && result.source === "db") {
+  const result = await computeColdNumbers(minGap, rowLimit, filter);
+  if (minGap === 30 && result.source === "db" && !hasAnalyticsFilter(filter)) {
     await writeCache("cold_30", result.rows);
   }
   return result;
@@ -343,7 +412,9 @@ function isDigitAnalysis(cached: unknown): cached is DigitAnalysis {
   );
 }
 
-export async function computeDigitAnalysis(): Promise<{
+export async function computeDigitAnalysis(
+  filter?: AnalyticsFilter
+): Promise<{
   data: DigitAnalysis;
   source: "db" | "mock";
 }> {
@@ -353,7 +424,12 @@ export async function computeDigitAnalysis(): Promise<{
   const supabase = createClient();
   if (!supabase) return { data: MOCK_DIGIT, source: "mock" };
 
-  const data = await pageAllStatsV2(supabase, "number, total_appearances");
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances",
+    filter?.since,
+    filter?.operators
+  );
   if (!data || !data.length) {
     return { data: MOCK_DIGIT, source: "mock" };
   }
@@ -366,17 +442,21 @@ export async function computeDigitAnalysis(): Promise<{
   return { data: buildDigitAnalysis(entries), source: "db" };
 }
 
-export async function getDigitAnalysis(): Promise<{
+export async function getDigitAnalysis(
+  filter?: AnalyticsFilter
+): Promise<{
   data: DigitAnalysis;
   source: "db" | "mock";
 }> {
-  const cached = await readCache("digit");
-  if (isDigitAnalysis(cached)) {
-    return { data: cached, source: "db" };
+  if (!hasAnalyticsFilter(filter)) {
+    const cached = await readCache("digit");
+    if (isDigitAnalysis(cached)) {
+      return { data: cached, source: "db" };
+    }
   }
 
-  const result = await computeDigitAnalysis();
-  if (result.source === "db") {
+  const result = await computeDigitAnalysis(filter);
+  if (result.source === "db" && !hasAnalyticsFilter(filter)) {
     await writeCache("digit", result.data);
   }
   return result;
@@ -400,7 +480,9 @@ function isRepeatingPair(n: string): boolean {
   return /^(\d)\1(\d)\2$/.test(n) && n[0] !== n[2];
 }
 
-export async function computePatterns(): Promise<{
+export async function computePatterns(
+  filter?: AnalyticsFilter
+): Promise<{
   rows: PatternRow[];
   source: "db" | "mock";
 }> {
@@ -410,7 +492,12 @@ export async function computePatterns(): Promise<{
   const supabase = createClient();
   if (!supabase) return { rows: MOCK_PATTERNS, source: "mock" };
 
-  const data = await pageAllStatsV2(supabase, "number, total_appearances");
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances",
+    filter?.since,
+    filter?.operators
+  );
   if (!data || !data.length) {
     return { rows: MOCK_PATTERNS, source: "mock" };
   }
@@ -463,17 +550,21 @@ export async function computePatterns(): Promise<{
   };
 }
 
-export async function getPatterns(): Promise<{
+export async function getPatterns(
+  filter?: AnalyticsFilter
+): Promise<{
   rows: PatternRow[];
   source: "db" | "mock";
 }> {
-  const cached = await readCache("patterns");
-  if (Array.isArray(cached)) {
-    return { rows: cached as PatternRow[], source: "db" };
+  if (!hasAnalyticsFilter(filter)) {
+    const cached = await readCache("patterns");
+    if (Array.isArray(cached)) {
+      return { rows: cached as PatternRow[], source: "db" };
+    }
   }
 
-  const result = await computePatterns();
-  if (result.source === "db") {
+  const result = await computePatterns(filter);
+  if (result.source === "db" && !hasAnalyticsFilter(filter)) {
     await writeCache("patterns", result.rows);
   }
   return result;

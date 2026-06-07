@@ -52,13 +52,15 @@ const OPERATOR_TO_DRAW: Record<string, string> = {
   singapore: "sgpools",
 };
 
-function operatorsQuery(operator: string): string {
-  return operator ? `&operators=${encodeURIComponent(operator)}` : "";
+function operatorsQuery(operators: string[]): string {
+  return operators.length
+    ? `&operators=${encodeURIComponent(operators.join(","))}`
+    : "";
 }
 
-function operatorsSearch(operator: string, sinceDate?: string): string {
+function operatorsSearch(operators: string[], sinceDate?: string): string {
   const params = new URLSearchParams();
-  if (operator) params.set("operators", operator);
+  if (operators.length) params.set("operators", operators.join(","));
   if (sinceDate) params.set("since", sinceDate);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
@@ -208,8 +210,14 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const [top100Tab, setTop100Tab] = useState<Top100Tab>("hot");
   const [today, setToday] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedOperator, setSelectedOperator] = useState("");
+  const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("all");
+
+  const toggleOperator = (id: string) => {
+    setSelectedOperators((prev) =>
+      prev.includes(id) ? prev.filter((op) => op !== id) : [...prev, id]
+    );
+  };
 
   const [hotMomentum, setHotMomentum] = useState<HotNumberRow[]>([]);
   const [coldReversal, setColdReversal] = useState<ColdNumberRow[]>([]);
@@ -228,21 +236,22 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     let cancelled = false;
     setLoading(true);
     (async () => {
-      const oq = operatorsQuery(selectedOperator);
+      const oq = operatorsQuery(selectedOperators);
       const sq = sinceQuery(sinceDateFromPeriod(selectedPeriod, today));
-      const historyOp = selectedOperator
-        ? `&operator=${encodeURIComponent(OPERATOR_TO_DRAW[selectedOperator] ?? selectedOperator)}`
-        : "";
+      const historyOp =
+        selectedOperators.length === 1
+          ? `&operator=${encodeURIComponent(OPERATOR_TO_DRAW[selectedOperators[0]] ?? selectedOperators[0])}`
+          : "";
       const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
       try {
         const [h, c, d, p, draws, hotTop, coldTop] = await Promise.all([
           fetch(`/api/analytics/hot?period=30d${oq}${sq}`).then((r) => r.json()),
           fetch(`/api/analytics/cold?min_gap=30${oq}${sq}`).then((r) => r.json()),
           fetch(
-            `/api/analytics/digit${operatorsSearch(selectedOperator, sinceDate)}`
+            `/api/analytics/digit${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
           fetch(
-            `/api/analytics/patterns${operatorsSearch(selectedOperator, sinceDate)}`
+            `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
           fetch(`/api/history?page=1${historyOp}${sq}`).then((r) => r.json()),
           fetch(`/api/analytics/hot?period=100draws${oq}${sq}`).then((r) =>
@@ -262,7 +271,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         setPatterns(p.rows ?? []);
         setDrawRecords(draws.items ?? []);
 
-        if (!selectedOperator && selectedPeriod === "all") {
+        if (selectedOperators.length === 0 && selectedPeriod === "all") {
           setTop100Hot(hot);
           setTop100Cold(cold);
           setTop100First(firstPrize);
@@ -281,7 +290,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [selectedOperator, selectedPeriod, today, hot, cold, firstPrize]);
+  }, [selectedOperators, selectedPeriod, today, hot, cold, firstPrize]);
 
   const momentumMaxHits = useMemo(
     () => Math.max(...hotMomentum.map((r) => r.total_hits), 1),
@@ -294,10 +303,12 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   );
 
   const filteredDrawRecords = useMemo(() => {
-    if (!selectedOperator) return drawRecords;
-    const drawOp = OPERATOR_TO_DRAW[selectedOperator] ?? selectedOperator;
-    return drawRecords.filter((r) => r.operator === drawOp);
-  }, [drawRecords, selectedOperator]);
+    if (selectedOperators.length === 0) return drawRecords;
+    const drawOps = new Set(
+      selectedOperators.map((op) => OPERATOR_TO_DRAW[op] ?? op)
+    );
+    return drawRecords.filter((r) => drawOps.has(r.operator));
+  }, [drawRecords, selectedOperators]);
 
   const groupedPatterns = useMemo(() => {
     const m = new Map<string, PatternRow[]>();
@@ -354,20 +365,20 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         <div className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide">
           <button
             type="button"
-            onClick={() => setSelectedOperator("")}
+            onClick={() => setSelectedOperators([])}
             className="shrink-0 rounded font-sans text-[10px] uppercase tracking-[0.06em]"
             style={{
               padding: "6px 10px",
               border:
-                selectedOperator === ""
+                selectedOperators.length === 0
                   ? "1px solid var(--cyan)"
                   : "1px solid var(--border-dim)",
               background:
-                selectedOperator === ""
+                selectedOperators.length === 0
                   ? "rgba(0,229,255,0.08)"
                   : "transparent",
               color:
-                selectedOperator === ""
+                selectedOperators.length === 0
                   ? "var(--cyan)"
                   : "var(--text-dim)",
             }}
@@ -375,12 +386,12 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             ALL
           </button>
           {SEARCH_OPERATORS.map((op) => {
-            const active = selectedOperator === op.id;
+            const active = selectedOperators.includes(op.id);
             return (
               <button
                 key={op.id}
                 type="button"
-                onClick={() => setSelectedOperator(op.id)}
+                onClick={() => toggleOperator(op.id)}
                 className="shrink-0 rounded"
                 style={{
                   padding: "6px 10px",
