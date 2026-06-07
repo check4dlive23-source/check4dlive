@@ -1,8 +1,13 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { SubpageHeader } from "@/components/layout/SubpageHeader";
-import { useLang } from "@/lib/language-context";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import { todayMYT } from "@/lib/draw-time";
 import { formatDrawDate } from "@/lib/number-utils";
 import {
@@ -26,6 +31,31 @@ const OPERATOR_LABELS: Record<string, string> = {
   sgpools: "Singapore Pools",
 };
 
+const OPERATOR_LOGOS: Record<string, string> = {
+  magnum: "/logos/magnum.gif",
+  damacai: "/logos/damacai.gif",
+  toto: "/logos/toto.gif",
+  cashsweep: "/logos/cashsweep.gif",
+  sarawak: "/logos/cashsweep.gif",
+  sabah: "/logos/sabah88.gif",
+  sandakan: "/logos/sandakan.gif",
+  singapore: "/logos/sgpools.gif",
+  sgpools: "/logos/sgpools.gif",
+};
+
+const QUICK_FILTERS = [
+  { mode: "today" as const, label: "TODAY" },
+  { mode: "yesterday" as const, label: "YESTERDAY" },
+  { mode: "week" as const, label: "LAST WEEK" },
+  { mode: "month" as const, label: "THIS MONTH" },
+];
+
+const inputStyle: CSSProperties = {
+  backgroundColor: "var(--surface-2)",
+  border: "1px solid var(--border-dim)",
+  color: "var(--text-primary)",
+};
+
 function addDaysIso(iso: string, days: number): string {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d + days));
@@ -37,8 +67,39 @@ function startOfMonthIso(iso: string): string {
   return `${y}-${m}-01`;
 }
 
+function activeQuickFilter(
+  date: string
+): "today" | "yesterday" | "week" | "month" | null {
+  if (!date) return null;
+  const today = todayMYT();
+  if (date === today) return "today";
+  if (date === addDaysIso(today, -1)) return "yesterday";
+  if (date === addDaysIso(today, -7)) return "week";
+  if (date === startOfMonthIso(today)) return "month";
+  return null;
+}
+
+function OperatorLogo({
+  operatorKey,
+  height = 16,
+}: {
+  operatorKey: string;
+  height?: number;
+}) {
+  const src = OPERATOR_LOGOS[operatorKey];
+  if (!src) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={operatorKey}
+      className="shrink-0"
+      style={{ height, width: "auto", display: "block" }}
+    />
+  );
+}
+
 export function DrawExplorer() {
-  const { t } = useLang();
   const [date, setDate] = useState("");
   const [operator, setOperator] = useState("");
   const [page, setPage] = useState(1);
@@ -53,6 +114,7 @@ export function DrawExplorer() {
 
   const pageSize = 20;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const quickActive = useMemo(() => activeQuickFilter(date), [date]);
 
   const load = useCallback(async () => {
     if (!date) return;
@@ -111,33 +173,67 @@ export function DrawExplorer() {
   };
 
   return (
-    <div className="min-h-screen bg-surface pb-16 sm:pb-0">
-      <SubpageHeader title={t("drawExplorer")} subtitle={t("drawsSubtitle")} />
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <div
+        className="mx-auto w-full max-w-[640px] lg:max-w-4xl px-4"
+        style={{ paddingTop: 16, paddingBottom: 96 }}
+      >
+        {/* Terminal Header */}
+        <header
+          className="border px-4 py-3"
+          style={{
+            borderColor: "var(--border-cyan)",
+            backgroundColor: "var(--surface-2)",
+          }}
+        >
+          <h1
+            className="font-display text-[13px] font-semibold uppercase"
+            style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
+          >
+            DRAW RECORDS
+          </h1>
+          <p
+            className="mt-1 font-sans text-[10px] uppercase"
+            style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
+          >
+            Browse historical 4D draws by date &amp; operator
+          </p>
+        </header>
 
-      <div className="mx-auto max-w-6xl px-4 py-4 space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ["today", "filterToday"],
-              ["yesterday", "filterYesterday"],
-              ["week", "filterLastWeek"],
-              ["month", "filterThisMonth"],
-            ] as const
-          ).map(([mode, key]) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => applyQuickFilter(mode)}
-              className="rounded-full border border-line bg-surface-3 px-3 py-1 text-xs text-muted hover:border-gold/50 hover:text-gold"
-            >
-              {t(key)}
-            </button>
-          ))}
+        {/* Quick date filters */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {QUICK_FILTERS.map(({ mode, label }) => {
+            const selected = quickActive === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => applyQuickFilter(mode)}
+                className="font-mono text-[10px] uppercase"
+                style={{
+                  padding: "6px 10px",
+                  border: selected
+                    ? "1px solid var(--cyan)"
+                    : "1px solid var(--border-dim)",
+                  background: selected
+                    ? "rgba(0,229,255,0.08)"
+                    : "transparent",
+                  color: selected ? "var(--cyan)" : "var(--text-dim)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex flex-wrap gap-3 items-end">
-          <label className="text-xs text-muted">
-            {t("dateLabel")}
+        {/* Date + operator filters */}
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label
+            className="font-sans text-[10px] uppercase"
+            style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
+          >
+            DATE
             <input
               type="date"
               value={date}
@@ -146,11 +242,15 @@ export function DrawExplorer() {
                 setPage(1);
                 setExpandedId(null);
               }}
-              className="mt-1 block rounded-lg border border-line bg-surface-3 px-3 py-2 text-sm text-foreground"
+              className="mt-1 block rounded-none px-3 py-2 font-mono text-sm tabular-nums"
+              style={inputStyle}
             />
           </label>
-          <label className="text-xs text-muted">
-            {t("operator")}
+          <label
+            className="font-sans text-[10px] uppercase"
+            style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
+          >
+            OPERATOR
             <select
               value={operator}
               onChange={(e) => {
@@ -158,9 +258,10 @@ export function DrawExplorer() {
                 setPage(1);
                 setExpandedId(null);
               }}
-              className="mt-1 block rounded-lg border border-line bg-surface-3 px-3 py-2 text-sm text-foreground min-w-[140px]"
+              className="mt-1 block min-w-[160px] rounded-none px-3 py-2 font-mono text-sm"
+              style={inputStyle}
             >
-              <option value="">{t("allOperators")}</option>
+              <option value="">ALL OPERATORS</option>
               {OPERATORS.map((op) => (
                 <option key={op} value={op}>
                   {OPERATOR_LABELS[op] ?? op}
@@ -172,32 +273,101 @@ export function DrawExplorer() {
             type="button"
             onClick={downloadCsv}
             disabled={items.length === 0}
-            className="rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-gold hover:bg-gold/20 disabled:opacity-40"
+            className="font-mono text-[10px] uppercase disabled:opacity-40"
+            style={{
+              padding: "8px 12px",
+              border: "1px solid var(--border-dim)",
+              color: "var(--text-dim)",
+              background: "transparent",
+            }}
           >
-            {t("downloadCsv")}
+            DOWNLOAD CSV
           </button>
         </div>
 
-        {loading && <p className="text-sm text-muted">{t("loading")}</p>}
+        {loading && (
+          <p
+            className="mt-4 font-mono text-[10px] uppercase"
+            style={{ color: "var(--text-dim)" }}
+          >
+            LOADING…
+          </p>
+        )}
 
-        <div className="rounded-xl border border-line bg-surface-2 overflow-hidden">
-          <table className="w-full text-sm">
+        {/* Table */}
+        <div className="mt-4 border-t" style={{ borderColor: "var(--border-dim)" }}>
+          <table className="w-full border-collapse">
             <thead>
-              <tr className="text-xs text-muted uppercase border-b border-line bg-surface-3">
-                <th className="px-3 py-2 text-left w-8" />
-                <th className="px-3 py-2 text-left">{t("dateLabel")}</th>
-                <th className="px-3 py-2 text-left">{t("operator")}</th>
-                <th className="px-3 py-2 text-center">{t("firstHits")}</th>
-                <th className="px-3 py-2 text-center">{t("secondHits")}</th>
-                <th className="px-3 py-2 text-center">{t("thirdHits")}</th>
-                <th className="px-3 py-2 text-left">{t("drawNoCol")}</th>
+              <tr
+                className="border-b"
+                style={{ borderColor: "var(--border-dim)" }}
+              >
+                <th className="w-8 py-2" />
+                <th
+                  className="py-2 text-left font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  DATE
+                </th>
+                <th
+                  className="py-2 text-left font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  OPERATOR
+                </th>
+                <th
+                  className="py-2 text-center font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  1ST
+                </th>
+                <th
+                  className="py-2 text-center font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  2ND
+                </th>
+                <th
+                  className="py-2 text-center font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  3RD
+                </th>
+                <th
+                  className="py-2 text-left font-sans text-[10px] uppercase"
+                  style={{
+                    letterSpacing: "0.08em",
+                    color: "var(--text-dim)",
+                  }}
+                >
+                  DRAW NO
+                </th>
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
+              {!loading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-muted">
-                    {t("noDrawsFound")}
+                  <td
+                    colSpan={7}
+                    className="py-8 text-center font-sans text-[11px]"
+                    style={{ color: "var(--text-dim)" }}
+                  >
+                    No draws found for this date.
                   </td>
                 </tr>
               ) : (
@@ -215,60 +385,102 @@ export function DrawExplorer() {
                   return (
                     <Fragment key={row.id}>
                       <tr
-                        className="border-b border-line/50 cursor-pointer hover:bg-surface-3/50"
-                        onClick={() =>
-                          setExpandedId(open ? null : row.id)
-                        }
+                        className="cursor-pointer border-b"
+                        style={{ borderColor: "var(--border-dim)" }}
+                        onClick={() => setExpandedId(open ? null : row.id)}
                       >
-                        <td className="px-3 py-2 text-muted text-xs">
+                        <td
+                          className="py-2 font-mono text-[10px]"
+                          style={{ color: "var(--text-dim)" }}
+                        >
                           {open ? "▼" : "▶"}
                         </td>
-                        <td className="px-3 py-2">
+                        <td
+                          className="py-2 font-mono text-xs tabular-nums"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
                           {formatDrawDate(row.date)}
                         </td>
-                        <td className="px-3 py-2">
-                          {OPERATOR_LABELS[row.operator] ?? row.operator}
+                        <td className="py-2">
+                          <span className="flex items-center gap-1.5">
+                            <OperatorLogo operatorKey={row.operator} />
+                            <span
+                              className="font-sans text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {OPERATOR_LABELS[row.operator] ?? row.operator}
+                            </span>
+                          </span>
                         </td>
-                        <td className="px-3 py-2 text-center font-number text-gold">
+                        <td
+                          className="py-2 text-center font-mono text-[15px] tabular-nums"
+                          style={{ color: "var(--cyan)" }}
+                        >
                           {row.first_prize ?? "—"}
                         </td>
-                        <td className="px-3 py-2 text-center font-number">
+                        <td
+                          className="py-2 text-center font-mono text-[15px] tabular-nums"
+                          style={{ color: "var(--cyan)" }}
+                        >
                           {row.second_prize ?? "—"}
                         </td>
-                        <td className="px-3 py-2 text-center font-number">
+                        <td
+                          className="py-2 text-center font-mono text-[15px] tabular-nums"
+                          style={{ color: "var(--cyan)" }}
+                        >
                           {row.third_prize ?? "—"}
                         </td>
-                        <td className="px-3 py-2 font-number text-muted">
+                        <td
+                          className="py-2 font-mono text-xs tabular-nums"
+                          style={{ color: "var(--text-dim)" }}
+                        >
                           {row.draw_no ?? "—"}
                         </td>
                       </tr>
                       {open && (
                         <tr
-                          key={`${row.id}-detail`}
-                          className="border-b border-line bg-surface-3/30"
+                          className="border-b"
+                          style={{
+                            borderColor: "var(--border-dim)",
+                            backgroundColor: "var(--surface-2)",
+                          }}
                         >
-                          <td colSpan={7} className="px-4 py-3">
-                            <p className="text-[10px] text-muted uppercase mb-2">
-                              {t("specialSection")}
+                          <td colSpan={7} className="px-3 py-3">
+                            <p
+                              className="mb-2 font-sans text-[10px] uppercase"
+                              style={{
+                                letterSpacing: "0.08em",
+                                color: "var(--text-dim)",
+                              }}
+                            >
+                              SPECIAL
                             </p>
-                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 mb-3">
+                            <div className="mb-3 grid grid-cols-5 gap-1 sm:grid-cols-10">
                               {specialSlots.map((n, i) => (
                                 <span
                                   key={`s-${i}`}
-                                  className="text-center font-number text-sm py-1 rounded bg-surface-2 border border-line"
+                                  className="py-1 text-center font-mono text-xs tabular-nums"
+                                  style={{ color: "var(--text-secondary)" }}
                                 >
                                   {n === "----" ? "—" : n}
                                 </span>
                               ))}
                             </div>
-                            <p className="text-[10px] text-muted uppercase mb-2">
-                              {t("consolationSection")}
+                            <p
+                              className="mb-2 font-sans text-[10px] uppercase"
+                              style={{
+                                letterSpacing: "0.08em",
+                                color: "var(--text-dim)",
+                              }}
+                            >
+                              CONSOLATION
                             </p>
-                            <div className="grid grid-cols-5 sm:grid-cols-10 gap-1">
+                            <div className="grid grid-cols-5 gap-1 sm:grid-cols-10">
                               {consolationSlots.map((n, i) => (
                                 <span
                                   key={`c-${i}`}
-                                  className="text-center font-number text-sm py-1 rounded bg-surface-2 border border-line"
+                                  className="py-1 text-center font-mono text-xs tabular-nums"
+                                  style={{ color: "var(--text-secondary)" }}
                                 >
                                   {n === "----" ? "—" : n}
                                 </span>
@@ -285,26 +497,42 @@ export function DrawExplorer() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted">
-            {t("page")} {page} / {totalPages} ({total} {t("drawsCount")})
+        {/* Pagination */}
+        <div className="mt-4 flex items-center justify-between">
+          <span
+            className="font-mono text-[10px] tabular-nums"
+            style={{ color: "var(--text-dim)" }}
+          >
+            PAGE {page} / {totalPages} · {total} DRAWS
           </span>
           <div className="flex gap-2">
             <button
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
+              className="font-mono text-[10px] uppercase disabled:opacity-40"
+              style={{
+                padding: "6px 12px",
+                border: "1px solid var(--border-dim)",
+                color: "var(--text-dim)",
+                background: "transparent",
+              }}
             >
-              {t("previous")}
+              PREV
             </button>
             <button
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg border border-line px-3 py-1 disabled:opacity-40"
+              className="font-mono text-[10px] uppercase disabled:opacity-40"
+              style={{
+                padding: "6px 12px",
+                border: "1px solid var(--border-dim)",
+                color: "var(--text-dim)",
+                background: "transparent",
+              }}
             >
-              {t("next")}
+              NEXT
             </button>
           </div>
         </div>
