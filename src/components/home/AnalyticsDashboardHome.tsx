@@ -298,24 +298,38 @@ export function AnalyticsDashboardHome() {
         className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between"
         style={{ padding: "52px 22px 0" }}
       >
-        <span
-          className="font-mono"
-          style={{
-            fontSize: 20,
-            fontWeight: 900,
-            color: "#00E5FF",
-            letterSpacing: "0.04em",
-          }}
-        >
-          CHECK4D
-        </span>
+        <div style={{ lineHeight: 1 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "18px",
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              color: "#fff",
+            }}
+          >
+            CHECK<span style={{ color: "#00E5FF" }}>4D</span>
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: "8px",
+              fontWeight: 400,
+              letterSpacing: "0.35em",
+              color: "rgba(0,229,255,0.6)",
+              marginTop: "2px",
+            }}
+          >
+            TERMINAL
+          </div>
+        </div>
         <Link href="/search" aria-label="Search" className="flex items-center">
           <SearchIcon />
         </Link>
       </header>
 
       {/* 2. Hero */}
-      <section className="relative" style={{ height: 560 }}>
+      <section className="relative" style={{ height: 480 }}>
         <div className="absolute inset-0 overflow-hidden">
           <div
             className="absolute inset-0"
@@ -332,7 +346,7 @@ export function AnalyticsDashboardHome() {
               key={i}
               className="absolute animate-pulse rounded-full"
               style={{
-                top: p.top,
+                top: `calc(${p.top} + 40px)`,
                 left: p.left,
                 width: p.size,
                 height: p.size,
@@ -352,7 +366,7 @@ export function AnalyticsDashboardHome() {
 
         <div
           className="absolute bottom-0 left-0 right-0 z-10"
-          style={{ padding: "0 22px 32px" }}
+          style={{ padding: "0 22px 28px" }}
         >
           {anyLive && (
             <span

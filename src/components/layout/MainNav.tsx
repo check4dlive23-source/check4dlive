@@ -100,21 +100,21 @@ function isRankingsActive(pathname: string): boolean {
 const MOBILE_TABS = [
   {
     href: "/",
-    label: "INTEL",
+    label: "首页",
     Icon: IconAnalytics,
     showLiveDot: false,
     isActive: isMobileIntelActive,
   },
   {
     href: "/rankings",
-    label: "RANKS",
+    label: "排行",
     Icon: IconRankings,
     showLiveDot: false,
     isActive: isRankingsActive,
   },
   {
     href: "/live",
-    label: "LIVE",
+    label: "开彩",
     Icon: IconLive,
     showLiveDot: true,
     isActive: isLiveActive,
@@ -164,19 +164,31 @@ export function MainNav() {
           className="border-b px-5 py-6"
           style={{ borderColor: "var(--border-dim)" }}
         >
-          <Link
-            href="/"
-            className="font-display text-[13px] font-semibold uppercase"
-            style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
-          >
-            CHECK4D
+          <Link href="/" style={{ lineHeight: 1 }}>
+            <div
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "18px",
+                fontWeight: 900,
+                letterSpacing: "0.08em",
+                color: "#fff",
+              }}
+            >
+              CHECK<span style={{ color: "#00E5FF" }}>4D</span>
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: "8px",
+                fontWeight: 400,
+                letterSpacing: "0.35em",
+                color: "rgba(0,229,255,0.6)",
+                marginTop: "2px",
+              }}
+            >
+              TERMINAL
+            </div>
           </Link>
-          <p
-            className="mt-1 text-[9px] uppercase tracking-[0.08em]"
-            style={{ color: "var(--text-dim)" }}
-          >
-            INTELLIGENCE TERMINAL
-          </p>
         </div>
 
         <div className="flex flex-col gap-1 px-3 py-4">
@@ -250,9 +262,9 @@ export function MainNav() {
 
       {/* Mobile bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex h-14 pb-safe lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex h-16 pb-safe backdrop-blur-xl lg:hidden"
         style={{
-          backgroundColor: "var(--surface-2)",
+          backgroundColor: "rgba(7,7,16,0.95)",
           borderTop: "1px solid var(--border-dim)",
         }}
         aria-label="Main navigation"
@@ -265,11 +277,11 @@ export function MainNav() {
               href={href}
               className="relative flex flex-1 flex-col items-center justify-center gap-0.5"
               style={{
-                color: active ? "var(--cyan)" : "var(--text-dim)",
+                color: active ? "var(--cyan)" : "rgba(255,255,255,0.35)",
               }}
             >
               <span className="relative">
-                <Icon className="h-[22px] w-[22px]" />
+                <Icon className="h-6 w-6" />
                 {showLiveDot && live && (
                   <span
                     className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full animate-pulse"
@@ -277,7 +289,7 @@ export function MainNav() {
                   />
                 )}
               </span>
-              <span className="font-sans text-[9px] uppercase leading-none tracking-[0.06em]">
+              <span className="font-sans text-[10px] leading-none tracking-wide">
                 {label}
               </span>
             </Link>
