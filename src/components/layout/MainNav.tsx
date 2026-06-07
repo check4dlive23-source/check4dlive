@@ -81,15 +81,6 @@ function isMobileIntelActive(pathname: string): boolean {
   return pathname === "/" || pathname.startsWith("/number");
 }
 
-function isIntelActive(pathname: string): boolean {
-  return (
-    pathname === "/" ||
-    pathname.startsWith("/number") ||
-    pathname.startsWith("/draws") ||
-    pathname.startsWith("/rankings")
-  );
-}
-
 function isDesktopIntelActive(pathname: string): boolean {
   return (
     pathname === "/" ||
