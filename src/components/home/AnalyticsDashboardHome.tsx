@@ -567,7 +567,7 @@ export function AnalyticsDashboardHome() {
               }
             }}
             inputMode="numeric"
-            placeholder="输入号码 0000 → 9999"
+            placeholder="搜索号码"
             style={{
               flex: 1,
               background: "none",
@@ -585,18 +585,31 @@ export function AnalyticsDashboardHome() {
               e.stopPropagation();
               handleSearch();
             }}
+            aria-label="Search"
             style={{
               background: "rgba(0,229,255,0.15)",
               border: "1px solid rgba(0,229,255,0.3)",
-              borderRadius: 8,
-              padding: "6px 12px",
-              color: "#00E5FF",
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 16,
+              borderRadius: 10,
+              padding: "8px 10px",
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            →
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#00E5FF"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </button>
         </div>
 
