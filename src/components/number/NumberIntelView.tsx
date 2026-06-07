@@ -83,9 +83,21 @@ function OperatorLogo({
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="subpage-card px-3 py-2 text-center">
-      <p className="text-[10px] text-muted uppercase tracking-wide">{label}</p>
-      <p className="font-number text-lg text-foreground mt-0.5">{value}</p>
+    <div
+      className="px-3 py-2 text-center"
+      style={{
+        background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)",
+        border: "1px solid rgba(0,229,255,0.1)",
+        borderRadius: 12,
+      }}
+    >
+      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{label}</p>
+      <p
+        className="font-number mt-0.5"
+        style={{ fontSize: 28, fontWeight: 800, color: "white" }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -151,7 +163,10 @@ export function NumberIntelView({
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
+              <h1
+                className="font-number text-5xl md:text-6xl font-bold tracking-[0.2em]"
+                style={{ color: "#00E5FF" }}
+              >
                 {data.number}
               </h1>
               <div className="mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide">
