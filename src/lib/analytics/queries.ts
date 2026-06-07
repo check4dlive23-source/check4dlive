@@ -73,13 +73,14 @@ async function historyCount(): Promise<number> {
 }
 
 export async function computeHotNumbers(
-  period: "30d" | "100draws"
+  period: "30d" | "100draws",
+  limit = 20
 ): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
   const empty = isAnalyticsEmpty(await historyCount());
-  if (empty) return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
+  if (empty) return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
 
   const supabase = createClient();
-  if (!supabase) return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
+  if (!supabase) return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
 
   let sinceDate: string | undefined;
   if (period === "30d") {
@@ -94,7 +95,7 @@ export async function computeHotNumbers(
     sinceDate
   );
   if (!data || !data.length) {
-    return { rows: MOCK_HOT.slice(0, 20), source: "mock" };
+    return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
   }
 
   // number_stats_v2 is per (number, operator); collapse to one row per number.
@@ -132,9 +133,9 @@ export async function computeHotNumbers(
       };
     })
     .sort((a, b) => b.total_hits - a.total_hits)
-    .slice(0, 20);
+    .slice(0, limit);
 
-  return { rows: rows.length ? rows : MOCK_HOT.slice(0, 20), source: "db" };
+  return { rows: rows.length ? rows : MOCK_HOT.slice(0, limit), source: "db" };
 }
 
 export async function getHotNumbers(
@@ -154,20 +155,21 @@ export async function getHotNumbers(
 }
 
 export async function computeColdNumbers(
-  minGap: number
+  minGap: number,
+  limit = 20
 ): Promise<{ rows: ColdNumberRow[]; source: "db" | "mock" }> {
   const empty = isAnalyticsEmpty(await historyCount());
-  if (empty) return { rows: MOCK_COLD, source: "mock" };
+  if (empty) return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
 
   const supabase = createClient();
-  if (!supabase) return { rows: MOCK_COLD, source: "mock" };
+  if (!supabase) return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
 
   const data = await pageAllStatsV2(
     supabase,
     "number, total_appearances, last_seen_date"
   );
   if (!data || !data.length) {
-    return { rows: MOCK_COLD, source: "mock" };
+    return { rows: MOCK_COLD.slice(0, limit), source: "mock" };
   }
 
   // Collapse to one row per number: most-recent sighting across any operator.
@@ -197,9 +199,92 @@ export async function computeColdNumbers(
     .filter((r) => r.gap_days >= minGap)
     // last_seen_date ASC == longest gap first (coldest at top).
     .sort((a, b) => b.gap_days - a.gap_days)
-    .slice(0, 20);
+    .slice(0, limit);
 
-  return { rows: rows.length ? rows : MOCK_COLD, source: "db" };
+  return {
+    rows: rows.length ? rows : MOCK_COLD.slice(0, limit),
+    source: "db",
+  };
+}
+
+export async function getTopHotNumbers(limit = 100): Promise<HotNumberRow[]> {
+  const { rows } = await computeHotNumbers("100draws", limit);
+  return rows;
+}
+
+export async function getTopColdNumbers(limit = 100): Promise<ColdNumberRow[]> {
+  const { rows } = await computeColdNumbers(0, limit);
+  return rows;
+}
+
+export async function getTopFirstPrizeNumbers(
+  limit = 100
+): Promise<HotNumberRow[]> {
+  const empty = isAnalyticsEmpty(await historyCount());
+  if (empty) {
+    return [...MOCK_HOT]
+      .sort((a, b) => b.first_hits - a.first_hits)
+      .slice(0, limit);
+  }
+
+  const supabase = createClient();
+  if (!supabase) {
+    return [...MOCK_HOT]
+      .sort((a, b) => b.first_hits - a.first_hits)
+      .slice(0, limit);
+  }
+
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances, first_prize_count, last_seen_date"
+  );
+  if (!data || !data.length) {
+    return [...MOCK_HOT]
+      .sort((a, b) => b.first_hits - a.first_hits)
+      .slice(0, limit);
+  }
+
+  const map = new Map<string, { total: number; first: number; last: string }>();
+  for (const row of data) {
+    const n = row.number as string;
+    const cur = map.get(n) ?? { total: 0, first: 0, last: "" };
+    cur.total += (row.total_appearances as number) ?? 0;
+    cur.first += (row.first_prize_count as number) ?? 0;
+    const ls = (row.last_seen_date as string) ?? "";
+    if (ls && (!cur.last || ls > cur.last)) cur.last = ls;
+    map.set(n, cur);
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const rows: HotNumberRow[] = Array.from(map.entries())
+    .map(([number, v]) => {
+      const gap = v.last
+        ? Math.max(
+            0,
+            Math.round(
+              (new Date(today).getTime() - new Date(v.last).getTime()) /
+                86_400_000
+            )
+          )
+        : 999;
+      const heat = calculateHeatScore(v.total, 30, gap);
+      return {
+        number,
+        total_hits: v.total,
+        first_hits: v.first,
+        last_seen: v.last || null,
+        heat_score: Math.round(heat * 1000) / 1000,
+        heat_level: heatLevel(v.total, gap, 30),
+      };
+    })
+    .sort((a, b) => b.first_hits - a.first_hits)
+    .slice(0, limit);
+
+  return rows.length
+    ? rows
+    : [...MOCK_HOT]
+        .sort((a, b) => b.first_hits - a.first_hits)
+        .slice(0, limit);
 }
 
 export async function getColdNumbers(
