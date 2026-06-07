@@ -115,7 +115,7 @@ function IconTrophy({ className = "h-6 w-6" }: IconProps) {
   );
 }
 
-function IconStar({ className = "h-6 w-6" }: IconProps) {
+function IconBroadcast({ className = "h-6 w-6" }: IconProps) {
   return (
     <svg
       className={className}
@@ -127,7 +127,11 @@ function IconStar({ className = "h-6 w-6" }: IconProps) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M16.24 7.76a6 6 0 010 8.49" />
+      <path d="M7.76 7.76a6 6 0 000 8.49" />
+      <path d="M19.07 4.93a10 10 0 010 14.14" />
+      <path d="M4.93 4.93a10 10 0 000 14.14" />
     </svg>
   );
 }
@@ -170,7 +174,7 @@ const MOBILE_TABS = [
   {
     href: "/live",
     label: "开彩",
-    Icon: IconStar,
+    Icon: IconBroadcast,
     showLiveDot: true,
     isActive: isLiveActive,
   },
