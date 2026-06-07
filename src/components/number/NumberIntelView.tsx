@@ -121,7 +121,7 @@ export function NumberIntelView({
   const router = useRouter();
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const { stats, extras } = data;
+  const { stats } = data;
   const historyGroups = data.history.groups;
 
   const toggleOperator = (id: string) => {
@@ -267,49 +267,6 @@ export function NumberIntelView({
                   : "—"}
               </span>
             </div>
-            <div className="rounded-lg border border-line bg-surface-2 px-3 py-2">
-              <span className="text-muted">{t("avgGap")}: </span>
-              <span className="text-foreground font-number">
-                {stats.avg_gap_days != null
-                  ? `${stats.avg_gap_days} ${t("days")}`
-                  : "—"}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-line bg-surface-2 p-4">
-            <h2 className="text-sm font-semibold text-foreground mb-2">
-              {t("winProbability")}
-            </h2>
-            <p className="text-sm text-muted">
-              {t("winProbabilityDesc")
-                .replace("{total}", String(extras.total_draws_analyzed))
-                .replace("{hits}", String(stats.total_hits))
-                .replace("{pct}", extras.win_probability_pct.toFixed(2))}
-            </p>
-            <p className="font-number text-3xl text-gold mt-2">
-              {extras.win_probability_pct.toFixed(2)}%
-            </p>
-          </div>
-          <div className="rounded-xl border border-line bg-surface-2 p-4">
-            <h2 className="text-sm font-semibold text-foreground mb-2">
-              {t("predictedNext")}
-            </h2>
-            {extras.predicted_next_date ? (
-              <p className="text-sm text-muted">
-                {t("predictedNextDesc")
-                  .replace("{days}", String(stats.avg_gap_days ?? "—"))
-                  .replace(
-                    "{date}",
-                    formatDrawDate(extras.predicted_next_date)
-                  )}
-              </p>
-            ) : (
-              <p className="text-sm text-muted">—</p>
-            )}
-            <p className="text-[10px] text-dim mt-3">{t("disclaimer")}</p>
           </div>
         </section>
 
