@@ -77,6 +77,10 @@ function IconRankings({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+function isMobileIntelActive(pathname: string): boolean {
+  return pathname === "/" || pathname.startsWith("/number");
+}
+
 function isIntelActive(pathname: string): boolean {
   return (
     pathname === "/" ||
@@ -103,8 +107,27 @@ function isRankingsActive(pathname: string): boolean {
 }
 
 const MOBILE_TABS = [
-  { href: "/", label: "INTEL", Icon: IconAnalytics, showLiveDot: false },
-  { href: "/live", label: "LIVE", Icon: IconLive, showLiveDot: true },
+  {
+    href: "/",
+    label: "INTEL",
+    Icon: IconAnalytics,
+    showLiveDot: false,
+    isActive: isMobileIntelActive,
+  },
+  {
+    href: "/rankings",
+    label: "RANKS",
+    Icon: IconRankings,
+    showLiveDot: false,
+    isActive: isRankingsActive,
+  },
+  {
+    href: "/live",
+    label: "LIVE",
+    Icon: IconLive,
+    showLiveDot: true,
+    isActive: isLiveActive,
+  },
 ] as const;
 
 const DESKTOP_NAV = [
@@ -243,9 +266,8 @@ export function MainNav() {
         }}
         aria-label="Main navigation"
       >
-        {MOBILE_TABS.map(({ href, label, Icon, showLiveDot }) => {
-          const active =
-            href === "/live" ? isLiveActive(pathname) : isIntelActive(pathname);
+        {MOBILE_TABS.map(({ href, label, Icon, showLiveDot, isActive }) => {
+          const active = isActive(pathname);
           return (
             <Link
               key={href}
@@ -256,7 +278,7 @@ export function MainNav() {
               }}
             >
               <span className="relative">
-                <Icon />
+                <Icon className="h-[22px] w-[22px]" />
                 {showLiveDot && live && (
                   <span
                     className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full animate-pulse"

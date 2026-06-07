@@ -1,328 +1,594 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { getMYTParts, todayMYT } from "@/lib/draw-time";
+import { useEffect, useState } from "react";
+import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
+import type { Region } from "@/types";
 
-const DRAW_COUNT = 52784;
-const COVERAGE = "1985–2026";
-const MARKETS = "MY · SG · KH";
+const LIVE_REGIONS: Region[] = ["west", "east", "cambodia", "singapore"];
 
-const SEARCH_OPERATORS = [
-  { id: "magnum", logo: "/logos/magnum.gif" },
-  { id: "damacai", logo: "/logos/damacai.gif" },
-  { id: "toto", logo: "/logos/toto.gif" },
-  { id: "cashsweep", logo: "/logos/cashsweep.gif" },
-  { id: "sabah", logo: "/logos/sabah88.gif" },
-  { id: "sandakan", logo: "/logos/sandakan.gif" },
-  { id: "singapore", logo: "/logos/sgpools.gif" },
-] as const;
+const PARTICLES = [
+  { top: "18%", left: "12%", size: 4, delay: "0s" },
+  { top: "32%", left: "78%", size: 3, delay: "0.4s" },
+  { top: "55%", left: "25%", size: 5, delay: "0.8s" },
+  { top: "42%", left: "62%", size: 3, delay: "1.2s" },
+  { top: "68%", left: "88%", size: 4, delay: "0.6s" },
+];
 
-const WEST_DRAW_DAYS = [0, 3, 6]; // Sun, Wed, Sat
-const CASHSWEEP_DRAW_DAYS = [3, 6]; // Wed, Sat
-
-interface TodayDrawRow {
-  region: string;
-  operators: string;
-  status: string;
+function daysAgoLabel(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const today = todayMYT();
+  const diff = Math.max(
+    0,
+    Math.round(
+      (new Date(today).getTime() - new Date(dateStr).getTime()) / 86_400_000
+    )
+  );
+  return `${diff}天前`;
 }
 
-function getTodaysDraws(day: number): TodayDrawRow[] {
-  const rows: TodayDrawRow[] = [];
-  if (WEST_DRAW_DAYS.includes(day)) {
-    rows.push({
-      region: "West Malaysia",
-      operators: "MAGNUM · DAMACAI · TOTO",
-      status: "SCHEDULED",
-    });
-  }
-  if (CASHSWEEP_DRAW_DAYS.includes(day)) {
-    rows.push({
-      region: "East Malaysia",
-      operators: "CASH SWEEP",
-      status: "SCHEDULED",
-    });
-  }
-  return rows;
+function formatDateShort(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
 }
 
-function StatCell({
-  value,
-  label,
-  valueColor = "var(--text-primary)",
-}: {
-  value: string;
-  label: string;
-  valueColor?: string;
-}) {
+function useAnyRegionLive(): boolean {
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setLive(LIVE_REGIONS.some((r) => isRegionLiveDraw(r)));
+    check();
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return live;
+}
+
+function SearchIcon() {
   return (
-    <div className="flex flex-col gap-0.5">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#00E5FF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="7" />
+      <line x1="16.5" y1="16.5" x2="21" y2="21" />
+    </svg>
+  );
+}
+
+function HotCardSkeleton() {
+  return (
+    <div
+      className="relative shrink-0 animate-pulse overflow-hidden rounded-2xl"
+      style={{ width: 148, height: 180, backgroundColor: "rgba(255,255,255,0.06)" }}
+    />
+  );
+}
+
+function HotCard({ row, rank }: { row: HotNumberRow; rank: number }) {
+  const rankLabel = String(rank).padStart(2, "0");
+  return (
+    <Link
+      href={`/number/${row.number}`}
+      className="relative block shrink-0 overflow-hidden rounded-2xl"
+      style={{ width: 148, height: 180 }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(135deg, #0d1f3c 0%, #0a0e1a 100%)",
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          top: -30,
+          left: -30,
+          width: 140,
+          height: 140,
+          background:
+            "radial-gradient(circle, rgba(0,229,255,0.3), transparent 65%)",
+        }}
+      />
+      <div
+        className="absolute left-0 right-0 top-0"
+        style={{
+          height: 1,
+          background: "linear-gradient(90deg, #00E5FF, transparent)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{ border: "1px solid rgba(0,229,255,0.12)" }}
+      />
       <span
-        className="font-mono text-sm tabular-nums"
-        style={{ color: valueColor }}
+        className="absolute font-mono"
+        style={{
+          top: 14,
+          left: 16,
+          fontSize: 10,
+          color: "rgba(255,255,255,0.2)",
+        }}
       >
-        {value}
+        NO.{rankLabel}
       </span>
       <span
-        className="font-sans text-[10px] uppercase tracking-[0.1em]"
-        style={{ color: "var(--text-dim)" }}
+        className="absolute font-mono uppercase"
+        style={{
+          top: 12,
+          right: 12,
+          fontSize: 9,
+          color: "#00FF88",
+          background: "rgba(0,255,136,0.15)",
+          borderRadius: 100,
+          padding: "3px 8px",
+        }}
       >
-        {label}
+        HOT
       </span>
-    </div>
+      <span
+        className="absolute font-mono tabular-nums"
+        style={{
+          bottom: 50,
+          left: 16,
+          fontSize: 44,
+          fontWeight: 900,
+          color: "white",
+          textShadow: "0 0 30px rgba(0,229,255,0.6)",
+          lineHeight: 1,
+        }}
+      >
+        {row.number}
+      </span>
+      <span
+        className="absolute font-mono font-semibold tabular-nums"
+        style={{ bottom: 30, left: 16, fontSize: 11, color: "#00FF88" }}
+      >
+        FREQ {row.total_hits}
+      </span>
+      <span
+        className="absolute font-mono"
+        style={{
+          bottom: 14,
+          left: 16,
+          fontSize: 10,
+          color: "rgba(255,255,255,0.2)",
+        }}
+      >
+        {daysAgoLabel(row.last_seen)}
+      </span>
+    </Link>
+  );
+}
+
+function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
+  const rankLabel = String(rank).padStart(2, "0");
+  return (
+    <Link
+      href={`/number/${row.number}`}
+      className="relative block shrink-0 overflow-hidden rounded-2xl"
+      style={{ width: 148, height: 180 }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(135deg, #1a1000 0%, #0a0e1a 100%)",
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          top: -30,
+          left: -30,
+          width: 140,
+          height: 140,
+          background:
+            "radial-gradient(circle, rgba(255,176,32,0.25), transparent 65%)",
+        }}
+      />
+      <div
+        className="absolute left-0 right-0 top-0"
+        style={{
+          height: 1,
+          background: "linear-gradient(90deg, #FFB020, transparent)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{ border: "1px solid rgba(255,176,32,0.12)" }}
+      />
+      <span
+        className="absolute font-mono"
+        style={{
+          top: 14,
+          left: 16,
+          fontSize: 10,
+          color: "rgba(255,255,255,0.2)",
+        }}
+      >
+        NO.{rankLabel}
+      </span>
+      <span
+        className="absolute font-mono tabular-nums"
+        style={{
+          bottom: 62,
+          left: 16,
+          fontSize: 44,
+          fontWeight: 900,
+          color: "rgba(255,255,255,0.45)",
+          lineHeight: 1,
+        }}
+      >
+        {row.number}
+      </span>
+      <span
+        className="absolute font-mono font-extrabold tabular-nums"
+        style={{ bottom: 32, left: 16, fontSize: 24, color: "#FFB020" }}
+      >
+        {row.gap_days}
+      </span>
+      <span
+        className="absolute font-mono uppercase"
+        style={{
+          bottom: 14,
+          left: 16,
+          fontSize: 10,
+          color: "rgba(255,255,255,0.2)",
+          letterSpacing: "0.1em",
+        }}
+      >
+        未出现
+      </span>
+    </Link>
   );
 }
 
 export function AnalyticsDashboardHome() {
-  const router = useRouter();
-
-  const [today, setToday] = useState("");
-  const [weekday, setWeekday] = useState(0);
-  const [num, setNum] = useState("");
-  const [err, setErr] = useState(false);
-  const [selectedOps, setSelectedOps] = useState<string[]>([]);
+  const anyLive = useAnyRegionLive();
+  const [hot, setHot] = useState<HotNumberRow[]>([]);
+  const [cold, setCold] = useState<ColdNumberRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const parts = getMYTParts();
-    setToday(todayMYT());
-    setWeekday(parts.day);
+    let cancelled = false;
+    (async () => {
+      try {
+        const [hRes, cRes] = await Promise.all([
+          fetch("/api/analytics/hot?period=30d"),
+          fetch("/api/analytics/cold?min_gap=30"),
+        ]);
+        const hData = await hRes.json();
+        const cData = await cRes.json();
+        if (!cancelled) {
+          setHot((hData.rows ?? []).slice(0, 8));
+          setCold((cData.rows ?? []).slice(0, 8));
+        }
+      } catch {
+        if (!cancelled) {
+          setHot([]);
+          setCold([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const todaysDraws = useMemo(() => getTodaysDraws(weekday), [weekday]);
-
-  const toggleOperator = (id: string) => {
-    setSelectedOps((prev) =>
-      prev.includes(id) ? prev.filter((op) => op !== id) : [...prev, id]
-    );
-  };
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const n = num.trim();
-    if (/^\d{4}$/.test(n)) {
-      setErr(false);
-      const ops = selectedOps.length > 0 ? selectedOps.join(",") : "";
-      const url = ops ? `/number/${n}?operators=${ops}` : `/number/${n}`;
-      router.push(url);
-    } else {
-      setErr(true);
-    }
-  };
+  const hero = hot[0];
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      <div
-        className="mx-auto w-full max-w-[640px] lg:max-w-4xl px-4"
-        style={{ paddingTop: 16, paddingBottom: 96 }}
+    <div
+      className="relative mx-auto min-h-screen w-full max-w-[390px] lg:max-w-[390px]"
+      style={{ backgroundColor: "#070710", paddingBottom: 100 }}
+    >
+      {/* 1. Top nav */}
+      <header
+        className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between"
+        style={{ padding: "52px 22px 0" }}
       >
-        {/* Terminal Header */}
-        <header
-          className="border px-4 py-3"
+        <span
+          className="font-mono"
           style={{
-            borderColor: "var(--border-cyan)",
-            backgroundColor: "var(--surface-2)",
+            fontSize: 20,
+            fontWeight: 900,
+            color: "#00E5FF",
+            letterSpacing: "0.04em",
           }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <h1
-              className="font-display text-[13px] font-semibold uppercase"
-              style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
-            >
-              CHECK4D TERMINAL
-            </h1>
-            <span
-              className="shrink-0 font-mono text-[11px] tabular-nums"
-              style={{ color: "var(--text-dim)" }}
-            >
-              {today || "----------"}
-            </span>
-          </div>
+          CHECK4D
+        </span>
+        <Link href="/search" aria-label="Search" className="flex items-center">
+          <SearchIcon />
+        </Link>
+      </header>
 
+      {/* 2. Hero */}
+      <section className="relative" style={{ height: 560 }}>
+        <div className="absolute inset-0 overflow-hidden">
           <div
-            className="my-3 h-px"
-            style={{ backgroundColor: "var(--border-dim)" }}
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(ellipse 80% 60% at 50% 20%, rgba(0,229,255,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,80,255,0.15) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1a3e 0%, #070710 100%)
+              `,
+            }}
           />
-
-          <div className="flex items-end justify-between gap-4">
-            <StatCell
-              value={DRAW_COUNT.toLocaleString("en-US")}
-              label="DRAWS"
+          {PARTICLES.map((p, i) => (
+            <span
+              key={i}
+              className="absolute animate-pulse rounded-full"
+              style={{
+                top: p.top,
+                left: p.left,
+                width: p.size,
+                height: p.size,
+                backgroundColor: "rgba(0,229,255,0.6)",
+                animationDelay: p.delay,
+              }}
             />
-            <StatCell value={COVERAGE} label="COVERAGE" />
-            <StatCell value={MARKETS} label="MARKETS" valueColor="var(--cyan)" />
-          </div>
-        </header>
-
-        {/* Quick search */}
-        <form onSubmit={submitSearch} className="mt-4 flex items-stretch">
-          <input
-            value={num}
-            onChange={(e) => {
-              setNum(e.target.value.replace(/\D/g, "").slice(0, 4));
-              if (err) setErr(false);
-            }}
-            inputMode="numeric"
-            placeholder="SEARCH NUMBER  0000 → 9999"
-            className="min-w-0 flex-1 border px-3 py-2.5 font-mono text-[15px] uppercase tabular-nums outline-none placeholder:normal-case placeholder:tracking-normal"
+          ))}
+          <div
+            className="absolute bottom-0 left-0 right-0"
             style={{
-              backgroundColor: "var(--surface-3)",
-              color: "var(--text-primary)",
-              borderColor: err ? "var(--red)" : "var(--border-dim)",
-            }}
-            onFocus={(e) => {
-              if (!err) e.currentTarget.style.borderColor = "var(--border-cyan)";
-            }}
-            onBlur={(e) => {
-              if (!err) e.currentTarget.style.borderColor = "var(--border-dim)";
+              height: 300,
+              background: "linear-gradient(transparent, #070710)",
             }}
           />
-          <button
-            type="submit"
-            className="shrink-0 border border-l-0 px-4 font-mono text-lg"
-            style={{
-              color: "var(--cyan)",
-              backgroundColor: "var(--surface-3)",
-              borderColor: err ? "var(--red)" : "var(--border-dim)",
-            }}
-          >
-            →
-          </button>
-        </form>
-        {err && (
-          <p
-            className="mt-1 font-sans text-[10px] uppercase tracking-[0.08em]"
-            style={{ color: "var(--red)" }}
-          >
-            Enter 4-digit number (0000–9999)
-          </p>
-        )}
-
-        <div className="mt-2 flex gap-1.5 overflow-x-auto scrollbar-hide">
-          {SEARCH_OPERATORS.map((op) => {
-            const active = selectedOps.includes(op.id);
-            return (
-              <button
-                key={op.id}
-                type="button"
-                onClick={() => toggleOperator(op.id)}
-                className="shrink-0 rounded"
-                style={{
-                  padding: "6px 10px",
-                  border: active
-                    ? "1px solid var(--cyan)"
-                    : "1px solid var(--border-dim)",
-                  background: active
-                    ? "rgba(0,229,255,0.08)"
-                    : "transparent",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={op.logo}
-                  alt={op.id}
-                  style={{ height: 20, width: "auto", display: "block" }}
-                />
-              </button>
-            );
-          })}
         </div>
 
-        {/* Today's draws */}
-        <section className="mt-6">
-          <h2
-            className="font-sans text-[11px] uppercase tracking-[0.08em]"
-            style={{ color: "var(--text-dim)" }}
-          >
-            TODAY&apos;S DRAWS
-          </h2>
-          <div className="mt-2 space-y-2">
-            {todaysDraws.length === 0 ? (
-              <p
-                className="font-sans text-[11px] uppercase tracking-[0.08em]"
-                style={{ color: "var(--text-dim)" }}
-              >
-                No draws scheduled today
-              </p>
-            ) : (
-              todaysDraws.map((row) => (
-                <div
-                  key={row.region}
-                  className="flex items-center justify-between gap-3 border-b py-2"
-                  style={{ borderColor: "var(--border-dim)" }}
-                >
-                  <div>
-                    <p
-                      className="font-mono text-[11px] uppercase tracking-[0.06em]"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      {row.operators}
-                    </p>
-                    <p
-                      className="mt-0.5 font-sans text-[9px] uppercase tracking-[0.08em]"
-                      style={{ color: "var(--text-dim)" }}
-                    >
-                      {row.region}
-                    </p>
-                  </div>
-                  <span
-                    className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em]"
-                    style={{ color: "var(--green)" }}
-                  >
-                    {row.status}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* AI placeholder */}
-        <section
-          className="mt-4 flex items-center justify-between gap-3 border px-4 py-3"
-          style={{
-            borderColor: "rgba(130,90,220,0.2)",
-            backgroundColor: "rgba(130,90,220,0.04)",
-          }}
+        <div
+          className="absolute bottom-0 left-0 right-0 z-10"
+          style={{ padding: "0 22px 32px" }}
         >
-          <div>
-            <p
-              className="font-sans text-[11px] uppercase tracking-[0.08em]"
-              style={{ color: "var(--cyan)" }}
+          {anyLive && (
+            <span
+              className="mb-4 inline-flex items-center font-mono"
+              style={{
+                gap: 5,
+                background: "rgba(0,255,136,0.12)",
+                border: "1px solid rgba(0,255,136,0.25)",
+                borderRadius: 100,
+                padding: "5px 11px",
+                fontSize: 10,
+                color: "#00FF88",
+              }}
             >
-              AI INTELLIGENCE
-            </p>
+              <span
+                className="animate-pulse rounded-full"
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: "#00FF88",
+                  boxShadow: "0 0 8px #00FF88",
+                }}
+              />
+              LIVE · 开彩中
+            </span>
+          )}
+
+          {hero && !loading ? (
+            <Link href={`/number/${hero.number}`} className="block">
+              <p
+                className="font-mono tabular-nums"
+                style={{
+                  fontSize: 96,
+                  fontWeight: 900,
+                  color: "white",
+                  textShadow:
+                    "0 0 80px rgba(0,229,255,0.5), 0 0 160px rgba(0,229,255,0.25)",
+                  letterSpacing: "0.02em",
+                  lineHeight: 0.9,
+                }}
+              >
+                {hero.number}
+              </p>
+            </Link>
+          ) : (
             <p
-              className="mt-1 font-sans text-[11px]"
-              style={{ color: "var(--text-dim)" }}
+              className="font-mono tabular-nums"
+              style={{
+                fontSize: 96,
+                fontWeight: 900,
+                color: "rgba(255,255,255,0.25)",
+                letterSpacing: "0.02em",
+                lineHeight: 0.9,
+              }}
             >
-              Number analysis powered by AI — Coming Soon
+              {loading ? "----" : "0000"}
             </p>
+          )}
+
+          <p
+            className="mt-3"
+            style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}
+          >
+            今日最热号码 · Magnum 4D
+          </p>
+
+          <p
+            className="mt-2 flex flex-wrap items-center gap-2"
+            style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}
+          >
+            <span>
+              出现 {hero?.total_hits ?? "—"} 次
+            </span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span>{formatDateShort(hero?.last_seen ?? null)}</span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span>40年数据</span>
+          </p>
+
+          <div className="mt-5 flex gap-3">
+            <Link
+              href={hero ? `/number/${hero.number}` : "/rankings"}
+              className="flex-1 text-center font-sans"
+              style={{
+                background: "#00E5FF",
+                color: "#050816",
+                fontWeight: 800,
+                borderRadius: 10,
+                padding: 14,
+                boxShadow: "0 4px 28px rgba(0,229,255,0.4)",
+                fontSize: 14,
+              }}
+            >
+              查看详情
+            </Link>
+            <Link
+              href="/live"
+              className="flex-1 text-center font-sans backdrop-blur"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "white",
+                borderRadius: 10,
+                padding: 14,
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              实时开彩
+            </Link>
           </div>
+        </div>
+      </section>
+
+      {/* 3. Hot numbers */}
+      <section className="mt-8">
+        <div
+          className="mb-4 flex items-center justify-between"
+          style={{ padding: "0 22px" }}
+        >
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>
+            🔥 本周热号
+          </h2>
+          <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>
+            全部 →
+          </Link>
+        </div>
+        <div
+          className="flex gap-3 overflow-x-auto scrollbar-hide"
+          style={{ padding: "0 22px" }}
+        >
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <HotCardSkeleton key={i} />
+              ))
+            : hot.map((row, i) => (
+                <HotCard key={row.number} row={row} rank={i + 1} />
+              ))}
+        </div>
+      </section>
+
+      {/* 4. Cold numbers */}
+      <section className="mt-8">
+        <div
+          className="mb-4 flex items-center justify-between"
+          style={{ padding: "0 22px" }}
+        >
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>
+            🧊 冷号预警
+          </h2>
+          <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>
+            全部 →
+          </Link>
+        </div>
+        <div
+          className="flex gap-3 overflow-x-auto scrollbar-hide"
+          style={{ padding: "0 22px" }}
+        >
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <HotCardSkeleton key={i} />
+              ))
+            : cold.map((row, i) => (
+                <ColdCard key={row.number} row={row} rank={i + 1} />
+              ))}
+        </div>
+      </section>
+
+      {/* 5. AI placeholder */}
+      <section
+        className="relative mt-6 overflow-hidden"
+        style={{ margin: "16px 22px", borderRadius: 20 }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #0f0a2e, #1a0a3e, #070710)",
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            top: -40,
+            right: -40,
+            width: 200,
+            height: 200,
+            background:
+              "radial-gradient(circle, rgba(160,125,224,0.35), transparent 65%)",
+          }}
+        />
+        <div className="relative" style={{ padding: "24px 22px" }}>
+          <p
+            className="font-mono uppercase"
+            style={{
+              fontSize: 10,
+              color: "#a07de0",
+              letterSpacing: "0.2em",
+            }}
+          >
+            ✦ AI INTELLIGENCE
+          </p>
+          <h3
+            className="mt-3 whitespace-pre-line"
+            style={{ fontSize: 22, fontWeight: 800, color: "white" }}
+          >
+            号码 AI{"\n"}深度分析
+          </h3>
+          <p
+            className="mt-3"
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.4)",
+              lineHeight: 1.6,
+            }}
+          >
+            基于 40 年历史开彩数据，AI 将为你解读号码走势、冷热周期与关联模式。
+          </p>
           <button
             type="button"
             disabled
-            className="shrink-0 font-mono text-lg"
-            style={{ color: "var(--text-dim)" }}
+            className="mt-5 font-sans"
+            style={{
+              borderRadius: 100,
+              background: "rgba(160,125,224,0.15)",
+              border: "1px solid rgba(160,125,224,0.35)",
+              color: "#c4a7f0",
+              padding: "10px 20px",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
           >
-            →
+            即将推出 →
           </button>
-        </section>
-
-        {/* Rankings entry */}
-        <div
-          className="mt-4 border-t pt-3"
-          style={{ borderColor: "var(--border-dim)", paddingTop: 12 }}
-        >
-          <Link
-            href="/rankings"
-            className="font-mono text-[11px] uppercase tracking-[0.06em] transition-opacity hover:opacity-80"
-            style={{ color: "var(--cyan)" }}
-          >
-            VIEW FULL RANKINGS →
-          </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
