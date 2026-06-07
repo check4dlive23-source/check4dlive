@@ -16,13 +16,10 @@ export function PageLayout({
   children,
 }: PageLayoutProps) {
   return (
-    <div
-      className="relative mx-auto min-h-screen w-full max-w-[390px] lg:max-w-3xl"
-      style={{ backgroundColor: "#070710" }}
-    >
+    <div className="min-h-screen w-full" style={{ backgroundColor: "#070710" }}>
       <div
         style={{
-          position: "absolute",
+          position: "fixed",
           top: 0,
           left: 0,
           right: 0,
@@ -35,6 +32,7 @@ export function PageLayout({
       />
 
       <div
+        className="mx-auto w-full max-w-[390px] lg:max-w-3xl"
         style={{
           position: "relative",
           zIndex: 1,
