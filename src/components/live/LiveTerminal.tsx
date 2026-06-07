@@ -307,40 +307,63 @@ export function LiveTerminal() {
 
   return (
     <>
-      <div className="min-h-screen bg-surface pb-16 sm:pb-0">
-        <header className="sticky top-0 sm:top-14 z-40 border-b border-line bg-surface/95 backdrop-blur-md">
-          <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <h1 className="text-lg font-bold text-foreground truncate">
-                Check 4D Live
-              </h1>
+      <div
+        className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
+        style={{ backgroundColor: "#070710" }}
+      >
+        <div style={{ paddingTop: 72, paddingBottom: 100 }}>
+          <div
+            className="flex items-start justify-between gap-3"
+            style={{ padding: "0 22px", marginBottom: 20 }}
+          >
+            <div>
+              <div
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: 18,
+                  fontWeight: 900,
+                  letterSpacing: "0.08em",
+                  color: "#fff",
+                }}
+              >
+                LI<span style={{ color: "#00E5FF" }}>VE</span>
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-jetbrains)",
+                  fontSize: 8,
+                  letterSpacing: "0.35em",
+                  color: "rgba(0,229,255,0.6)",
+                  marginTop: 2,
+                }}
+              >
+                REAL-TIME · ALL REGIONS
+              </div>
               {isLive && (
-                <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-live/15 border border-live/30 px-2 py-0.5 text-[10px] font-bold text-live uppercase">
+                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-live/15 border border-live/30 px-2 py-0.5 text-[10px] font-bold text-live uppercase">
                   <span className="h-1.5 w-1.5 rounded-full bg-live animate-pulse" />
                   LIVE
                 </span>
               )}
             </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <LanguageToggle />
-            <button
-              type="button"
-              onClick={() => setLuckyOpen(true)}
-              className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
-              aria-haspopup="dialog"
-            >
-              {t("lucky")}
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <LanguageToggle />
+              <button
+                type="button"
+                onClick={() => setLuckyOpen(true)}
+                className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
+                aria-haspopup="dialog"
+              >
+                {t("lucky")}
+              </button>
+            </div>
           </div>
-          </div>
-          <div className="mx-auto max-w-7xl px-2 sm:px-4 pb-2">
-            <RegionTabs active={region} onChange={setRegion} />
-          </div>
-          <DrawScheduleBar region={region} isLive={isLive} />
-        </header>
 
-        <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3">
-          <main className="min-w-0">
+          <div style={{ padding: "0 22px" }}>
+            <RegionTabs active={region} onChange={setRegion} />
+            <DrawScheduleBar region={region} isLive={isLive} />
+
+          <main className="min-w-0 pt-3">
             {/* ADSENSE_SLOT_TOP */}
 
             {!isInitialized ? (
@@ -484,6 +507,7 @@ export function LiveTerminal() {
             </p>
           </main>
           {/* ADSENSE_SLOT_SIDEBAR */}
+          </div>
         </div>
       </div>
       <LuckyModal open={luckyOpen} onClose={() => setLuckyOpen(false)} />

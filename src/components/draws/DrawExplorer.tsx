@@ -173,35 +173,40 @@ export function DrawExplorer() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
-      <div
-        className="mx-auto w-full max-w-[640px] lg:max-w-4xl px-4"
-        style={{ paddingTop: 16, paddingBottom: 96 }}
-      >
-        {/* Terminal Header */}
-        <header
-          className="border px-4 py-3"
-          style={{
-            borderColor: "var(--border-cyan)",
-            backgroundColor: "var(--surface-2)",
-          }}
-        >
-          <h1
-            className="font-display text-[13px] font-semibold uppercase"
-            style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
+    <div
+      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
+      style={{ backgroundColor: "#070710" }}
+    >
+      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
+        <div style={{ padding: "0 22px", marginBottom: 20 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              color: "#fff",
+            }}
           >
-            DRAW RECORDS
-          </h1>
-          <p
-            className="mt-1 font-sans text-[10px] uppercase"
-            style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
+            DRAW{" "}
+            <span style={{ color: "#00E5FF" }}>RECORDS</span>
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 8,
+              letterSpacing: "0.35em",
+              color: "rgba(0,229,255,0.6)",
+              marginTop: 2,
+            }}
           >
-            Browse historical 4D draws by date &amp; operator
-          </p>
-        </header>
+            BY DATE &amp; OPERATOR · FULL HISTORY
+          </div>
+        </div>
 
+        <div style={{ padding: "0 22px" }}>
         {/* Quick date filters */}
-        <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {QUICK_FILTERS.map(({ mode, label }) => {
             const selected = quickActive === mode;
             return (
@@ -535,6 +540,7 @@ export function DrawExplorer() {
               NEXT
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

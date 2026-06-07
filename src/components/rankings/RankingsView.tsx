@@ -326,43 +326,38 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const showSkeleton = loading;
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      <div
-        className="mx-auto w-full max-w-[640px] lg:max-w-4xl px-4"
-        style={{ paddingTop: 16, paddingBottom: 96 }}
-      >
-        <header
-          className="border px-4 py-3"
-          style={{
-            borderColor: "var(--border-cyan)",
-            backgroundColor: "var(--surface-2)",
-          }}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1
-                className="font-display text-[13px] font-semibold uppercase"
-                style={{ letterSpacing: "0.12em", color: "var(--cyan)" }}
-              >
-                4D RANKINGS
-              </h1>
-              <p
-                className="mt-1 font-sans text-[10px] uppercase tracking-[0.08em]"
-                style={{ color: "var(--text-dim)" }}
-              >
-                Based on 40 years · 22,885 draws
-              </p>
-            </div>
-            <span
-              className="shrink-0 font-mono text-[11px] tabular-nums"
-              style={{ color: "var(--text-dim)" }}
-            >
-              {today || "----------"}
-            </span>
+    <div
+      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
+      style={{ backgroundColor: "#070710" }}
+    >
+      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
+        <div style={{ padding: "0 22px", marginBottom: 20 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              color: "#fff",
+            }}
+          >
+            RANK<span style={{ color: "#00E5FF" }}>INGS</span>
           </div>
-        </header>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 8,
+              letterSpacing: "0.35em",
+              color: "rgba(0,229,255,0.6)",
+              marginTop: 2,
+            }}
+          >
+            TOP 100 · 40 YEARS DATA
+          </div>
+        </div>
 
-        <div className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide">
+        <div style={{ padding: "0 22px" }}>
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
           <button
             type="button"
             onClick={() => setSelectedOperators([])}
@@ -887,6 +882,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         >
           DATA SOURCE: MAGNUM · DAMACAI · TOTO · CASH SWEEP · SINGAPORE POOLS
         </footer>
+        </div>
       </div>
     </div>
   );

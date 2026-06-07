@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { HeatBadge } from "./HeatBadge";
@@ -143,20 +142,39 @@ export function NumberIntelView({
     : "—";
 
   return (
-    <div className="min-h-screen bg-surface">
-      <header className="border-b border-line bg-surface-2">
-        <div className="mx-auto max-w-[640px] lg:max-w-4xl px-4 py-4">
-          <Link
-            href="/"
-            className="text-xs text-muted hover:text-foreground transition-colors"
+    <div
+      className="min-h-screen mx-auto w-full max-w-[390px] lg:max-w-3xl"
+      style={{ backgroundColor: "#070710" }}
+    >
+      <div style={{ paddingTop: 72, paddingBottom: 100 }}>
+        <div style={{ padding: "0 22px", marginBottom: 20 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              color: "#fff",
+            }}
           >
-            ← Check4D Live
-          </Link>
-          <div className="mt-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            NUMB<span style={{ color: "#00E5FF" }}>ER</span>
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 8,
+              letterSpacing: "0.35em",
+              color: "rgba(0,229,255,0.6)",
+              marginTop: 2,
+            }}
+          >
+            INTELLIGENCE · 40 YEARS DATA
+          </div>
+        </div>
+
+        <div style={{ padding: "0 22px" }} className="space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <p className="text-xs text-muted uppercase tracking-wider mb-1">
-                {t("numberIntelligence")}
-              </p>
               <h1 className="font-number text-5xl md:text-6xl font-bold text-gold tracking-[0.2em]">
                 {data.number}
               </h1>
@@ -234,10 +252,7 @@ export function NumberIntelView({
           <div className="mt-4">
             <NumberSearchBar currentNumber={data.number} />
           </div>
-        </div>
-      </header>
 
-      <main className="mx-auto max-w-[640px] lg:max-w-4xl px-4 py-6 space-y-8">
         <section>
           <h2 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
             {t("overview")}
@@ -350,7 +365,8 @@ export function NumberIntelView({
             )}
           </div>
         </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
