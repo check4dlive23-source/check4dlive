@@ -1,10 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
 import type { Region } from "@/types";
+
+const SEARCH_OPERATORS = [
+  { id: "magnum", logo: "/logos/magnum.gif" },
+  { id: "damacai", logo: "/logos/damacai.gif" },
+  { id: "toto", logo: "/logos/toto.gif" },
+  { id: "cashsweep", logo: "/logos/cashsweep.gif" },
+  { id: "sabah", logo: "/logos/sabah88.gif" },
+  { id: "sandakan", logo: "/logos/sandakan.gif" },
+  { id: "singapore", logo: "/logos/sgpools.gif" },
+] as const;
 
 const LIVE_REGIONS: Region[] = ["west", "east", "cambodia", "singapore"];
 
@@ -16,21 +27,21 @@ const PARTICLES = [
   { top: "68%", left: "88%", size: 4, delay: "0.6s" },
 ];
 
-function daysAgoLabel(dateStr: string | null): string {
-  if (!dateStr) return "—";
+function daysAgoLabel(dateISO: string | null): string {
+  if (!dateISO) return "—";
   const today = todayMYT();
   const diff = Math.max(
     0,
     Math.round(
-      (new Date(today).getTime() - new Date(dateStr).getTime()) / 86_400_000
+      (new Date(today).getTime() - new Date(dateISO).getTime()) / 86_400_000
     )
   );
   return `${diff}天前`;
 }
 
-function formatDateShort(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const [y, m, d] = dateStr.split("-");
+function formatDateShort(dateISO: string | null): string {
+  if (!dateISO) return "—";
+  const [y, m, d] = dateISO.split("-");
   return `${d}/${m}/${y}`;
 }
 
@@ -192,7 +203,7 @@ function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
           width: 140,
           height: 140,
           background:
-            "radial-gradient(circle, rgba(255,176,32,0.25), transparent 65%)",
+            "radial-gradient(circle, rgba(255,176,32,0.25), Transparency 65%)",
         }}
       />
       <div
@@ -253,10 +264,33 @@ function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
 }
 
 export function AnalyticsDashboardHome() {
+  const router = useRouter();
+  const searchBarRef = useRef<HTMLDivElement>(null);
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>([]);
   const [cold, setCold] = useState<ColdNumberRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchNum, setSearchNum] = useState("");
+  const [searchErr, setSearchErr] = useState(false);
+  const [selectedOps, setSelectedOps] = useState<string[]>([]);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+
+  const toggleOperator = (id: string) => {
+    setSelectedOps((prev) =>
+      prev.includes(id) ? prev.filter((op) => op !== id) : [...prev, id]
+    );
+  };
+
+  const handleSearch = () => {
+    const n = searchNum.trim();
+    if (!/^\d{4}$/.test(n)) {
+      setSearchErr(true);
+      return;
+    }
+    const ops = selectedOps.length > 0 ? selectedOps.join(",") : "";
+    const url = ops ? `/number/${n}?operators=${ops}` : `/number/${n}`;
+    router.push(url);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -323,9 +357,18 @@ export function AnalyticsDashboardHome() {
             TERMINAL
           </div>
         </div>
-        <Link href="/search" aria-label="Search" className="flex items-center">
+        <button
+          type="button"
+          onClick={() => {
+            setSearchExpanded(true);
+            searchBarRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+          aria-label="Search"
+          className="flex items-center"
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
           <SearchIcon />
-        </Link>
+        </button>
       </header>
 
       {/* 2. Hero */}
@@ -481,6 +524,140 @@ export function AnalyticsDashboardHome() {
         </div>
       </section>
 
+      <div
+        ref={searchBarRef}
+        style={{ padding: "0 22px", marginBottom: 24 }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            background: "rgba(255,255,255,0.05)",
+            border: `1px solid ${searchErr ? "#FF4D6D" : "rgba(0,229,255,0.15)"}`,
+            borderRadius: 14,
+            padding: "14px 16px",
+            gap: 12,
+            cursor: "text",
+          }}
+          onClick={() => setSearchExpanded(true)}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="rgba(0,229,255,0.5)"
+            strokeWidth="2"
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            value={searchNum}
+            onChange={(e) => {
+              setSearchNum(e.target.value.replace(/\D/g, "").slice(0, 4));
+              setSearchErr(false);
+            }}
+            onFocus={() => setSearchExpanded(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
+            inputMode="numeric"
+            placeholder="输入号码 0000 → 9999"
+            style={{
+              flex: 1,
+              background: "none",
+              border: "none",
+              outline: "none",
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 16,
+              color: "#fff",
+              letterSpacing: "0.08em",
+            }}
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSearch();
+            }}
+            style={{
+              background: "rgba(0,229,255,0.15)",
+              border: "1px solid rgba(0,229,255,0.3)",
+              borderRadius: 8,
+              padding: "6px 12px",
+              color: "#00E5FF",
+              fontFamily: "var(--font-jetbrains)",
+              fontSize: 16,
+              cursor: "pointer",
+            }}
+          >
+            →
+          </button>
+        </div>
+
+        {searchExpanded && (
+          <div style={{ marginTop: 12 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.3)",
+                letterSpacing: "0.1em",
+                marginBottom: 8,
+                fontFamily: "var(--font-jetbrains)",
+              }}
+            >
+              SELECT OPERATOR（可多选，不选=全部）
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {SEARCH_OPERATORS.map((op) => (
+                <button
+                  key={op.id}
+                  type="button"
+                  onClick={() => toggleOperator(op.id)}
+                  style={{
+                    background: selectedOps.includes(op.id)
+                      ? "rgba(0,229,255,0.12)"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${selectedOps.includes(op.id)
+                      ? "rgba(0,229,255,0.4)"
+                      : "rgba(255,255,255,0.08)"}`,
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={op.logo}
+                    alt={op.id}
+                    style={{ height: 20, width: "auto" }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {searchErr && (
+          <p
+            style={{
+              marginTop: 8,
+              fontSize: 11,
+              color: "#FF4D6D",
+              fontFamily: "var(--font-jetbrains)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            请输入 4 位数字（0000–9999）
+          </p>
+        )}
+      </div>
+
       {/* 3. Hot numbers */}
       <section className="mt-8">
         <div
@@ -555,7 +732,7 @@ export function AnalyticsDashboardHome() {
             width: 200,
             height: 200,
             background:
-              "radial-gradient(circle, rgba(160,125,224,0.35), transparent 65%)",
+              "radial-gradient(circle, rgba(160,125,224,0.35), Transparency 65%)",
           }}
         />
         <div className="relative" style={{ padding: "24px 22px" }}>
