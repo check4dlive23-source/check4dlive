@@ -77,6 +77,61 @@ function IconRankings({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
+function IconHome({ className = "h-6 w-6" }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+      <path d="M9 21V12h6v9" />
+    </svg>
+  );
+}
+
+function IconTrophy({ className = "h-6 w-6" }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M8 21h8M12 17v4" />
+      <path d="M7 4H4a1 1 0 00-1 1v2a4 4 0 004 4h1" />
+      <path d="M17 4h3a1 1 0 011 1v2a4 4 0 01-4 4h-1" />
+      <path d="M7 4h10v8a5 5 0 01-10 0V4z" />
+    </svg>
+  );
+}
+
+function IconStar({ className = "h-6 w-6" }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 function isMobileIntelActive(pathname: string): boolean {
   return pathname === "/" || pathname.startsWith("/number");
 }
@@ -101,21 +156,21 @@ const MOBILE_TABS = [
   {
     href: "/",
     label: "首页",
-    Icon: IconAnalytics,
+    Icon: IconHome,
     showLiveDot: false,
     isActive: isMobileIntelActive,
   },
   {
     href: "/rankings",
     label: "排行",
-    Icon: IconRankings,
+    Icon: IconTrophy,
     showLiveDot: false,
     isActive: isRankingsActive,
   },
   {
     href: "/live",
     label: "开彩",
-    Icon: IconLive,
+    Icon: IconStar,
     showLiveDot: true,
     isActive: isLiveActive,
   },
