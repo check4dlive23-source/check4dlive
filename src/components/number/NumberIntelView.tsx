@@ -156,8 +156,8 @@ export function NumberIntelView({
 
   return (
     <PageLayout
-      title="NUMB"
-      titleAccent="ER"
+      title="4D "
+      titleAccent="INTEL"
       subtitle="INTELLIGENCE · 40 YEARS DATA"
     >
         <div className="space-y-8">
