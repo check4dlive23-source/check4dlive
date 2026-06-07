@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import { useLang } from "@/lib/language-context";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
 import type { Region } from "@/types";
 
@@ -55,25 +56,6 @@ function useAnyRegionLive(): boolean {
     return () => clearInterval(id);
   }, []);
   return live;
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#00E5FF"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="11" cy="11" r="7" />
-      <line x1="16.5" y1="16.5" x2="21" y2="21" />
-    </svg>
-  );
 }
 
 function HotCardSkeleton() {
@@ -265,6 +247,7 @@ function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
 
 export function AnalyticsDashboardHome() {
   const router = useRouter();
+  const { lang, setLang } = useLang();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>([]);
@@ -359,15 +342,20 @@ export function AnalyticsDashboardHome() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setSearchExpanded(true);
-            searchBarRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          onClick={() => setLang(lang === "zh" ? "en" : "zh")}
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 8,
+            padding: "6px 12px",
+            color: "rgba(255,255,255,0.7)",
+            fontFamily: "var(--font-jetbrains)",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
           }}
-          aria-label="Search"
-          className="flex items-center"
-          style={{ background: "none", border: "none", cursor: "pointer" }}
         >
-          <SearchIcon />
+          {lang === "zh" ? "EN" : "中文"}
         </button>
       </header>
 
@@ -541,18 +529,6 @@ export function AnalyticsDashboardHome() {
           }}
           onClick={() => setSearchExpanded(true)}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="rgba(0,229,255,0.5)"
-            strokeWidth="2"
-            aria-hidden
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
           <input
             value={searchNum}
             onChange={(e) => {
