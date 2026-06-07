@@ -67,26 +67,6 @@ function IconRecords({ className }: IconProps) {
   );
 }
 
-function IconSearch({ className }: IconProps) {
-  return (
-    <svg
-      className={className}
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="11" cy="11" r="7" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
-
 function IconLive({ className }: IconProps) {
   return (
     <svg
@@ -109,13 +89,11 @@ function IconLive({ className }: IconProps) {
 const DESKTOP_LINKS = [
   { href: "/analytics", label: "ANALYSIS", alsoHome: true },
   { href: "/draws", label: "RECORDS", alsoHome: false },
-  { href: "/search", label: "SEARCH", alsoHome: false },
 ] as const;
 
 const MOBILE_TABS = [
   { href: "/analytics", label: "ANALYSIS", Icon: IconAnalytics, live: false, alsoHome: true },
   { href: "/draws", label: "RECORDS", Icon: IconRecords, live: false, alsoHome: false },
-  { href: "/search", label: "SEARCH", Icon: IconSearch, live: false, alsoHome: false },
   { href: "/live", label: "LIVE", Icon: IconLive, live: true, alsoHome: false },
 ] as const;
 
