@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://check4dlive.vercel.app";
+  const base = "https://check4dterminal.com";
   const now = new Date();
 
   // 静态页面

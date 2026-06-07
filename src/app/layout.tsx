@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description:
     "Malaysia's most comprehensive 4D lottery intelligence platform. 40 years of historical data across Magnum, Damacai, Toto, Cash Sweep & Singapore Pools. Real-time results, number analytics and pattern analysis.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://check4dlive.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://check4dterminal.com"
   ),
   keywords: [
     "4D lottery Malaysia",
@@ -44,6 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_MY",
     siteName: "Check4D",
+    url: "https://check4dterminal.com",
   },
   twitter: {
     card: "summary",
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://check4dlive.vercel.app",
+    canonical: "https://check4dterminal.com",
   },
 };
 

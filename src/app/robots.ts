@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/admin/"],
       },
     ],
-    sitemap: "https://check4dlive.vercel.app/sitemap.xml",
+    sitemap: "https://check4dterminal.com/sitemap.xml",
   };
 }
