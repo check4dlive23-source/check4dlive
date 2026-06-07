@@ -3,7 +3,6 @@ import {
   isDrawDayAndNearDraw,
 } from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
-import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
 import type { Region } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -26,8 +25,6 @@ export async function GET(request: Request) {
 
       const poll = async () => {
         try {
-          await scrapeAndCacheRegion(region);
-
           const payload = await getRegionResults(region);
           const drawDay = isDrawDayAndNearDraw(region);
           const intervalMs = getRefreshIntervalMs(region);
