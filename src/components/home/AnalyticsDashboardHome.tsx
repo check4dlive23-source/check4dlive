@@ -307,8 +307,8 @@ export function AnalyticsDashboardHome() {
 
   return (
     <div
-      className="relative mx-auto min-h-screen w-full max-w-[390px] lg:max-w-[390px]"
-      style={{ backgroundColor: "#070710", paddingBottom: 100 }}
+      className="relative min-h-screen w-full"
+      style={{ backgroundColor: "#070710" }}
     >
       {/* 1. Top nav */}
       <header
@@ -359,8 +359,8 @@ export function AnalyticsDashboardHome() {
         </button>
       </header>
 
-      {/* 2. Hero */}
-      <section className="relative" style={{ height: 480 }}>
+      {/* 2. Hero — full-width background */}
+      <section className="relative w-full" style={{ height: 480 }}>
         <div className="absolute inset-0 overflow-hidden">
           <div
             className="absolute inset-0"
@@ -395,10 +395,11 @@ export function AnalyticsDashboardHome() {
           />
         </div>
 
-        <div
-          className="absolute bottom-0 left-0 right-0 z-10"
-          style={{ padding: "0 22px 28px" }}
-        >
+        <div className="absolute bottom-0 left-0 right-0 z-10">
+          <div
+            className="mx-auto w-full max-w-[390px] lg:max-w-3xl"
+            style={{ padding: "0 22px 28px" }}
+          >
           {anyLive && (
             <span
               className="mb-4 inline-flex items-center font-mono"
@@ -509,9 +510,14 @@ export function AnalyticsDashboardHome() {
               实时开彩
             </Link>
           </div>
+          </div>
         </div>
       </section>
 
+      <div
+        className="mx-auto w-full max-w-[390px] lg:max-w-3xl"
+        style={{ position: "relative", paddingBottom: 100 }}
+      >
       <div
         ref={searchBarRef}
         style={{ padding: "0 22px", marginBottom: 24 }}
@@ -769,6 +775,7 @@ export function AnalyticsDashboardHome() {
           </button>
         </div>
       </section>
+      </div>
     </div>
   );
 }
