@@ -13,6 +13,7 @@ import type {
   PatternRow,
 } from "@/types/analytics";
 import { PageLayout } from "@/components/layout/PageLayout";
+import { useLang } from "@/lib/language-context";
 import type { HeatLevel } from "@/types/number-intelligence";
 
 const TABS = [
@@ -207,6 +208,7 @@ function DigitRow({ label, data }: { label: string; data: DigitFrequency[] }) {
 }
 
 export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
+  const { t } = useLang();
   const [tab, setTab] = useState<Tab>("momentum");
   const [top100Tab, setTop100Tab] = useState<Top100Tab>("hot");
   const [today, setToday] = useState("");
@@ -679,7 +681,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                   className="mt-3 inline-block font-sans text-[11px] transition-colors hover:underline"
                   style={{ color: "var(--text-dim)" }}
                 >
-                  查看完整记录 →
+                  {t("viewFullRecords")}
                 </Link>
               </div>
             )}

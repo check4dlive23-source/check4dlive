@@ -118,6 +118,9 @@ export const translations = {
     modeReverse: "来回",
     modeFull: "全打",
     historyGroupCount: "共 {count} 条",
+    rankings: "排行",
+    liveDraws: "开彩",
+    viewFullRecords: "查看完整记录 →",
     historyGroupEmpty: "无记录",
   },
   en: {
@@ -239,6 +242,9 @@ export const translations = {
     modeReverse: "Reverse",
     modeFull: "Full Box",
     historyGroupCount: "{count} records",
+    rankings: "Rankings",
+    liveDraws: "Live",
+    viewFullRecords: "View full records →",
     historyGroupEmpty: "No records",
   },
 } as const;

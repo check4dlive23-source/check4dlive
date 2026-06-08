@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isRegionLiveDraw } from "@/lib/draw-time";
+import { useLang } from "@/lib/language-context";
 import type { Region } from "@/types";
 
 const REGIONS: Region[] = ["west", "east", "cambodia", "singapore"];
@@ -156,30 +157,6 @@ function isRankingsActive(pathname: string): boolean {
   return pathname === "/rankings" || pathname.startsWith("/rankings");
 }
 
-const MOBILE_TABS = [
-  {
-    href: "/",
-    label: "首页",
-    Icon: IconHome,
-    showLiveDot: false,
-    isActive: isMobileIntelActive,
-  },
-  {
-    href: "/rankings",
-    label: "排行",
-    Icon: IconTrophy,
-    showLiveDot: false,
-    isActive: isRankingsActive,
-  },
-  {
-    href: "/live",
-    label: "开彩",
-    Icon: IconBroadcast,
-    showLiveDot: true,
-    isActive: isLiveActive,
-  },
-] as const;
-
 const DESKTOP_NAV = [
   {
     href: "/",
@@ -205,8 +182,33 @@ const DESKTOP_NAV = [
 ] as const;
 
 export function MainNav() {
+  const { t } = useLang();
   const pathname = usePathname();
   const live = useAnyRegionLive();
+
+  const MOBILE_TABS = [
+    {
+      href: "/",
+      label: t("home"),
+      Icon: IconHome,
+      showLiveDot: false,
+      isActive: isMobileIntelActive,
+    },
+    {
+      href: "/rankings",
+      label: t("rankings"),
+      Icon: IconTrophy,
+      showLiveDot: false,
+      isActive: isRankingsActive,
+    },
+    {
+      href: "/live",
+      label: t("liveDraws"),
+      Icon: IconBroadcast,
+      showLiveDot: true,
+      isActive: isLiveActive,
+    },
+  ] as const;
 
   return (
     <>
