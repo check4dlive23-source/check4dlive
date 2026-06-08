@@ -298,7 +298,7 @@ export function NumberIntelView({
             {historyGroups.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
-              <table className="w-full text-sm" style={{ minWidth: 380 }}>
+              <table className="w-full text-sm" style={{ minWidth: 320 }}>
                 <thead
                   className="sticky top-0 z-10"
                   style={{
@@ -306,16 +306,16 @@ export function NumberIntelView({
                   }}
                 >
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2" style={{ width: 90 }}>
+                    <th className="px-3 py-2" style={{ width: 85 }}>
                       {t("dateLabel")}
                     </th>
-                    <th className="px-3 py-2" style={{ width: 60 }}>
+                    <th className="px-3 py-2" style={{ width: 50 }}>
                       {t("number")}
                     </th>
-                    <th className="px-3 py-2" style={{ width: 130 }}>
+                    <th className="px-3 py-2" style={{ width: 110 }}>
                       {t("operator")}
                     </th>
-                    <th className="px-3 py-2" style={{ width: 80 }}>
+                    <th className="px-3 py-2" style={{ width: 75 }}>
                       {t("prizePosition")}
                     </th>
                   </tr>
@@ -350,16 +350,16 @@ export function NumberIntelView({
                           key={`${group.number}-${row.date}-${row.operator}-${i}`}
                           className="border-b border-line/50"
                         >
-                          <td className="px-3 py-2 text-foreground">
+                          <td className="px-2 py-2 font-mono text-[11px] tabular-nums">
                             {formatDrawDate(row.date)}
                           </td>
                           <td
-                            className="px-3 py-2 font-mono tabular-nums"
+                            className="px-2 py-2 font-mono tabular-nums"
                             style={{ color: "var(--cyan)" }}
                           >
                             {group.number}
                           </td>
-                          <td className="px-3 py-2 text-foreground">
+                          <td className="px-2 py-2 text-foreground">
                             <span className="inline-flex items-center gap-2">
                               <OperatorLogo operatorKey={row.operator} />
                               <span className="whitespace-nowrap">
@@ -368,7 +368,7 @@ export function NumberIntelView({
                             </span>
                           </td>
                           <td
-                            className={`px-3 py-2 font-medium whitespace-nowrap ${
+                            className={`px-2 py-2 font-medium whitespace-nowrap ${
                               POSITION_COLORS[row.position_tier]
                             }`}
                           >
