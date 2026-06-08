@@ -380,23 +380,6 @@ export function AnalyticsDashboardHome({
             TERMINAL
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setLang(lang === "zh" ? "en" : "zh")}
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 8,
-            padding: "6px 12px",
-            color: "rgba(255,255,255,0.7)",
-            fontFamily: "var(--font-jetbrains)",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          {lang === "zh" ? "EN" : "中文"}
-        </button>
       </header>
 
       {/* 2. Hero — full-width background */}
