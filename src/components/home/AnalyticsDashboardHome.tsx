@@ -284,7 +284,7 @@ export function AnalyticsDashboardHome({
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
   const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
-  const [rising, setRising] = useState<HotNumberRow[]>(initialRising);
+  const rising = initialRising;
   const weeklyHero = initialWeeklyHero;
   const [loading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
