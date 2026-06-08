@@ -309,6 +309,20 @@ export function AnalyticsDashboardHome({
     };
   }, []);
 
+  useEffect(() => {
+    if (!searchExpanded) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchBarRef.current &&
+        !searchBarRef.current.contains(e.target as Node)
+      ) {
+        setSearchExpanded(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchExpanded]);
+
   const hero = hot[0];
 
   return (
