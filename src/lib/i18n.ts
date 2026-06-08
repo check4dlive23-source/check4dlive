@@ -128,7 +128,7 @@ export const translations = {
     draws: "📅 Draw History",
     search: "🔍 Search",
     lucky: "🍀 Lucky Number",
-    home: "Live",
+    home: "Home",
     westMY: "🇲🇾 West MY",
     eastMY: "🏝 East MY",
     cambodia: "🇰🇭 Cambodia",
