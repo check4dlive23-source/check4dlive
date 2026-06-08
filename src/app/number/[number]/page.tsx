@@ -7,6 +7,9 @@ import {
 import type { Metadata } from "next";
 import type { NumberIntelMode } from "@/types/number-intelligence";
 import { notFound } from "next/navigation";
+import { cache } from "react";
+
+const getNumberIntelligenceCached = cache(getNumberIntelligence);
 
 function parseMode(raw?: string): NumberIntelMode {
   if (raw === "reverse" || raw === "full") return raw;
@@ -80,7 +83,7 @@ export async function generateMetadata({
     return { title: "Invalid number | Check4D Live" };
   }
 
-  const data = await getNumberIntelligence(number);
+  const data = await getNumberIntelligenceCached(number);
   const hits = data?.stats.total_hits ?? 0;
   const lastDate = data?.stats.last_seen_date;
 
@@ -107,7 +110,7 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
   const operators = searchParams.operators?.split(",").filter(Boolean) ?? [];
   const mode = parseMode(searchParams.mode);
 
-  const data = await getNumberIntelligence(number, {
+  const data = await getNumberIntelligenceCached(number, {
     page: 1,
     pageSize: 500,
     operators,
