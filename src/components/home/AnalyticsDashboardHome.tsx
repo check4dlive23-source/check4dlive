@@ -260,7 +260,7 @@ export function AnalyticsDashboardHome({
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
   const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
   const [searchErr, setSearchErr] = useState(false);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
