@@ -245,14 +245,22 @@ function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
   );
 }
 
-export function AnalyticsDashboardHome() {
+interface AnalyticsDashboardHomeProps {
+  initialHot: HotNumberRow[];
+  initialCold: ColdNumberRow[];
+}
+
+export function AnalyticsDashboardHome({
+  initialHot,
+  initialCold,
+}: AnalyticsDashboardHomeProps) {
   const router = useRouter();
   const { lang, setLang } = useLang();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const anyLive = useAnyRegionLive();
-  const [hot, setHot] = useState<HotNumberRow[]>([]);
-  const [cold, setCold] = useState<ColdNumberRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
+  const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
+  const [loading, setLoading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
   const [searchErr, setSearchErr] = useState(false);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
@@ -294,8 +302,6 @@ export function AnalyticsDashboardHome() {
           setHot([]);
           setCold([]);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
