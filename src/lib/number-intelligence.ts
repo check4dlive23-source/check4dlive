@@ -449,6 +449,45 @@ async function pageAllDrawMatches(
   return out;
 }
 
+async function getCachedDrawCount(
+  supabase: SupabaseLike,
+  since: string,
+  v2Operators?: string[]
+): Promise<number> {
+  const opKey = v2Operators?.length
+    ? v2Operators.slice().sort().join("-")
+    : "all";
+  const cacheKey = `draws_count_24mo_${opKey}`;
+  const cacheTtlMs = 24 * 60 * 60 * 1000;
+
+  const { data: cached } = await supabase
+    .from("analytics_cache")
+    .select("payload, updated_at")
+    .eq("type", cacheKey)
+    .maybeSingle();
+
+  if (
+    cached?.updated_at &&
+    new Date(cached.updated_at as string).getTime() > Date.now() - cacheTtlMs
+  ) {
+    const payload = cached.payload;
+    if (typeof payload === "number") return payload;
+  }
+
+  const count = await countRecentDraws(supabase, since, v2Operators);
+
+  await supabase.from("analytics_cache").upsert(
+    {
+      type: cacheKey,
+      payload: count,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "type" }
+  );
+
+  return count;
+}
+
 async function countRecentDraws(
   supabase: SupabaseLike,
   since: string,
@@ -565,7 +604,7 @@ async function buildExtras(
   v2Operators?: string[]
 ): Promise<NumberIntelligenceExtras> {
   const since = monthsAgoIso(24);
-  const totalDraws = await countRecentDraws(supabase, since, v2Operators);
+  const totalDraws = await getCachedDrawCount(supabase, since, v2Operators);
   const winPct =
     totalDraws > 0
       ? Math.round((stats.total_hits / totalDraws) * 10000) / 100
