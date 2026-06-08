@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, LottoBallResult } from "@/types";
 import { LottoBalls } from "./LottoBalls";
@@ -26,6 +27,7 @@ export function TotoLottoCombinedCard({
   draw_no,
   status,
 }: TotoLottoCombinedCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
 
   return (
@@ -64,7 +66,7 @@ export function TotoLottoCombinedCard({
       ))}
 
       <footer className="flex justify-between px-2.5 py-1.5 text-[10px] text-dim border-t border-line">
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
         <span>{formatDrawDate(date)}</span>
       </footer>
     </article>

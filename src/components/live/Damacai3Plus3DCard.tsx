@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { Damacai3Plus3DExtra, DrawStatus } from "@/types";
 
@@ -41,6 +42,7 @@ export function Damacai3Plus3DCard({
   status,
   data,
 }: Damacai3Plus3DCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
 
   return (
@@ -77,7 +79,7 @@ export function Damacai3Plus3DCard({
                   {p.zodiac}
                 </td>
                 <td className="py-1 text-xs text-muted whitespace-nowrap text-right">
-                  Bonus:{" "}
+                  {t("bonus")}:{" "}
                   <span className="font-number text-gold">
                     {revealed ? formatCurrency(p.bonus, 2) : "—"}
                   </span>
@@ -89,20 +91,20 @@ export function Damacai3Plus3DCard({
       </section>
 
       <section className="p-2 border-b border-line">
-        <p className="text-[10px] text-muted mb-1 uppercase">Special 特別獎</p>
+        <p className="text-[10px] text-muted mb-1 uppercase">{t("specialSection")}</p>
         <SixDigitGrid numbers={data.special} revealed={revealed} />
       </section>
 
       <section className="p-2 border-b border-line">
         <p className="text-[10px] text-muted mb-1 uppercase">
-          Consolation 安慰獎
+          {t("consolationSection")}
         </p>
         <SixDigitGrid numbers={data.consolation} revealed={revealed} />
       </section>
 
       <footer className="flex justify-between px-2 py-1.5 text-[10px] text-dim">
         <span>{formatDrawDate(date)}</span>
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, MagnumLifeExtra } from "@/types";
 
@@ -18,6 +19,7 @@ export function MagnumLifeCard({
   status,
   data,
 }: MagnumLifeCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
   const ballPending =
     "flex h-11 w-11 items-center justify-center rounded-full border border-line/70 bg-surface-3/60 text-base font-bold font-number text-muted opacity-70";
@@ -36,7 +38,7 @@ export function MagnumLifeCard({
         <StatusTag status={status} />
       </header>
       <section className="px-3 py-4">
-        <p className="text-[10px] text-muted mb-2">Winning Numbers</p>
+        <p className="text-[10px] text-muted mb-2">{t("winningNumbers")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
           {(revealed ? data.winning : data.winning.map(() => 0)).map((n, i) => (
             <span
@@ -51,7 +53,7 @@ export function MagnumLifeCard({
             </span>
           ))}
         </div>
-        <p className="text-[10px] text-muted mb-2">Bonus</p>
+        <p className="text-[10px] text-muted mb-2">{t("bonus")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {(revealed ? data.bonus : data.bonus.map(() => 0)).map((n, i) => (
             <span
@@ -69,7 +71,7 @@ export function MagnumLifeCard({
       </section>
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
         <span>{formatDrawDate(date)}</span>
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

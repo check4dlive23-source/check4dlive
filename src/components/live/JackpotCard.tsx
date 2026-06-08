@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { Jackpot4DResult } from "@/types";
 
@@ -10,6 +11,8 @@ interface JackpotCardProps {
 }
 
 export function JackpotCard({ data }: JackpotCardProps) {
+  const { t } = useLang();
+
   return (
     <article className="subpage-card overflow-hidden">
       <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
@@ -19,7 +22,7 @@ export function JackpotCard({ data }: JackpotCardProps) {
             {data.displayName}
           </h3>
           <p className="text-[10px] text-muted">
-            两个号码同时在头/二/三奖中才中
+            {t("jackpotHint")}
           </p>
         </div>
         <StatusTag status={data.status} />
@@ -41,7 +44,7 @@ export function JackpotCard({ data }: JackpotCardProps) {
       </section>
 
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim">
-        <span>期号 {data.draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {data.draw_no ?? "—"}</span>
         <span>{formatDrawDate(data.date)}</span>
       </footer>
     </article>

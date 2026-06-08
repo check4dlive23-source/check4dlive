@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, Toto6DTier } from "@/types";
 
@@ -16,12 +17,13 @@ interface SixDCardProps {
 
 export function SixDCard({
   displayName,
-  subtitle = "前后两边都中",
+  subtitle,
   date,
   draw_no,
   status,
   tiers,
 }: SixDCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
   const tierBox = revealed
     ? "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3 border border-line rounded py-2 text-foreground tracking-wide"
@@ -33,7 +35,7 @@ export function SixDCard({
         <LogoBadge operator="toto_6d" />
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-foreground">{displayName}</h3>
-          <p className="text-[10px] text-muted">{subtitle}</p>
+          <p className="text-[10px] text-muted">{subtitle ?? t("bothSidesWin")}</p>
         </div>
         <StatusTag status={status} />
       </header>
@@ -64,7 +66,7 @@ export function SixDCard({
       </section>
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
         <span>{formatDrawDate(date)}</span>
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

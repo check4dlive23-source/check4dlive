@@ -2,6 +2,7 @@
 
 import { LogoBadge, resolveLottoLogo } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { LottoBallResult } from "@/types";
 import { LottoBalls } from "./LottoBalls";
@@ -12,6 +13,7 @@ interface LottoBallCardProps {
 }
 
 export function LottoBallCard({ data }: LottoBallCardProps) {
+  const { t } = useLang();
   const logo = resolveLottoLogo(data);
   const revealed = data.status !== "pending";
   const hasJackpot =
@@ -45,7 +47,7 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
 
       <footer className="flex justify-between px-2.5 py-1.5 text-[10px] text-dim border-t border-line">
         <span>{formatDrawDate(data.date)}</span>
-        <span>期号 {data.draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {data.draw_no ?? "—"}</span>
       </footer>
     </article>
   );

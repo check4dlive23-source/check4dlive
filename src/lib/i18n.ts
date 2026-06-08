@@ -178,6 +178,13 @@ export const translations = {
     colDrawNo: "期号",
     drawRecordsSubtitle: "按日期与运营商浏览历史开彩记录",
     pageOf: "页",
+    drawNoLabel: "期号",
+    jackpotHint: "两个号码同时在头/二/三奖中才中",
+    bonus: "Bonus",
+    winningNumbers: "开奖号码",
+    bothSidesWin: "前后两边都中",
+    prizeLabel: "奖项",
+    jackpotLabel: "Jackpot",
   },
   en: {
     analytics: "📊 Analytics",
@@ -358,6 +365,13 @@ export const translations = {
     colDrawNo: "Draw No",
     drawRecordsSubtitle: "Browse historical draws by date and operator",
     pageOf: "Page",
+    drawNoLabel: "Draw No",
+    jackpotHint: "Both numbers must appear in 1st/2nd/3rd prize",
+    bonus: "Bonus",
+    winningNumbers: "Winning Numbers",
+    bothSidesWin: "Match both sides",
+    prizeLabel: "Prize",
+    jackpotLabel: "Jackpot",
   },
 } as const;
 

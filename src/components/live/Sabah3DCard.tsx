@@ -2,6 +2,7 @@
 
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, Sabah3DExtra } from "@/types";
 
@@ -13,6 +14,7 @@ interface Sabah3DCardProps {
 }
 
 export function Sabah3DCard({ date, draw_no, status, data }: Sabah3DCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
 
   return (
@@ -61,7 +63,7 @@ export function Sabah3DCard({ date, draw_no, status, data }: Sabah3DCardProps) {
       </div>
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
         <span>{formatDrawDate(date)}</span>
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

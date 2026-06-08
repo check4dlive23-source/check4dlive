@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { StatusTag } from "@/components/ui/StatusTag";
+import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, MagnumGoldExtra } from "@/types";
 
@@ -66,6 +67,8 @@ function PrizeBlock({
   prize?: number;
   revealed: boolean;
 }) {
+  const { t } = useLang();
+
   return (
     <div className="px-2.5 py-2 border-b border-line space-y-1.5">
       <p className="text-[10px] font-semibold text-muted uppercase tracking-wider">
@@ -74,7 +77,7 @@ function PrizeBlock({
       {children}
       {prize != null && (
         <p className="text-sm text-gold font-number">
-          Prize:{" "}
+          {t("prizeLabel")}:{" "}
           {revealed ? formatCurrency(prize, 2) : "—"}
         </p>
       )}
@@ -88,6 +91,7 @@ export function MagnumGoldCard({
   status,
   data,
 }: MagnumGoldCardProps) {
+  const { t } = useLang();
   const revealed = status !== "pending";
 
   return (
@@ -142,7 +146,7 @@ export function MagnumGoldCard({
 
       <footer className="flex justify-between px-3 py-2 text-[10px] text-dim">
         <span>{formatDrawDate(date)}</span>
-        <span>期号 {draw_no ?? "—"}</span>
+        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );
