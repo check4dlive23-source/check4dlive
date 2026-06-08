@@ -269,14 +269,18 @@ interface AnalyticsDashboardHomeProps {
   initialHot: HotNumberRow[];
   initialCold: ColdNumberRow[];
   initialWeeklyHero: HotNumberRow | null;
+  initialWeeklyTop10: HotNumberRow[];
   initialRising: HotNumberRow[];
+  initialLastWeekRank: number | null;
 }
 
 export function AnalyticsDashboardHome({
   initialHot,
   initialCold,
   initialWeeklyHero,
+  initialWeeklyTop10,
   initialRising,
+  initialLastWeekRank,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
   const { t } = useLang();
@@ -286,6 +290,8 @@ export function AnalyticsDashboardHome({
   const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
   const rising = initialRising;
   const weeklyHero = initialWeeklyHero;
+  const weeklyTop10 = initialWeeklyTop10;
+  const lastWeekRank = initialLastWeekRank;
   const [loading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
   const [searchErr, setSearchErr] = useState(false);
@@ -487,25 +493,21 @@ export function AnalyticsDashboardHome({
             </p>
           )}
 
-          <p
-            className="mt-3"
-            style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}
-          >
-            {t("todayHotNumber")}
+          <p style={{ fontSize: 12, color: "rgba(0,229,255,0.8)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", marginBottom: 4 }}>
+            ⭐ {t("weeklyStarLabel")}
           </p>
-
-          <p
-            className="mt-2 flex flex-wrap items-center gap-2"
-            style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}
-          >
-            <span>
-              {t("appeared")} {hero?.total_hits ?? "—"} {t("times")}
-            </span>
-            <span style={{ opacity: 0.5 }}>·</span>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>
+            <span>{t("appeared")} {hero?.total_hits ?? "—"} {t("times")}</span>
+            <span style={{ margin: "0 6px", opacity: 0.3 }}>·</span>
             <span>{formatDateShort(hero?.last_seen ?? null)}</span>
-            <span style={{ opacity: 0.5 }}>·</span>
+            <span style={{ margin: "0 6px", opacity: 0.3 }}>·</span>
             <span>{t("yearsData")}</span>
           </p>
+          {lastWeekRank && (
+            <p style={{ fontSize: 11, color: "rgba(0,255,136,0.7)", fontFamily: "var(--font-jetbrains)" }}>
+              {t("lastWeekRank")} #{lastWeekRank} → {t("thisWeek")} #1 ↑{lastWeekRank - 1}
+            </p>
+          )}
 
           <div className="mt-5 flex gap-3">
             <Link

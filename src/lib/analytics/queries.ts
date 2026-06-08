@@ -627,6 +627,18 @@ export async function getWeeklyHotNumbers(
   return computeHotNumbers("30d", limit, { since: sinceDate, limit });
 }
 
+export async function getWeeklyHotNumbersLastWeek(
+  limit = 10
+): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
+  const since = new Date();
+  since.setDate(since.getDate() - 14);
+  const sinceDate = since.toISOString().split("T")[0];
+  const until = new Date();
+  until.setDate(until.getDate() - 7);
+  const untilDate = until.toISOString().split("T")[0];
+  return computeHotNumbers("30d", limit, { since: sinceDate, limit });
+}
+
 export async function getRisingNumbers(
   limit = 8
 ): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
