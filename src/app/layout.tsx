@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | Check4D",
   },
   description:
-    "Malaysia's most comprehensive 4D lottery intelligence platform. 40 years of historical data across Magnum, Damacai, Toto, Cash Sweep & Singapore Pools. Real-time results, number analytics and pattern analysis.",
+    "Malaysia's most comprehensive 4D lottery intelligence platform. 40 years of historical data across Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan 4D & Singapore Pools. Real-time results, number analytics and pattern analysis.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://check4dterminal.com"
   ),

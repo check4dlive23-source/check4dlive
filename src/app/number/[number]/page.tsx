@@ -93,7 +93,7 @@ export async function generateMetadata({
 
   return {
     title: `4D Number ${number} — Statistics & History | Check4D Live`,
-    description: `Number ${number} has appeared ${hits} times across Magnum, Toto, Damacai. ${lastSeenText}`,
+    description: `Number ${number} has appeared ${hits} times across Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan 4D & Singapore Pools. ${lastSeenText}`,
     openGraph: {
       title: `4D Number ${number} — Check4D Live`,
       description: `${hits} total hits. ${lastSeenText}`,

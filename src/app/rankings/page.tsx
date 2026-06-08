@@ -11,7 +11,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "4D Number Rankings — Top 100 Hot, Cold & First Prize | Check4D",
   description:
-    "Malaysia 4D number rankings based on 40 years of historical data. Top 100 most frequent numbers, coldest numbers, and first prize champions across Magnum, Damacai, Toto, Cash Sweep and Singapore Pools.",
+    "Malaysia 4D number rankings based on 40 years of historical data. Top 100 most frequent numbers, coldest numbers, and first prize champions across Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan 4D and Singapore Pools.",
 };
 
 export default async function RankingsPage() {

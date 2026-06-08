@@ -864,7 +864,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             color: "var(--text-dim)",
           }}
         >
-          DATA SOURCE: MAGNUM · DAMACAI · TOTO · CASH SWEEP · SINGAPORE POOLS
+          DATA SOURCE: MAGNUM · DAMACAI · TOTO · CASH SWEEP · SABAH 88 · SANDAKAN 4D ·SINGAPORE POOLS
         </footer>
     </PageLayout>
   );
