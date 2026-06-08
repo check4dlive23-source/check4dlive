@@ -80,7 +80,7 @@ function OperatorLogo({
     <img
       src={src}
       alt={operatorKey}
-      style={{ height, width: "auto", display: "block" }}
+      style={{ height, width: "auto", maxWidth: 28, display: "block", objectFit: "contain" }}
     />
   );
 }
