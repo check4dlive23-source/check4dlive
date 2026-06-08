@@ -26,12 +26,16 @@ const OPERATOR_LABELS: Record<string, string> = {
   damacai: "Damacai",
   toto: "Sports Toto",
   sabah: "Sabah",
+  sabah88: "Sabah 88",
   sarawak: "Cash Sweep",
+  cashsweep: "Cash Sweep",
   sandakan: "Sandakan",
+  stc: "Sandakan 4D",
   gd: "Grand Dragon",
   perdana: "Perdana",
   hari: "Lucky Hari Hari",
   sgpools: "Singapore Pools",
+  singapore: "Singapore Pools",
 };
 
 const OPERATOR_LOGOS: Record<string, string> = {

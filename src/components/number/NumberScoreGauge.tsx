@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLang } from "@/lib/language-context";
 import type { NumberStatsPayload } from "@/types/number-intelligence";
 
 interface Props {
@@ -35,18 +36,17 @@ function scoreColor(score: number): string {
   return "#FF4D4D";
 }
 
-function scoreLabel(score: number): string {
-  if (score >= 80) return "STRONG";
-  if (score >= 70) return "BULLISH";
-  if (score >= 50) return "NEUTRAL";
-  if (score >= 40) return "WEAK";
-  return "COLD";
-}
-
 export function NumberScoreGauge({ stats }: Props) {
+  const { t } = useLang();
   const score = useMemo(() => computeScore(stats), [stats]);
   const color = scoreColor(score);
-  const label = scoreLabel(score);
+  const label = (() => {
+    if (score >= 80) return t("scoreStrong");
+    if (score >= 70) return t("scoreBullish");
+    if (score >= 50) return t("scoreNeutral");
+    if (score >= 40) return t("scoreWeak");
+    return t("scoreCold");
+  })();
 
   // SVG 圆弧参数
   const radius = 36;
@@ -120,7 +120,7 @@ export function NumberScoreGauge({ stats }: Props) {
           color: "rgba(255,255,255,0.3)",
         }}
       >
-        NUMBER SCORE
+        {t("numberScore")}
       </div>
     </div>
   );

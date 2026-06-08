@@ -161,6 +161,12 @@ export const translations = {
     last: "最近",
     noDrawRecords: "暂无开彩记录",
     top100Data: "TOP 100 · 40年数据",
+    scoreStrong: "强势",
+    scoreBullish: "看涨",
+    scoreNeutral: "中性",
+    scoreWeak: "偏弱",
+    scoreCold: "冷门",
+    numberScore: "号码评分",
   },
   en: {
     analytics: "📊 Analytics",
@@ -324,6 +330,12 @@ export const translations = {
     last: "Last",
     noDrawRecords: "No draw records found.",
     top100Data: "TOP 100 · 40 YEARS DATA",
+    scoreStrong: "STRONG",
+    scoreBullish: "BULLISH",
+    scoreNeutral: "NEUTRAL",
+    scoreWeak: "WEAK",
+    scoreCold: "COLD",
+    numberScore: "NUMBER SCORE",
   },
 } as const;
 
