@@ -72,9 +72,13 @@ const DRAW_OPERATOR_LOGOS: Record<string, string> = {
   damacai: "/logos/damacai.gif",
   toto: "/logos/toto.gif",
   sarawak: "/logos/cashsweep.gif",
+  cashsweep: "/logos/cashsweep.gif",
   sgpools: "/logos/sgpools.gif",
+  singapore: "/logos/sgpools.gif",
   sabah: "/logos/sabah88.gif",
+  sabah88: "/logos/sabah88.gif",
   sandakan: "/logos/sandakan.gif",
+  stc: "/logos/sandakan.gif",
 };
 
 const DRAW_OPERATOR_LABELS: Record<string, string> = {
@@ -82,9 +86,13 @@ const DRAW_OPERATOR_LABELS: Record<string, string> = {
   damacai: "Damacai",
   toto: "Toto",
   sarawak: "Cash Sweep",
+  cashsweep: "Cash Sweep",
   sgpools: "SG Pools",
+  singapore: "Singapore Pools",
   sabah: "Sabah",
+  sabah88: "Sabah 88",
   sandakan: "Sandakan",
+  stc: "Sandakan 4D",
   gd: "Grand Dragon",
   perdana: "Perdana",
   hari: "Lucky HH",
@@ -657,7 +665,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                             />
                           )}
                           <span
-                            className="truncate font-sans text-[10px] uppercase tracking-[0.06em]"
+                            className="truncate font-sans text-[10px] tracking-[0.06em]"
                             style={{ color: "var(--text-secondary)" }}
                           >
                             {label}

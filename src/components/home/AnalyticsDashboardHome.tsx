@@ -247,7 +247,7 @@ function ColdCard({
         className="absolute font-mono font-extrabold tabular-nums"
         style={{ bottom: 32, left: 16, fontSize: 24, color: "#FFB020" }}
       >
-        {row.gap_days}
+        {row.gap_days} {t("days")}
       </span>
       <span
         className="absolute font-mono uppercase"
