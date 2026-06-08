@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { HeatBadge } from "./HeatBadge";
+import { NumberScoreGauge } from "./NumberScoreGauge";
 import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
@@ -225,6 +226,7 @@ export function NumberIntelView({
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
+              <NumberScoreGauge stats={stats} />
               <HeatBadge level={stats.heat_level} />
               <button
                 type="button"
