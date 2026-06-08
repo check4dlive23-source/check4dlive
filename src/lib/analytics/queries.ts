@@ -694,7 +694,7 @@ export async function getRisingNumbers(
     const data90d = map90d.get(number);
     if (!data90d) continue;
     const ratio = hits7d / data90d.total; // 近7天占90天总出现比例
-    if (ratio >= 0.4 && data90d.total <= 6) {
+    if (ratio >= 0.3 && data90d.total <= 10) {
       // 比例高且总次数不多（历史不热门）
       rising.push({
         number,

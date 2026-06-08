@@ -500,7 +500,7 @@ export function AnalyticsDashboardHome({
             <span style={{ margin: "0 6px", opacity: 0.3 }}>·</span>
             <span>{t("yearsData")}</span>
           </p>
-          {lastWeekRank && (
+          {lastWeekRank && lastWeekRank > 1 && (
             <p style={{ fontSize: 11, color: "rgba(0,255,136,0.7)", fontFamily: "var(--font-jetbrains)" }}>
               {t("lastWeekRank")} #{lastWeekRank} → {t("thisWeek")} #1 ↑{lastWeekRank - 1}
             </p>
