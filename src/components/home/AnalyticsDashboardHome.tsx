@@ -751,29 +751,52 @@ export function AnalyticsDashboardHome({
               <Link
                 key={row.number}
                 href={`/number/${row.number}`}
-                className="shrink-0"
-                style={{
-                  background: "linear-gradient(135deg, #0d2a3c, #0a0e1a)",
-                  border: "1px solid rgba(0,229,255,0.15)",
-                  borderTop: "2px solid #00E5FF",
-                  borderRadius: 12,
-                  padding: "16px 14px",
-                  width: 148,
-                  display: "block",
-                }}
+                className="relative block shrink-0 overflow-hidden rounded-2xl"
+                style={{ width: 148, height: 180 }}
               >
-                <div style={{ fontSize: 9, color: "rgba(0,229,255,0.5)", letterSpacing: "0.1em", marginBottom: 6 }}>
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, #0d2a3c 0%, #0a0e1a 100%)" }}
+                />
+                <div
+                  className="absolute"
+                  style={{
+                    top: -30, left: -30, width: 140, height: 140,
+                    background: "radial-gradient(circle, rgba(0,229,255,0.2), transparent 65%)",
+                  }}
+                />
+                <div
+                  className="absolute left-0 right-0 top-0"
+                  style={{ height: 2, background: "linear-gradient(90deg, #00E5FF, transparent)" }}
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-2xl"
+                  style={{ border: "1px solid rgba(0,229,255,0.15)" }}
+                />
+                <span
+                  className="absolute font-mono"
+                  style={{ top: 14, left: 16, fontSize: 10, color: "rgba(255,255,255,0.2)" }}
+                >
                   NO.{String(i + 1).padStart(2, "0")} <span style={{ color: "#00E5FF" }}>↑</span>
-                </div>
-                <div className="font-mono font-black tabular-nums" style={{ fontSize: 44, color: "#fff", lineHeight: 1 }}>
+                </span>
+                <span
+                  className="absolute font-mono tabular-nums"
+                  style={{ bottom: 50, left: 16, fontSize: 44, fontWeight: 900, color: "white", lineHeight: 1 }}
+                >
                   {row.number}
-                </div>
-                <div style={{ fontSize: 10, color: "rgba(0,229,255,0.6)", marginTop: 8 }}>
+                </span>
+                <span
+                  className="absolute font-mono font-semibold"
+                  style={{ bottom: 30, left: 16, fontSize: 11, color: "rgba(0,229,255,0.7)" }}
+                >
                   {t("freq")} {row.total_hits}
-                </div>
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
-                  {row.last_seen ? `${t("lastSeen")} ${row.last_seen}` : ""}
-                </div>
+                </span>
+                <span
+                  className="absolute font-mono"
+                  style={{ bottom: 14, left: 16, fontSize: 10, color: "rgba(255,255,255,0.2)" }}
+                >
+                  {row.last_seen ? daysAgoLabel(row.last_seen, t) : t("never")}
+                </span>
               </Link>
             ))}
           </div>
