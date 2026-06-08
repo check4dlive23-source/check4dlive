@@ -16,6 +16,7 @@ import {
   specialSlotCount,
 } from "@/lib/prize-slots";
 import { OPERATORS } from "@/lib/history-search";
+import { useLang } from "@/lib/language-context";
 import { PageLayout } from "@/components/layout/PageLayout";
 import type { DrawListItem } from "@/types/analytics";
 
@@ -43,13 +44,6 @@ const OPERATOR_LOGOS: Record<string, string> = {
   singapore: "/logos/sgpools.gif",
   sgpools: "/logos/sgpools.gif",
 };
-
-const QUICK_FILTERS = [
-  { mode: "today" as const, label: "TODAY" },
-  { mode: "yesterday" as const, label: "YESTERDAY" },
-  { mode: "week" as const, label: "LAST WEEK" },
-  { mode: "month" as const, label: "THIS MONTH" },
-];
 
 const inputStyle: CSSProperties = {
   backgroundColor: "var(--surface-2)",
@@ -101,6 +95,7 @@ function OperatorLogo({
 }
 
 export function DrawExplorer() {
+  const { t } = useLang();
   const [date, setDate] = useState("");
   const [operator, setOperator] = useState("");
   const [page, setPage] = useState(1);
@@ -173,11 +168,18 @@ export function DrawExplorer() {
     URL.revokeObjectURL(url);
   };
 
+  const QUICK_FILTERS = [
+    { mode: "today" as const, label: t("filterToday") },
+    { mode: "yesterday" as const, label: t("filterYesterday") },
+    { mode: "week" as const, label: t("filterLastWeek") },
+    { mode: "month" as const, label: t("filterThisMonth") },
+  ];
+
   return (
     <PageLayout
       title="DRAW "
       titleAccent="RECORDS"
-      subtitle="BY DATE & OPERATOR · FULL HISTORY"
+      subtitle={t("drawRecordsSubtitle")}
     >
         {/* Quick date filters */}
         <div className="flex flex-wrap gap-1.5">
@@ -212,7 +214,7 @@ export function DrawExplorer() {
             className="font-sans text-[10px] uppercase"
             style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
           >
-            DATE
+            {t("dateLabel")}
             <input
               type="date"
               value={date}
@@ -229,7 +231,7 @@ export function DrawExplorer() {
             className="font-sans text-[10px] uppercase"
             style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
           >
-            OPERATOR
+            {t("operatorLabel")}
             <select
               value={operator}
               onChange={(e) => {
@@ -240,7 +242,7 @@ export function DrawExplorer() {
               className="mt-1 block min-w-[160px] rounded-none px-3 py-2 font-mono text-sm"
               style={inputStyle}
             >
-              <option value="">ALL OPERATORS</option>
+              <option value="">{t("allOperators")}</option>
               {OPERATORS.map((op) => (
                 <option key={op} value={op}>
                   {OPERATOR_LABELS[op] ?? op}
@@ -260,7 +262,7 @@ export function DrawExplorer() {
               background: "transparent",
             }}
           >
-            DOWNLOAD CSV
+            {t("downloadCsv")}
           </button>
         </div>
 
@@ -269,7 +271,7 @@ export function DrawExplorer() {
             className="mt-4 font-mono text-[10px] uppercase"
             style={{ color: "var(--text-dim)" }}
           >
-            LOADING…
+            {t("loading")}
           </p>
         )}
 
@@ -289,7 +291,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  DATE
+                  {t("colDate")}
                 </th>
                 <th
                   className="py-2 text-left font-sans text-[10px] uppercase"
@@ -298,7 +300,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  OPERATOR
+                  {t("colOperator")}
                 </th>
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
@@ -307,7 +309,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  1ST
+                  {t("col1st")}
                 </th>
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
@@ -316,7 +318,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  2ND
+                  {t("col2nd")}
                 </th>
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
@@ -325,7 +327,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  3RD
+                  {t("col3rd")}
                 </th>
                 <th
                   className="py-2 text-left font-sans text-[10px] uppercase"
@@ -334,7 +336,7 @@ export function DrawExplorer() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  DRAW NO
+                  {t("colDrawNo")}
                 </th>
               </tr>
             </thead>
@@ -346,7 +348,7 @@ export function DrawExplorer() {
                     className="py-8 text-center font-sans text-[11px]"
                     style={{ color: "var(--text-dim)" }}
                   >
-                    No draws found for this date.
+                    {t("noDrawsForDate")}
                   </td>
                 </tr>
               ) : (
@@ -433,7 +435,7 @@ export function DrawExplorer() {
                                 color: "var(--text-dim)",
                               }}
                             >
-                              SPECIAL
+                              {t("specialSection")}
                             </p>
                             <div className="mb-3 grid grid-cols-5 gap-1 sm:grid-cols-10">
                               {specialSlots.map((n, i) => (
@@ -453,7 +455,7 @@ export function DrawExplorer() {
                                 color: "var(--text-dim)",
                               }}
                             >
-                              CONSOLATION
+                              {t("consolationSection")}
                             </p>
                             <div className="grid grid-cols-5 gap-1 sm:grid-cols-10">
                               {consolationSlots.map((n, i) => (
@@ -483,7 +485,7 @@ export function DrawExplorer() {
             className="font-mono text-[10px] tabular-nums"
             style={{ color: "var(--text-dim)" }}
           >
-            PAGE {page} / {totalPages} · {total} DRAWS
+            {t("pageOf")} {page} / {totalPages} · {total} {t("drawsCount")}
           </span>
           <div className="flex gap-2">
             <button
@@ -498,7 +500,7 @@ export function DrawExplorer() {
                 background: "transparent",
               }}
             >
-              PREV
+              {t("previous")}
             </button>
             <button
               type="button"
@@ -512,7 +514,7 @@ export function DrawExplorer() {
                 background: "transparent",
               }}
             >
-              NEXT
+              {t("next")}
             </button>
           </div>
         </div>
