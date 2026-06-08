@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LanguageToggle } from "./LanguageToggle";
 import { isRegionLiveDraw } from "@/lib/draw-time";
 import { useLang } from "@/lib/language-context";
 import type { Region } from "@/types";
@@ -222,7 +223,7 @@ export function MainNav() {
         aria-label="Main navigation"
       >
         <div
-          className="border-b px-5 py-6"
+          className="flex items-start justify-between gap-2 border-b px-5 py-6"
           style={{ borderColor: "var(--border-dim)" }}
         >
           <Link href="/" style={{ lineHeight: 1 }}>
@@ -250,6 +251,7 @@ export function MainNav() {
               TERMINAL
             </div>
           </Link>
+          <LanguageToggle />
         </div>
 
         <div className="flex flex-col gap-1 px-3 py-4">
@@ -320,6 +322,11 @@ export function MainNav() {
           )}
         </div>
       </nav>
+
+      {/* Mobile language toggle — top right */}
+      <div className="fixed right-4 top-4 z-50 lg:hidden">
+        <LanguageToggle />
+      </div>
 
       {/* Mobile bottom bar */}
       <nav

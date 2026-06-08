@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
@@ -323,7 +322,6 @@ export function LiveTerminal() {
             <span />
           )}
           <div className="flex shrink-0 items-center gap-2">
-            <LanguageToggle />
             <button
               type="button"
               onClick={() => setLuckyOpen(true)}
