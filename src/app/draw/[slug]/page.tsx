@@ -16,15 +16,15 @@ function parseSlug(slug: string): { date: string; operator: string } | null {
 const OPERATOR_LABELS: Record<string, string> = {
   magnum: "Magnum 4D",
   damacai: "Da Ma Cai",
-  toto: "Sports Toto",
+  toto: "Toto",
   cashsweep: "Cash Sweep",
   sarawak: "Cash Sweep",
   sabah: "Sabah 88",
   sabah88: "Sabah 88",
   sandakan: "Sandakan 4D",
   stc: "Sandakan 4D",
-  singapore: "Singapore Pools",
-  sgpools: "Singapore Pools",
+  singapore: "SG Pools",
+  sgpools: "SG Pools",
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

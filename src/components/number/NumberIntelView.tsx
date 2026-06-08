@@ -24,18 +24,18 @@ const POSITION_COLORS: Record<string, string> = {
 const OPERATOR_LABELS: Record<string, string> = {
   magnum: "Magnum",
   damacai: "Damacai",
-  toto: "Sports Toto",
+  toto: "Toto",
   sabah: "Sabah",
   sabah88: "Sabah 88",
   sarawak: "Cash Sweep",
   cashsweep: "Cash Sweep",
   sandakan: "Sandakan",
   stc: "Sandakan 4D",
-  gd: "Grand Dragon",
+  gd: "GD Lotto",
   perdana: "Perdana",
-  hari: "Lucky Hari Hari",
-  sgpools: "Singapore Pools",
-  singapore: "Singapore Pools",
+  hari: "Lucky HH",
+  sgpools: "SG Pools",
+  singapore: "SG Pools",
 };
 
 const OPERATOR_LOGOS: Record<string, string> = {

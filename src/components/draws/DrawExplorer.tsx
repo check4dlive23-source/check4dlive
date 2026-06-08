@@ -24,14 +24,14 @@ import type { DrawListItem } from "@/types/analytics";
 const OPERATOR_LABELS: Record<string, string> = {
   magnum: "Magnum",
   damacai: "Damacai",
-  toto: "Sports Toto",
+  toto: "Toto",
   sabah: "Sabah",
   sarawak: "Cash Sweep",
   sandakan: "Sandakan",
-  gd: "Grand Dragon",
+  gd: "GD Lotto",
   perdana: "Perdana",
-  hari: "Lucky Hari Hari",
-  sgpools: "Singapore Pools",
+  hari: "Lucky HH",
+  sgpools: "SG Pools",
 };
 
 const OPERATOR_LOGOS: Record<string, string> = {

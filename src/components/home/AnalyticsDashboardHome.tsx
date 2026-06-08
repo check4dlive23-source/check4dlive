@@ -737,8 +737,8 @@ export function AnalyticsDashboardHome({
       </section>
 
       {rising.length > 0 && (
-        <div style={{ marginBottom: 24 }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+        <section className="mt-8">
+          <div className="flex items-center justify-between" style={{ marginBottom: 12, padding: "0 22px" }}>
             <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>
               {t("risingTitle")}
             </h2>
@@ -746,7 +746,7 @@ export function AnalyticsDashboardHome({
               {t("risingSubtitle")}
             </span>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", padding: "0 22px" }}>
             {rising.map((row, i) => (
               <Link
                 key={row.number}
@@ -800,7 +800,7 @@ export function AnalyticsDashboardHome({
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* 5. AI placeholder */}
