@@ -738,10 +738,10 @@ export function AnalyticsDashboardHome({
       </section>
 
       {rising.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 24 }}>
           <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
             <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>
-              📈 {t("risingTitle")}
+              {t("risingTitle")}
             </h2>
             <span style={{ fontSize: 11, color: "rgba(0,229,255,0.6)", letterSpacing: "0.05em" }}>
               {t("risingSubtitle")}
@@ -754,22 +754,22 @@ export function AnalyticsDashboardHome({
                 href={`/number/${row.number}`}
                 className="shrink-0"
                 style={{
-                  background: "linear-gradient(135deg, #1a0d3c, #0d0a1a)",
-                  border: "1px solid rgba(160,125,224,0.3)",
-                  borderTop: "2px solid #a07de0",
+                  background: "linear-gradient(135deg, #0d2a3c, #0a0e1a)",
+                  border: "1px solid rgba(0,229,255,0.15)",
+                  borderTop: "2px solid #00E5FF",
                   borderRadius: 12,
-                  padding: "14px 16px",
-                  width: 140,
+                  padding: "16px 14px",
+                  width: 148,
                   display: "block",
                 }}
               >
-                <div style={{ fontSize: 9, color: "rgba(160,125,224,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>
-                  NO.{String(i + 1).padStart(2, "0")} <span style={{ color: "#a07de0" }}>↑</span>
+                <div style={{ fontSize: 9, color: "rgba(0,229,255,0.5)", letterSpacing: "0.1em", marginBottom: 6 }}>
+                  NO.{String(i + 1).padStart(2, "0")} <span style={{ color: "#00E5FF" }}>↑</span>
                 </div>
-                <div className="font-mono font-black tabular-nums" style={{ fontSize: 32, color: "#fff", lineHeight: 1 }}>
+                <div className="font-mono font-black tabular-nums" style={{ fontSize: 44, color: "#fff", lineHeight: 1 }}>
                   {row.number}
                 </div>
-                <div style={{ fontSize: 10, color: "rgba(160,125,224,0.7)", marginTop: 8 }}>
+                <div style={{ fontSize: 10, color: "rgba(0,229,255,0.6)", marginTop: 8 }}>
                   {t("freq")} {row.total_hits}
                 </div>
                 <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
