@@ -268,11 +268,15 @@ function ColdCard({
 interface AnalyticsDashboardHomeProps {
   initialHot: HotNumberRow[];
   initialCold: ColdNumberRow[];
+  initialWeeklyHero: HotNumberRow | null;
+  initialRising: HotNumberRow[];
 }
 
 export function AnalyticsDashboardHome({
   initialHot,
   initialCold,
+  initialWeeklyHero,
+  initialRising,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
   const { t } = useLang();
@@ -280,6 +284,8 @@ export function AnalyticsDashboardHome({
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
   const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
+  const [rising, setRising] = useState<HotNumberRow[]>(initialRising);
+  const weeklyHero = initialWeeklyHero;
   const [loading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
   const [searchErr, setSearchErr] = useState(false);
@@ -343,7 +349,7 @@ export function AnalyticsDashboardHome({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchExpanded]);
 
-  const hero = hot[0];
+  const hero = weeklyHero ?? hot[0];
 
   return (
     <div
@@ -730,6 +736,50 @@ export function AnalyticsDashboardHome({
               ))}
         </div>
       </section>
+
+      {rising.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>
+              📈 {t("risingTitle")}
+            </h2>
+            <span style={{ fontSize: 11, color: "rgba(0,229,255,0.6)", letterSpacing: "0.05em" }}>
+              {t("risingSubtitle")}
+            </span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+            {rising.map((row, i) => (
+              <Link
+                key={row.number}
+                href={`/number/${row.number}`}
+                className="shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, #1a0d3c, #0d0a1a)",
+                  border: "1px solid rgba(160,125,224,0.3)",
+                  borderTop: "2px solid #a07de0",
+                  borderRadius: 12,
+                  padding: "14px 16px",
+                  width: 140,
+                  display: "block",
+                }}
+              >
+                <div style={{ fontSize: 9, color: "rgba(160,125,224,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>
+                  NO.{String(i + 1).padStart(2, "0")} <span style={{ color: "#a07de0" }}>↑</span>
+                </div>
+                <div className="font-mono font-black tabular-nums" style={{ fontSize: 32, color: "#fff", lineHeight: 1 }}>
+                  {row.number}
+                </div>
+                <div style={{ fontSize: 10, color: "rgba(160,125,224,0.7)", marginTop: 8 }}>
+                  {t("freq")} {row.total_hits}
+                </div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
+                  {row.last_seen ? `${t("lastSeen")} ${row.last_seen}` : ""}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 5. AI placeholder */}
       <section

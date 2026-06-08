@@ -617,3 +617,91 @@ export async function getPatterns(
   }
   return result;
 }
+
+export async function getWeeklyHotNumbers(
+  limit = 8
+): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
+  const since = new Date();
+  since.setDate(since.getDate() - 7);
+  const sinceDate = since.toISOString().split("T")[0];
+  return computeHotNumbers("30d", limit, { since: sinceDate, limit });
+}
+
+export async function getRisingNumbers(
+  limit = 8
+): Promise<{ rows: HotNumberRow[]; source: "db" | "mock" }> {
+  const supabase = createClient();
+  if (!supabase) return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
+
+  const since7d = new Date();
+  since7d.setDate(since7d.getDate() - 7);
+  const sinceDate7d = since7d.toISOString().split("T")[0];
+
+  const since90d = new Date();
+  since90d.setDate(since90d.getDate() - 90);
+  const sinceDate90d = since90d.toISOString().split("T")[0];
+
+  // 近7天出现的号码
+  const recent7d = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances, last_seen_date",
+    sinceDate7d
+  );
+
+  // 近90天出现的号码（作为分母）
+  const recent90d = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances, last_seen_date",
+    sinceDate90d
+  );
+
+  if (!recent7d?.length || !recent90d?.length) {
+    return { rows: MOCK_HOT.slice(0, limit), source: "mock" };
+  }
+
+  // 按 number 聚合7天数据
+  const map7d = new Map<string, number>();
+  for (const row of recent7d) {
+    const n = row.number as string;
+    map7d.set(n, (map7d.get(n) ?? 0) + ((row.total_appearances as number) ?? 0));
+  }
+
+  // 按 number 聚合90天数据
+  const map90d = new Map<string, { total: number; last: string }>();
+  for (const row of recent90d) {
+    const n = row.number as string;
+    const cur = map90d.get(n) ?? { total: 0, last: "" };
+    cur.total += (row.total_appearances as number) ?? 0;
+    const ls = (row.last_seen_date as string) ?? "";
+    if (ls && (!cur.last || ls > cur.last)) cur.last = ls;
+    map90d.set(n, cur);
+  }
+
+  // 黑马：近7天有出现，且 7天占比 > 40%（近期突然活跃）
+  const rising: HotNumberRow[] = [];
+  for (const [number, hits7d] of map7d.entries()) {
+    const data90d = map90d.get(number);
+    if (!data90d) continue;
+    const ratio = hits7d / data90d.total; // 近7天占90天总出现比例
+    if (ratio >= 0.4 && data90d.total <= 6) {
+      // 比例高且总次数不多（历史不热门）
+      rising.push({
+        number,
+        total_hits: data90d.total,
+        first_hits: 0,
+        last_seen: data90d.last || null,
+        heat_score: ratio,
+        heat_level: "hot",
+      });
+    }
+  }
+
+  // 按 ratio（heat_score）降序排列
+  rising.sort((a, b) => (b.heat_score ?? 0) - (a.heat_score ?? 0));
+
+  const rows = rising.slice(0, limit);
+  return {
+    rows: rows.length ? rows : MOCK_HOT.slice(0, limit),
+    source: rows.length ? "db" : "mock",
+  };
+}
