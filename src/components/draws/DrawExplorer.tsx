@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Fragment,
   useCallback,
@@ -468,6 +469,23 @@ export function DrawExplorer() {
                                 </span>
                               ))}
                             </div>
+                          </td>
+                        </tr>
+                      )}
+                      {open && (
+                        <tr>
+                          <td colSpan={7} style={{ paddingBottom: 8, paddingLeft: 8 }}>
+                            <Link
+                              href={`/draw/${row.date}-${row.operator}`}
+                              style={{
+                                fontSize: 10,
+                                color: "rgba(0,229,255,0.6)",
+                                letterSpacing: "0.1em",
+                                textDecoration: "none",
+                              }}
+                            >
+                              VIEW FULL RESULT →
+                            </Link>
                           </td>
                         </tr>
                       )}
