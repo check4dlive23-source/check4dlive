@@ -486,7 +486,8 @@ export function AnalyticsDashboardHome({
 
           <div className="mt-5 flex gap-3">
             <Link
-              href={hero ? `/number/${hero.number}` : "/rankings"}
+              href={hero && !loading ? `/number/${hero.number}` : "#"}
+              onClick={!hero || loading ? (e) => e.preventDefault() : undefined}
               className="flex-1 text-center font-sans"
               style={{
                 background: "#00E5FF",
