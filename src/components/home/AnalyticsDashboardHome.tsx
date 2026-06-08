@@ -269,7 +269,6 @@ interface AnalyticsDashboardHomeProps {
   initialHot: HotNumberRow[];
   initialCold: ColdNumberRow[];
   initialWeeklyHero: HotNumberRow | null;
-  initialWeeklyTop10: HotNumberRow[];
   initialRising: HotNumberRow[];
   initialLastWeekRank: number | null;
 }
@@ -278,7 +277,6 @@ export function AnalyticsDashboardHome({
   initialHot,
   initialCold,
   initialWeeklyHero,
-  initialWeeklyTop10,
   initialRising,
   initialLastWeekRank,
 }: AnalyticsDashboardHomeProps) {

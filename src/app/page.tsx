@@ -18,7 +18,6 @@ export default async function HomePage() {
   const hot = (hotResult.rows ?? []).slice(0, 8);
   const cold = (coldResult.rows ?? []).slice(0, 8);
   const weeklyHero = (weeklyResult.rows ?? [])[0] ?? null;
-  const weeklyTop10 = weeklyResult.rows ?? [];
 
   let lastWeekRank: number | null = null;
   if (weeklyHero) {
@@ -35,7 +34,6 @@ export default async function HomePage() {
       initialHot={hot}
       initialCold={cold}
       initialWeeklyHero={weeklyHero}
-      initialWeeklyTop10={weeklyTop10}
       initialRising={rising}
       initialLastWeekRank={lastWeekRank}
     />
