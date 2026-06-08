@@ -245,6 +245,9 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           : "";
       const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
       try {
+        const noFilter =
+          selectedOperators.length === 0 && selectedPeriod === "all";
+
         const [h, c, d, p, draws, hotTop, coldTop] = await Promise.all([
           fetch(`/api/analytics/hot?period=30d${oq}${sq}`).then((r) => r.json()),
           fetch(`/api/analytics/cold?min_gap=30${oq}${sq}`).then((r) => r.json()),
@@ -255,10 +258,16 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
           fetch(`/api/history?page=1${historyOp}${sq}`).then((r) => r.json()),
-          fetch(`/api/analytics/hot?period=100draws${oq}${sq}`).then((r) =>
-            r.json()
-          ),
-          fetch(`/api/analytics/cold?min_gap=0${oq}${sq}`).then((r) => r.json()),
+          noFilter
+            ? Promise.resolve({ rows: hot })
+            : fetch(`/api/analytics/hot?period=100draws${oq}${sq}`).then((r) =>
+                r.json()
+              ),
+          noFilter
+            ? Promise.resolve({ rows: cold })
+            : fetch(`/api/analytics/cold?min_gap=0${oq}${sq}`).then((r) =>
+                r.json()
+              ),
         ]);
         if (cancelled) return;
         setHotMomentum(h.rows ?? []);
