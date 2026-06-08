@@ -679,7 +679,9 @@ export async function getRisingNumbers(
 
   // 黑马：近7天有出现，且 7天占比 > 40%（近期突然活跃）
   const rising: HotNumberRow[] = [];
-  for (const [number, hits7d] of map7d.entries()) {
+  for (const entry of Array.from(map7d.entries())) {
+    const number = entry[0];
+    const hits7d = entry[1];
     const data90d = map90d.get(number);
     if (!data90d) continue;
     const ratio = hits7d / data90d.total; // 近7天占90天总出现比例
