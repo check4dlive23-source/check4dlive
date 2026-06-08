@@ -147,9 +147,18 @@ export function NumberIntelView({
     router.push(buildNumberPageUrl(pathname, operators, nextMode));
   };
 
-  const lastPos = stats.last_seen_position
-    ? parsePosition(stats.last_seen_position).label
-    : "—";
+  const translatePosition = (label: string) => {
+    if (label === "1st Prize") return t("prize1st");
+    if (label === "2nd Prize") return t("prize2nd");
+    if (label === "3rd Prize") return t("prize3rd");
+    if (label === "Special") return t("prizeSpecial");
+    if (label === "Consolation") return t("prizeConsolation");
+    return label;
+  };
+
+  const lastPos = translatePosition(
+    parsePosition(stats.last_seen_position ?? "").label
+  );
   const lastOp = stats.last_seen_operator
     ? OPERATOR_LABELS[stats.last_seen_operator] ?? stats.last_seen_operator
     : "—";
@@ -351,7 +360,7 @@ export function NumberIntelView({
                               POSITION_COLORS[row.position_tier]
                             }`}
                           >
-                            {row.position_label}
+                            {translatePosition(row.position_label)}
                           </td>
                         </tr>
                       ))}

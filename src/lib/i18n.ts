@@ -139,6 +139,11 @@ export const translations = {
     aiAnalysisDesc: "基于 40 年历史开彩数据，AI 将为你解读号码走势、冷热周期与关联模式。",
     comingSoon: "即将推出 →",
     liveDrawing: "LIVE · 开彩中",
+    prize1st: "头奖",
+    prize2nd: "二奖",
+    prize3rd: "三奖",
+    prizeSpecial: "特别奖",
+    prizeConsolation: "安慰奖",
   },
   en: {
     analytics: "📊 Analytics",
@@ -280,6 +285,11 @@ export const translations = {
     aiAnalysisDesc: "Based on 40 years of historical draw data, AI will interpret number trends, hot/cold cycles and correlation patterns.",
     comingSoon: "Coming Soon →",
     liveDrawing: "LIVE · Drawing",
+    prize1st: "1st Prize",
+    prize2nd: "2nd Prize",
+    prize3rd: "3rd Prize",
+    prizeSpecial: "Special",
+    prizeConsolation: "Consolation",
   },
 } as const;
 
