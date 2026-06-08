@@ -14,24 +14,9 @@ import type {
 } from "@/types/analytics";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useLang } from "@/lib/language-context";
-import type { HeatLevel } from "@/types/number-intelligence";
 
-const TABS = [
-  { key: "momentum", label: "HOT MOMENTUM" },
-  { key: "cold", label: "COLD REVERSAL" },
-  { key: "digit", label: "DIGIT STRENGTH" },
-  { key: "patterns", label: "PATTERN SIGNALS" },
-  { key: "draws", label: "DRAW RECORDS" },
-  { key: "top100", label: "TOP 100" },
-] as const;
-type Tab = (typeof TABS)[number]["key"];
-
-const TOP100_TABS = [
-  { key: "hot", label: "HOT FREQUENCY" },
-  { key: "cold", label: "COLD REVERSAL" },
-  { key: "first", label: "FIRST PRIZE" },
-] as const;
-type Top100Tab = (typeof TOP100_TABS)[number]["key"];
+type Tab = "momentum" | "cold" | "digit" | "patterns" | "draws" | "top100";
+type Top100Tab = "hot" | "cold" | "first";
 
 const SEARCH_OPERATORS = [
   { id: "magnum", logo: "/logos/magnum.gif" },
@@ -74,13 +59,6 @@ function sinceQuery(sinceDate?: string): string {
 
 type Period = "all" | "30d" | "1y" | "5y";
 
-const PERIOD_OPTIONS: { id: Period; label: string }[] = [
-  { id: "all", label: "ALL" },
-  { id: "30d", label: "30D" },
-  { id: "1y", label: "1Y" },
-  { id: "5y", label: "5Y" },
-];
-
 function sinceDateFromPeriod(period: Period, today: string): string | undefined {
   if (period === "all" || !today) return undefined;
   const d = new Date(`${today}T12:00:00`);
@@ -88,13 +66,6 @@ function sinceDateFromPeriod(period: Period, today: string): string | undefined 
   d.setDate(d.getDate() - days);
   return d.toISOString().split("T")[0];
 }
-
-const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
-  { key: "thousands", label: "THOUSANDS" },
-  { key: "hundreds", label: "HUNDREDS" },
-  { key: "tens", label: "TENS" },
-  { key: "units", label: "UNITS" },
-];
 
 const DRAW_OPERATOR_LOGOS: Record<string, string> = {
   magnum: "/logos/magnum.gif",
@@ -123,12 +94,6 @@ interface RankingsViewProps {
   hot: HotNumberRow[];
   cold: ColdNumberRow[];
   firstPrize: HotNumberRow[];
-}
-
-function heatLabel(level: HeatLevel): { text: string; color: string } {
-  if (level === "hot") return { text: "HOT", color: "var(--green)" };
-  if (level === "cold") return { text: "COLD", color: "var(--muted)" };
-  return { text: "—", color: "var(--text-dim)" };
 }
 
 function gapDays(lastSeen: string | null, today: string): number | null {
@@ -337,11 +302,46 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
 
   const showSkeleton = loading;
 
+  const TABS = [
+    { key: "momentum" as const, label: t("hotMomentum") },
+    { key: "cold" as const, label: t("coldReversal") },
+    { key: "digit" as const, label: t("digitStrength") },
+    { key: "patterns" as const, label: t("patternSignals") },
+    { key: "draws" as const, label: t("drawRecords") },
+    { key: "top100" as const, label: t("top100") },
+  ];
+
+  const TOP100_TABS = [
+    { key: "hot" as const, label: t("hotFrequency") },
+    { key: "cold" as const, label: t("coldReversal") },
+    { key: "first" as const, label: t("firstPrizeTab") },
+  ];
+
+  const PERIOD_OPTIONS: { id: Period; label: string }[] = [
+    { id: "all", label: t("periodAll") },
+    { id: "30d", label: t("period30d") },
+    { id: "1y", label: t("period1y") },
+    { id: "5y", label: t("period5y") },
+  ];
+
+  const DIGIT_ROWS: { key: keyof DigitAnalysis; label: string }[] = [
+    { key: "thousands", label: t("thousands") },
+    { key: "hundreds", label: t("hundreds") },
+    { key: "tens", label: t("tens") },
+    { key: "units", label: t("units") },
+  ];
+
+  const heatLabel = (row: HotNumberRow) => {
+    if (row.heat_level === "hot") return { text: "HOT", color: "#00FF88" };
+    if (row.heat_level === "cold") return { text: "COLD", color: "#FF4D4D" };
+    return { text: "—", color: "rgba(255,255,255,0.3)" };
+  };
+
   return (
     <PageLayout
       title="RANK"
       titleAccent="INGS"
-      subtitle="TOP 100 · 40 YEARS DATA"
+      subtitle={t("top100Data")}
     >
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
           <button
@@ -364,7 +364,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                   : "var(--text-dim)",
             }}
           >
-            ALL
+            {t("periodAll")}
           </button>
           {SEARCH_OPERATORS.map((op) => {
             const active = selectedOperators.includes(op.id);
@@ -425,20 +425,20 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           className="mt-5 flex gap-3 overflow-x-auto border-b scrollbar-hide"
           style={{ borderColor: "var(--border-dim)" }}
         >
-          {TABS.map((t) => {
-            const active = tab === t.key;
+          {TABS.map((tabItem) => {
+            const active = tab === tabItem.key;
             return (
               <button
-                key={t.key}
+                key={tabItem.key}
                 type="button"
-                onClick={() => setTab(t.key)}
+                onClick={() => setTab(tabItem.key)}
                 className="-mb-px shrink-0 border-b-2 pb-2 font-sans text-[11px] uppercase tracking-[0.08em] transition-colors"
                 style={{
                   borderBottomColor: active ? "var(--cyan)" : "transparent",
                   color: active ? "var(--cyan)" : "var(--text-dim)",
                 }}
               >
-                {t.label}
+                {tabItem.label}
               </button>
             );
           })}
@@ -452,7 +452,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             {tab === "momentum" && (
               <div>
                 {hotMomentum.slice(0, 20).map((row, i) => {
-                  const label = heatLabel(row.heat_level);
+                  const label = heatLabel(row);
                   const gap = gapDays(row.last_seen, today);
                   const barPct = Math.round(
                     (row.total_hits / momentumMaxHits) * 100
@@ -484,14 +484,14 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                           className="ml-auto font-mono text-[11px] tabular-nums"
                           style={{ color: "var(--green)" }}
                         >
-                          FREQ {row.total_hits}
+                          {t("freq")} {row.total_hits}
                         </span>
                         {gap !== null && (
                           <span
                             className="font-mono text-[10px] tabular-nums"
                             style={{ color: "var(--text-dim)" }}
                           >
-                            GAP {gap}D
+                            {t("gap")} {gap}D
                           </span>
                         )}
                         <span
@@ -557,7 +557,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                       className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
                       style={{ color: "var(--text-dim)" }}
                     >
-                      LAST {row.last_seen_date ?? "—"}
+                      {t("last")} {row.last_seen_date ?? "—"}
                     </span>
                   </Link>
                 ))}
@@ -623,7 +623,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     className="py-4 font-sans text-[11px]"
                     style={{ color: "var(--text-dim)" }}
                   >
-                    No draw records found.
+                    {t("noDrawRecords")}
                   </p>
                 ) : (
                   filteredDrawRecords.slice(0, 10).map((row) => {
@@ -693,13 +693,13 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                   className="flex gap-3 overflow-x-auto border-b scrollbar-hide"
                   style={{ borderColor: "var(--border-dim)" }}
                 >
-                  {TOP100_TABS.map((t) => {
-                    const active = top100Tab === t.key;
+                  {TOP100_TABS.map((tabItem) => {
+                    const active = top100Tab === tabItem.key;
                     return (
                       <button
-                        key={t.key}
+                        key={tabItem.key}
                         type="button"
-                        onClick={() => setTop100Tab(t.key)}
+                        onClick={() => setTop100Tab(tabItem.key)}
                         className="-mb-px shrink-0 border-b-2 pb-2 font-sans text-[11px] uppercase tracking-[0.08em] transition-colors"
                         style={{
                           borderBottomColor: active
@@ -708,7 +708,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                           color: active ? "var(--cyan)" : "var(--text-dim)",
                         }}
                       >
-                        {t.label}
+                        {tabItem.label}
                       </button>
                     );
                   })}
@@ -748,14 +748,14 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                               className="ml-auto font-mono text-[11px] tabular-nums"
                               style={{ color: "var(--green)" }}
                             >
-                              FREQ {row.total_hits}
+                              {t("freq")} {row.total_hits}
                             </span>
                             {gap !== null && (
                               <span
                                 className="font-mono text-[10px] tabular-nums"
                                 style={{ color: "var(--text-dim)" }}
                               >
-                                GAP {gap}D
+                                {t("gap")} {gap}D
                               </span>
                             )}
                           </div>
@@ -811,7 +811,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                           className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
                           style={{ color: "var(--text-dim)" }}
                         >
-                          LAST {formatDrawDate(row.last_seen_date)}
+                          {t("last")} {formatDrawDate(row.last_seen_date)}
                         </span>
                       </Link>
                     ))}
@@ -849,7 +849,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                           className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
                           style={{ color: "var(--text-dim)" }}
                         >
-                          LAST {formatDrawDate(row.last_seen)}
+                          {t("last")} {formatDrawDate(row.last_seen)}
                         </span>
                       </Link>
                     ))}
