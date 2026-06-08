@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLang } from "@/lib/language-context";
 import { normalize4D } from "@/lib/number-intelligence";
 
 interface NumberSearchBarProps {
@@ -10,6 +11,7 @@ interface NumberSearchBarProps {
 
 export function NumberSearchBar({ currentNumber }: NumberSearchBarProps) {
   const router = useRouter();
+  const { t } = useLang();
   const [value, setValue] = useState(currentNumber);
 
   const submit = (e: React.FormEvent) => {
@@ -36,7 +38,7 @@ export function NumberSearchBar({ currentNumber }: NumberSearchBarProps) {
         type="submit"
         className="shrink-0 rounded-lg bg-gold/20 border border-gold/40 px-4 py-2 text-sm font-semibold text-gold hover:bg-gold/30 transition-colors"
       >
-        查看
+        {t("expandRow")}
       </button>
     </form>
   );
