@@ -9,5 +9,12 @@ export async function GET(request: Request) {
   const period = searchParams.get("period") === "100draws" ? "100draws" : "30d";
   const filter = parseAnalyticsFilter(searchParams);
   const { rows, source } = await getHotNumbers(period, filter);
-  return NextResponse.json({ rows, period, source });
+  return NextResponse.json(
+    { rows, period, source },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+      },
+    }
+  );
 }

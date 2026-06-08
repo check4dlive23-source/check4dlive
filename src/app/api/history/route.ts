@@ -8,5 +8,12 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get("page") ?? "1", 10);
 
   const result = await getDrawHistory({ date, operator, page });
-  return NextResponse.json(result);
+  return NextResponse.json(
+    result,
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    }
+  );
 }
