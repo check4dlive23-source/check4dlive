@@ -20,14 +20,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (supabase) {
       const { data } = await supabase
         .from("draw_results_v2")
-        .select("draw_date, operator, updated_at")
+        .select("draw_date, operator, created_at")
         .order("draw_date", { ascending: false });
 
       if (data) {
         for (const row of data) {
           drawPages.push({
             url: `${base}/draw/${row.draw_date as string}-${row.operator as string}`,
-            lastModified: row.updated_at ? new Date(row.updated_at as string) : now,
+            lastModified: row.created_at ? new Date(row.created_at as string) : now,
             changeFrequency: "monthly",
             priority: 0.7,
           });
