@@ -277,17 +277,18 @@ export function DrawExplorer() {
         )}
 
         {/* Table */}
-        <div className="mt-4 border-t" style={{ borderColor: "var(--border-dim)" }}>
-          <table className="w-full border-collapse">
+        <div className="mt-4 border-t" style={{ borderColor: "var(--border-dim)", overflowX: "auto" }}>
+          <table className="border-collapse" style={{ minWidth: 560 }}>
             <thead>
               <tr
                 className="border-b"
                 style={{ borderColor: "var(--border-dim)" }}
               >
-                <th className="w-8 py-2" />
+                <th className="py-2" style={{ width: 32 }} />
                 <th
                   className="py-2 text-left font-sans text-[10px] uppercase"
                   style={{
+                    width: 100,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -297,6 +298,7 @@ export function DrawExplorer() {
                 <th
                   className="py-2 text-left font-sans text-[10px] uppercase"
                   style={{
+                    width: 130,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -306,6 +308,7 @@ export function DrawExplorer() {
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
                   style={{
+                    width: 70,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -315,6 +318,7 @@ export function DrawExplorer() {
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
                   style={{
+                    width: 70,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -324,6 +328,7 @@ export function DrawExplorer() {
                 <th
                   className="py-2 text-center font-sans text-[10px] uppercase"
                   style={{
+                    width: 70,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -333,6 +338,7 @@ export function DrawExplorer() {
                 <th
                   className="py-2 text-left font-sans text-[10px] uppercase"
                   style={{
+                    width: 80,
                     letterSpacing: "0.08em",
                     color: "var(--text-dim)",
                   }}
@@ -387,7 +393,7 @@ export function DrawExplorer() {
                           <span className="flex items-center gap-1.5">
                             <OperatorLogo operatorKey={row.operator} />
                             <span
-                              className="font-sans text-xs"
+                              className="font-sans text-xs truncate"
                               style={{ color: "var(--text-secondary)" }}
                             >
                               {OPERATOR_LABELS[row.operator] ?? row.operator}
