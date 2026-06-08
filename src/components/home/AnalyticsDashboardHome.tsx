@@ -290,7 +290,6 @@ export function AnalyticsDashboardHome({
   const [cold, setCold] = useState<ColdNumberRow[]>(initialCold);
   const rising = initialRising;
   const weeklyHero = initialWeeklyHero;
-  const weeklyTop10 = initialWeeklyTop10;
   const lastWeekRank = initialLastWeekRank;
   const [loading] = useState(false);
   const [searchNum, setSearchNum] = useState("");
