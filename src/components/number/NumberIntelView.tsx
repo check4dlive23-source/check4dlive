@@ -298,7 +298,7 @@ export function NumberIntelView({
             {historyGroups.length === 0 ? (
               <p className="p-4 text-sm text-muted">{t("noResults")}</p>
             ) : (
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" style={{ minWidth: 380 }}>
                 <thead
                   className="sticky top-0 z-10"
                   style={{
@@ -306,10 +306,18 @@ export function NumberIntelView({
                   }}
                 >
                   <tr className="border-b border-line text-left text-muted text-xs uppercase">
-                    <th className="px-3 py-2">{t("dateLabel")}</th>
-                    <th className="px-3 py-2">{t("number")}</th>
-                    <th className="px-3 py-2">{t("operator")}</th>
-                    <th className="px-3 py-2">{t("prizePosition")}</th>
+                    <th className="px-3 py-2" style={{ width: 90 }}>
+                      {t("dateLabel")}
+                    </th>
+                    <th className="px-3 py-2" style={{ width: 60 }}>
+                      {t("number")}
+                    </th>
+                    <th className="px-3 py-2" style={{ width: 130 }}>
+                      {t("operator")}
+                    </th>
+                    <th className="px-3 py-2" style={{ width: 80 }}>
+                      {t("prizePosition")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,13 +362,13 @@ export function NumberIntelView({
                           <td className="px-3 py-2 text-foreground">
                             <span className="inline-flex items-center gap-2">
                               <OperatorLogo operatorKey={row.operator} />
-                              <span>
+                              <span className="whitespace-nowrap">
                                 {OPERATOR_LABELS[row.operator] ?? row.operator}
                               </span>
                             </span>
                           </td>
                           <td
-                            className={`px-3 py-2 font-medium ${
+                            className={`px-3 py-2 font-medium whitespace-nowrap ${
                               POSITION_COLORS[row.position_tier]
                             }`}
                           >
