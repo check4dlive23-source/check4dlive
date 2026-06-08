@@ -27,15 +27,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         for (const row of data) {
           drawPages.push({
             url: `${base}/draw/${row.draw_date as string}-${row.operator as string}`,
-            lastModified: new Date((row.updated_at as string) ?? now),
+            lastModified: row.updated_at ? new Date(row.updated_at as string) : now,
             changeFrequency: "monthly",
             priority: 0.7,
           });
         }
       }
     }
-  } catch {
-    // sitemap 生成失败时静默跳过
+  } catch (e) {
+    console.error("Sitemap drawPages error:", e);
   }
 
   // 全部 10000 个号码页
