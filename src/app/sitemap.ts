@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://check4dterminal.com";
@@ -12,6 +13,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/live`, lastModified: now, changeFrequency: "always", priority: 0.9 },
   ];
 
+  // 所有开彩记录页
+  const drawPages: MetadataRoute.Sitemap = [];
+  try {
+    const supabase = createClient();
+    if (supabase) {
+      const { data } = await supabase
+        .from("draw_results_v2")
+        .select("draw_date, operator, updated_at")
+        .order("draw_date", { ascending: false });
+
+      if (data) {
+        for (const row of data) {
+          drawPages.push({
+            url: `${base}/draw/${row.draw_date as string}-${row.operator as string}`,
+            lastModified: new Date((row.updated_at as string) ?? now),
+            changeFrequency: "monthly",
+            priority: 0.7,
+          });
+        }
+      }
+    }
+  } catch {
+    // sitemap 生成失败时静默跳过
+  }
+
   // 全部 10000 个号码页
   const numberPages: MetadataRoute.Sitemap = [];
   for (let i = 0; i <= 9999; i++) {
@@ -24,5 +50,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  return [...staticPages, ...numberPages];
+  return [...staticPages, ...drawPages, ...numberPages];
 }
