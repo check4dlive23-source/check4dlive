@@ -311,7 +311,7 @@ export function LiveTerminal() {
       <PageLayout
         title="LI"
         titleAccent="VE"
-        subtitle="REAL-TIME · ALL REGIONS"
+        subtitle={t("liveSubtitle")}
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           {isLive ? (
