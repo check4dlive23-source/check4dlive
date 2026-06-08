@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
 import type { Region } from "@/types";
@@ -28,7 +29,10 @@ const PARTICLES = [
   { top: "68%", left: "88%", size: 4, delay: "0.6s" },
 ];
 
-function daysAgoLabel(dateISO: string | null): string {
+function daysAgoLabel(
+  dateISO: string | null,
+  t: (key: TranslationKey) => string
+): string {
   if (!dateISO) return "—";
   const today = todayMYT();
   const diff = Math.max(
@@ -37,7 +41,7 @@ function daysAgoLabel(dateISO: string | null): string {
       (new Date(today).getTime() - new Date(dateISO).getTime()) / 86_400_000
     )
   );
-  return `${diff}天前`;
+  return `${diff} ${t("daysAgo")}`;
 }
 
 function formatDateShort(dateISO: string | null): string {
@@ -67,7 +71,15 @@ function HotCardSkeleton() {
   );
 }
 
-function HotCard({ row, rank }: { row: HotNumberRow; rank: number }) {
+function HotCard({
+  row,
+  rank,
+  t,
+}: {
+  row: HotNumberRow;
+  rank: number;
+  t: (key: TranslationKey) => string;
+}) {
   const rankLabel = String(rank).padStart(2, "0");
   return (
     <Link
@@ -157,13 +169,21 @@ function HotCard({ row, rank }: { row: HotNumberRow; rank: number }) {
           color: "rgba(255,255,255,0.2)",
         }}
       >
-        {daysAgoLabel(row.last_seen)}
+        {daysAgoLabel(row.last_seen, t)}
       </span>
     </Link>
   );
 }
 
-function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
+function ColdCard({
+  row,
+  rank,
+  t,
+}: {
+  row: ColdNumberRow;
+  rank: number;
+  t: (key: TranslationKey) => string;
+}) {
   const rankLabel = String(rank).padStart(2, "0");
   return (
     <Link
@@ -239,7 +259,7 @@ function ColdCard({ row, rank }: { row: ColdNumberRow; rank: number }) {
           letterSpacing: "0.1em",
         }}
       >
-        未出现
+        {t("never")}
       </span>
     </Link>
   );
@@ -255,7 +275,7 @@ export function AnalyticsDashboardHome({
   initialCold,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
-  const { lang, setLang } = useLang();
+  const { lang, setLang, t } = useLang();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
@@ -442,7 +462,7 @@ export function AnalyticsDashboardHome({
                   boxShadow: "0 0 8px #00FF88",
                 }}
               />
-              LIVE · 开彩中
+              {t("liveDrawing")}
             </span>
           )}
 
@@ -482,7 +502,7 @@ export function AnalyticsDashboardHome({
             className="mt-3"
             style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}
           >
-            今日最热号码 · Magnum 4D
+            {t("todayHotNumber")}
           </p>
 
           <p
@@ -490,12 +510,12 @@ export function AnalyticsDashboardHome({
             style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}
           >
             <span>
-              出现 {hero?.total_hits ?? "—"} 次
+              {t("appeared")} {hero?.total_hits ?? "—"} {t("times")}
             </span>
             <span style={{ opacity: 0.5 }}>·</span>
             <span>{formatDateShort(hero?.last_seen ?? null)}</span>
             <span style={{ opacity: 0.5 }}>·</span>
-            <span>40年数据</span>
+            <span>{t("yearsData")}</span>
           </p>
 
           <div className="mt-5 flex gap-3">
@@ -513,7 +533,7 @@ export function AnalyticsDashboardHome({
                 fontSize: 14,
               }}
             >
-              查看详情
+              {t("viewDetails")}
             </Link>
             <Link
               href="/live"
@@ -528,7 +548,7 @@ export function AnalyticsDashboardHome({
                 fontWeight: 600,
               }}
             >
-              实时开彩
+              {t("liveDraw")}
             </Link>
           </div>
           </div>
@@ -570,7 +590,7 @@ export function AnalyticsDashboardHome({
               }
             }}
             inputMode="numeric"
-            placeholder="搜索号码"
+            placeholder={t("searchNumber")}
             style={{
               flex: 1,
               background: "none",
@@ -627,7 +647,7 @@ export function AnalyticsDashboardHome({
                 fontFamily: "var(--font-jetbrains)",
               }}
             >
-              SELECT OPERATOR（可多选，不选=全部）
+              {t("selectOperator")}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {SEARCH_OPERATORS.map((op) => (
@@ -669,7 +689,7 @@ export function AnalyticsDashboardHome({
               letterSpacing: "0.08em",
             }}
           >
-            请输入 4 位数字（0000–9999）
+            {t("enterNumber")}
           </p>
         )}
       </div>
@@ -681,10 +701,10 @@ export function AnalyticsDashboardHome({
           style={{ padding: "0 22px" }}
         >
           <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>
-            🔥 本周热号
+            {t("weeklyHot")}
           </h2>
           <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>
-            全部 →
+            {t("viewAll")}
           </Link>
         </div>
         <div
@@ -696,7 +716,7 @@ export function AnalyticsDashboardHome({
                 <HotCardSkeleton key={i} />
               ))
             : hot.map((row, i) => (
-                <HotCard key={row.number} row={row} rank={i + 1} />
+                <HotCard key={row.number} row={row} rank={i + 1} t={t} />
               ))}
         </div>
       </section>
@@ -708,10 +728,10 @@ export function AnalyticsDashboardHome({
           style={{ padding: "0 22px" }}
         >
           <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>
-            🧊 冷号预警
+            {t("coldAlert")}
           </h2>
           <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>
-            全部 →
+            {t("viewAll")}
           </Link>
         </div>
         <div
@@ -723,7 +743,7 @@ export function AnalyticsDashboardHome({
                 <HotCardSkeleton key={i} />
               ))
             : cold.map((row, i) => (
-                <ColdCard key={row.number} row={row} rank={i + 1} />
+                <ColdCard key={row.number} row={row} rank={i + 1} t={t} />
               ))}
         </div>
       </section>
@@ -766,7 +786,7 @@ export function AnalyticsDashboardHome({
             className="mt-3 whitespace-pre-line"
             style={{ fontSize: 22, fontWeight: 800, color: "white" }}
           >
-            号码 AI{"\n"}深度分析
+            {t("aiAnalysis")}
           </h3>
           <p
             className="mt-3"
@@ -776,7 +796,7 @@ export function AnalyticsDashboardHome({
               lineHeight: 1.6,
             }}
           >
-            基于 40 年历史开彩数据，AI 将为你解读号码走势、冷热周期与关联模式。
+            {t("aiAnalysisDesc")}
           </p>
           <button
             type="button"
@@ -792,7 +812,7 @@ export function AnalyticsDashboardHome({
               fontWeight: 600,
             }}
           >
-            即将推出 →
+            {t("comingSoon")}
           </button>
         </div>
       </section>
