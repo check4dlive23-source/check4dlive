@@ -158,7 +158,7 @@ function HotCard({
         className="absolute font-mono font-semibold tabular-nums"
         style={{ bottom: 30, left: 16, fontSize: 11, color: "#00FF88" }}
       >
-        FREQ {row.total_hits}
+        {t("freq")} {row.total_hits}
       </span>
       <span
         className="absolute font-mono"
