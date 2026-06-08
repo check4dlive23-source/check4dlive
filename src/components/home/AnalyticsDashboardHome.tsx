@@ -275,7 +275,7 @@ export function AnalyticsDashboardHome({
   initialCold,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
-  const { lang, setLang, t } = useLang();
+  const { t } = useLang();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const anyLive = useAnyRegionLive();
   const [hot, setHot] = useState<HotNumberRow[]>(initialHot);
