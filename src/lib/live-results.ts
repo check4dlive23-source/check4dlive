@@ -208,15 +208,46 @@ export async function runLiveCronIngest(): Promise<{
   try {
     const allParsed = await fetchAllCheck4dDraws();
 
+    const v2RowsFromScrape: DrawResultV2Row[] = [];
+
     for (const region of liveRegions) {
       const liveData = await scrapeLiveResults(region, allParsed);
       if (Object.keys(liveData).length > 0) {
         await upsertDrawResults(liveData, date, region);
         totalCount += Object.keys(liveData).length;
+        for (const [operator, row] of Object.entries(liveData)) {
+          v2RowsFromScrape.push({
+            draw_date: (row.date as string) ?? date,
+            draw_no: (row.draw_no as string) ?? null,
+            operator,
+            first_prize: (row.first_prize as string) ?? null,
+            second_prize: (row.second_prize as string) ?? null,
+            third_prize: (row.third_prize as string) ?? null,
+            special_numbers: (row.special_numbers as string[]) ?? null,
+            consolation_numbers: (row.consolation_numbers as string[]) ?? null,
+            extra_data: null,
+            source: "scrape",
+          });
+        }
       }
     }
 
-    const v2 = await syncOfficialSourcesV2();
+    const supabase = createClient();
+    let v2: { upserted: number; operators: string[]; errors: string[] };
+    if (supabase && v2RowsFromScrape.length > 0) {
+      const scrapeResult = await upsertDrawResultsV2(supabase, v2RowsFromScrape);
+      const officialResult = await syncOfficialSourcesV2();
+      v2 = {
+        upserted: scrapeResult.upserted + officialResult.upserted,
+        operators: [
+          ...v2RowsFromScrape.map((r) => r.operator),
+          ...officialResult.operators,
+        ],
+        errors: [...scrapeResult.errors, ...officialResult.errors],
+      };
+    } else {
+      v2 = await syncOfficialSourcesV2();
+    }
 
     return {
       skipped: false,

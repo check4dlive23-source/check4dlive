@@ -38,6 +38,11 @@ export const metadata: Metadata = {
     "4D analytics",
     "Check4D",
   ],
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "Check4D Intelligence Terminal",
     description: "40 years of Malaysia 4D lottery data. Real-time results & number analytics.",
