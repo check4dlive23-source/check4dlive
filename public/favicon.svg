@@ -1,18 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d1f3c"/>
+      <stop offset="0%" stop-color="#0a1628"/>
       <stop offset="100%" stop-color="#070710"/>
     </linearGradient>
   </defs>
-  <!-- Base -->
   <rect width="32" height="32" rx="7" fill="url(#bg)"/>
-  <!-- Top cyan line (brand element) -->
-  <rect x="0" y="0" width="32" height="2.5" rx="1" fill="#00E5FF"/>
-  <!-- Border glow -->
-  <rect x="0.5" y="0.5" width="31" height="31" rx="6.5" fill="none" stroke="rgba(0,229,255,0.35)" stroke-width="0.8"/>
-  <!-- CHECK -->
-  <text x="16" y="14" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="7" fill="white" letter-spacing="0.3">CHECK</text>
-  <!-- 4D -->
-  <text x="16" y="26" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="13" fill="#00E5FF">4D</text>
+  <rect x="0" y="0" width="32" height="2" rx="1" fill="#00E5FF"/>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="6.5" fill="none" stroke="rgba(0,229,255,0.4)" stroke-width="0.8"/>
+  <text x="16" y="13" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="6.5" fill="rgba(255,255,255,0.85)" letter-spacing="0.5">CHECK</text>
+  <text x="16" y="25" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="12" fill="#00E5FF" letter-spacing="-0.5">4D</text>
 </svg>
