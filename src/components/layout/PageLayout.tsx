@@ -6,6 +6,7 @@ interface PageLayoutProps {
   title: string;
   titleAccent: string;
   subtitle: string;
+  showBack?: boolean;
   children: ReactNode;
 }
 
@@ -13,6 +14,7 @@ export function PageLayout({
   title,
   titleAccent,
   subtitle,
+  showBack,
   children,
 }: PageLayoutProps) {
   return (
@@ -41,6 +43,27 @@ export function PageLayout({
         }}
       >
         <div style={{ padding: "0 22px", marginBottom: 24 }}>
+          {showBack && (
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "none",
+                border: "none",
+                color: "rgba(0,229,255,0.7)",
+                fontFamily: "var(--font-jetbrains)",
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                cursor: "pointer",
+                padding: "0 0 14px 0",
+              }}
+            >
+              ← BACK
+            </button>
+          )}
           <div
             style={{
               fontFamily: "var(--font-jetbrains)",

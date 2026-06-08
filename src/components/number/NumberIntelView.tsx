@@ -159,6 +159,7 @@ export function NumberIntelView({
       title="4D "
       titleAccent="INTEL"
       subtitle="INTELLIGENCE · 40 YEARS DATA"
+      showBack
     >
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
