@@ -52,15 +52,14 @@ export async function getDrawHistory(params: {
   }
 
   let query = supabase
-    .from("draws")
+    .from("draw_results_v2")
     .select(
-      "id, date, operator, draw_no, first_prize, second_prize, third_prize, special_numbers, consolation_numbers",
+      "id, draw_date, draw_no, operator, first_prize, second_prize, third_prize, special_numbers, consolation_numbers",
       { count: "exact" }
     )
-    .order("date", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("draw_date", { ascending: false });
 
-  if (params.date) query = query.eq("date", params.date);
+  if (params.date) query = query.eq("draw_date", params.date);
   if (params.operator) query = query.eq("operator", params.operator);
 
   const from = (page - 1) * pageSize;
@@ -72,7 +71,7 @@ export async function getDrawHistory(params: {
 
   const items: DrawListItem[] = (data ?? []).map((d) => ({
     id: d.id as string,
-    date: d.date as string,
+    date: d.draw_date as string,
     operator: d.operator as string,
     draw_no: (d.draw_no as string) ?? null,
     first_prize: (d.first_prize as string) ?? null,
