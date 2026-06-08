@@ -227,7 +227,6 @@ export function NumberIntelView({
             </div>
             <div className="flex flex-col items-end gap-2">
               <NumberScoreGauge stats={stats} />
-              <HeatBadge level={stats.heat_level} />
               <button
                 type="button"
                 onClick={() => {
