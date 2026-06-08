@@ -271,18 +271,59 @@ export async function computeColdNumbers(
 }
 
 export async function getTopHotNumbers(limit = 100): Promise<HotNumberRow[]> {
-  const { rows } = await computeHotNumbers("100draws", limit);
-  return rows;
+  const { rows } = await getHotNumbers("100draws", {});
+  return rows.slice(0, limit);
 }
 
 export async function getTopColdNumbers(limit = 100): Promise<ColdNumberRow[]> {
+  const CACHE_KEY = "cold_top100";
+  const cacheTtlMs = 3600 * 1000;
+  const supabase = createClient();
+  if (supabase) {
+    const { data: cached } = await supabase
+      .from("analytics_cache")
+      .select("payload, updated_at")
+      .eq("type", CACHE_KEY)
+      .maybeSingle();
+    if (
+      cached?.updated_at &&
+      new Date(cached.updated_at as string).getTime() > Date.now() - cacheTtlMs
+    ) {
+      const p = cached.payload;
+      if (Array.isArray(p) && p.length > 0) return p as ColdNumberRow[];
+    }
+  }
   const { rows } = await computeColdNumbers(0, limit);
+  if (supabase && rows.length) {
+    await supabase.from("analytics_cache").upsert(
+      { type: CACHE_KEY, payload: rows, updated_at: new Date().toISOString() },
+      { onConflict: "type" }
+    );
+  }
   return rows;
 }
 
 export async function getTopFirstPrizeNumbers(
   limit = 100
 ): Promise<HotNumberRow[]> {
+  const CACHE_KEY = "first_prize_top100";
+  const cacheTtlMs = 3600 * 1000;
+  const supabaseForCache = createClient();
+  if (supabaseForCache) {
+    const { data: cached } = await supabaseForCache
+      .from("analytics_cache")
+      .select("payload, updated_at")
+      .eq("type", CACHE_KEY)
+      .maybeSingle();
+    if (
+      cached?.updated_at &&
+      new Date(cached.updated_at as string).getTime() > Date.now() - cacheTtlMs
+    ) {
+      const p = cached.payload;
+      if (Array.isArray(p) && p.length > 0) return p as HotNumberRow[];
+    }
+  }
+
   const empty = isAnalyticsEmpty(await historyCount());
   if (empty) {
     return [...MOCK_HOT]
@@ -342,6 +383,13 @@ export async function getTopFirstPrizeNumbers(
     })
     .sort((a, b) => b.first_hits - a.first_hits)
     .slice(0, limit);
+
+  if (supabaseForCache && rows.length) {
+    await supabaseForCache.from("analytics_cache").upsert(
+      { type: CACHE_KEY, payload: rows, updated_at: new Date().toISOString() },
+      { onConflict: "type" }
+    );
+  }
 
   return rows.length
     ? rows
