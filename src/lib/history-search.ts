@@ -10,9 +10,6 @@ const OPERATORS = [
   "sabah",
   "sarawak",
   "sandakan",
-  "gd",
-  "perdana",
-  "hari",
   "sgpools",
 ];
 

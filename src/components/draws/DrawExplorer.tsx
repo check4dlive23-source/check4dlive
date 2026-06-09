@@ -28,8 +28,8 @@ const OPERATOR_LOGOS: Record<string, string> = {
   sarawak: "/logos/cashsweep.gif",
   sabah: "/logos/sabah88.gif",
   sandakan: "/logos/sandakan.gif",
-  singapore: "/logos/sgpools.gif",
   sgpools: "/logos/sgpools.gif",
+  singapore: "/logos/sgpools.gif",
 };
 
 const inputStyle: CSSProperties = {
