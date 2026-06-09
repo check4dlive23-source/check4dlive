@@ -8,8 +8,6 @@ interface Damacai3DData {
   first: string;
   second: string;
   third: string;
-  jackpot1_amount?: number;
-  jackpot2_amount?: number;
   jackpot3d_amount?: number;
 }
 
@@ -52,18 +50,6 @@ export function Damacai3DCard({ date, draw_no, status, data }: Damacai3DCardProp
         </div>
       </div>
       <div style={{ padding: "10px 14px" }}>
-        {data.jackpot1_amount != null && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>1+3D Jackpot 1</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? formatCurrency(data.jackpot1_amount, 2) : "—"}</span>
-          </div>
-        )}
-        {data.jackpot2_amount != null && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>1+3D Jackpot 2</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? formatCurrency(data.jackpot2_amount, 2) : "—"}</span>
-          </div>
-        )}
         {data.jackpot3d_amount != null && (
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3D Jackpot</span>

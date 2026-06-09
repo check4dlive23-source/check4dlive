@@ -1,7 +1,5 @@
 "use client";
-
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { Damacai3Plus3DExtra, DrawStatus } from "@/types";
@@ -13,98 +11,62 @@ interface Damacai3Plus3DCardProps {
   data: Damacai3Plus3DExtra;
 }
 
-function SixDigitGrid({
-  numbers,
-  revealed,
-}: {
-  numbers: string[];
-  revealed: boolean;
-}) {
-  return (
-    <div className="grid grid-cols-5 gap-1">
-      {numbers.map((n, i) => (
-        <span
-          key={`${n}-${i}`}
-          className={`font-number text-xs text-center truncate ${
-            revealed ? "text-foreground" : "text-muted opacity-70"
-          }`}
-        >
-          {revealed ? n : "----"}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-export function Damacai3Plus3DCard({
-  date,
-  draw_no,
-  status,
-  data,
-}: Damacai3Plus3DCardProps) {
+export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus3DCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
-
   return (
-    <article className="subpage-card overflow-hidden">
-      <header
-        className="flex items-center gap-2 px-2 py-2 border-b border-line"
-        style={{ backgroundColor: "#1a3a8f18" }}
-      >
+    <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(68,102,255,0.15)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ height: 3, background: "linear-gradient(90deg, #4466FF, transparent)" }} />
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(68,102,255,0.06)", display: "flex", alignItems: "center", gap: 12 }}>
         <LogoBadge operator="damacai" />
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground truncate">
-            DA MA CAI 3+3D 大馬彩
-          </h3>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>DA MA CAI 3+3D 大馬彩</h3>
         </div>
-        <StatusTag status={status} />
+        <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+          {status === "drawn" ? t("completed") : t("pending")}
+        </span>
       </header>
-
-      <section className="p-2 border-b border-line overflow-x-auto">
-        <table className="w-full text-xs">
+      <section style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
+        <table style={{ width: "100%", fontSize: 13 }}>
           <tbody>
             {data.prizes.map((p) => (
-              <tr key={p.position} className="border-b border-line/50 last:border-0">
-                <td className="py-1 pr-2 text-muted whitespace-nowrap w-8">
-                  {p.position}
+              <tr key={p.position} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <td style={{ padding: "8px 8px 8px 0", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", width: 32 }}>{p.position}</td>
+                <td style={{ padding: "8px 8px", fontFamily: "var(--font-jetbrains)", fontSize: 15, fontWeight: 700, color: revealed ? "white" : "rgba(255,255,255,0.1)", whiteSpace: "nowrap" }}>
+                  {revealed ? p.number : "------"}
                 </td>
-                <td
-                  className={`py-1 pr-2 font-number text-sm whitespace-nowrap ${
-                    revealed ? "text-foreground" : "text-dim"
-                  }`}
-                >
-                  {revealed ? p.number : "----"}
-                </td>
-                <td className="py-1 pr-2 text-xs font-semibold text-gold whitespace-nowrap">
-                  {p.zodiac}
-                </td>
-                <td className="py-1 text-xs text-muted whitespace-nowrap text-right">
-                  {t("bonus")}:{" "}
-                  <span className="font-number text-gold">
-                    {revealed ? formatCurrency(p.bonus, 2) : "—"}
-                  </span>
+                <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{p.zodiac}</td>
+                <td style={{ padding: "8px 0", fontSize: 11, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textAlign: "right" }}>
+                  {t("bonus")}: <span style={{ color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? formatCurrency(p.bonus, 2) : "—"}</span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
-
-      <section className="p-2 border-b border-line">
-        <p className="text-[10px] text-muted mb-1 uppercase">{t("specialSection")}</p>
-        <SixDigitGrid numbers={data.special} revealed={revealed} />
+      <section style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t("specialSection")}</p>
+        <div className="grid grid-cols-5 gap-1">
+          {data.special.map((n, i) => (
+            <span key={i} className="font-mono tabular-nums" style={{ fontSize: 12, textAlign: "center", padding: "3px 2px", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 6, color: revealed ? "rgba(0,229,255,0.9)" : "rgba(255,255,255,0.1)", display: "block" }}>
+              {revealed ? n : "------"}
+            </span>
+          ))}
+        </div>
       </section>
-
-      <section className="p-2 border-b border-line">
-        <p className="text-[10px] text-muted mb-1 uppercase">
-          {t("consolationSection")}
-        </p>
-        <SixDigitGrid numbers={data.consolation} revealed={revealed} />
+      <section style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t("consolationSection")}</p>
+        <div className="grid grid-cols-5 gap-1">
+          {data.consolation.map((n, i) => (
+            <span key={i} className="font-mono tabular-nums" style={{ fontSize: 12, textAlign: "center", padding: "3px 2px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, color: revealed ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.1)", display: "block" }}>
+              {revealed ? n : "------"}
+            </span>
+          ))}
+        </div>
       </section>
-
-      <footer className="flex justify-between px-2 py-1.5 text-[10px] text-dim">
-        <span>{formatDrawDate(date)}</span>
-        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
+      <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(date)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );
