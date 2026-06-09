@@ -14,12 +14,6 @@ const regionKeys = {
   singapore: "singapore",
 } as const;
 
-const regionFlags = {
-  west: "🇲🇾",
-  east: "🏝",
-  singapore: "🇸🇬",
-};
-
 export function RegionTabs({ active, onChange }: RegionTabsProps) {
   const { t } = useLang();
   return (
@@ -44,7 +38,7 @@ export function RegionTabs({ active, onChange }: RegionTabsProps) {
               whiteSpace: "nowrap",
             }}
           >
-            {regionFlags[r]} {t(regionKeys[r])}
+            {t(regionKeys[r])}
           </button>
         );
       })}
