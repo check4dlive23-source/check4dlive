@@ -459,7 +459,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             {/* HOT MOMENTUM */}
             {tab === "momentum" && (
               <div>
-                {hotMomentum.slice(0, 20).map((row, i) => {
+                {hotMomentum.slice(0, 100).map((row, i) => {
                   const label = heatLabel(row);
                   const gap = gapDays(row.last_seen, today);
                   const barPct = Math.round(
@@ -509,7 +509,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             {/* COLD REVERSAL */}
             {tab === "cold" && (
               <div>
-                {coldReversal.slice(0, 20).map((row, i) => (
+                {coldReversal.slice(0, 100).map((row, i) => (
                   <Link
                     key={row.number}
                     href={`/number/${row.number}`}
@@ -558,10 +558,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
               <div className="space-y-4 pt-2">
                 {groupedPatterns.map(([pattern, rows]) => (
                   <div key={pattern}>
-                    <h3
-                      className="mb-1 font-sans text-[10px] uppercase tracking-[0.1em]"
-                      style={{ color: "var(--text-dim)" }}
-                    >
+                    <h3 style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8, marginTop: 16 }}>
                       {pattern}
                     </h3>
                     <div>
@@ -569,24 +566,21 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                         <Link
                           key={`${r.example}-${idx}`}
                           href={`/number/${r.example}`}
-                          className="flex items-center justify-between border-b py-1.5 transition-colors hover:bg-[var(--surface-3)]"
-                          style={{ borderColor: "var(--border-dim)" }}
+                          className="block mb-1.5"
+                          style={{ textDecoration: "none" }}
                         >
-                          <span
-                            className="font-mono text-sm tabular-nums"
-                            style={{
-                              color: "var(--text-primary)",
-                              letterSpacing: "0.08em",
-                            }}
-                          >
-                            {r.example}
-                          </span>
-                          <span
-                            className="font-mono text-xs tabular-nums"
-                            style={{ color: "var(--text-dim)" }}
-                          >
-                            {r.hit_count}
-                          </span>
+                          <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 8, padding: "8px 14px" }}
+                            onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.2)")}
+                            onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.06)")}>
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em" }}>
+                                {r.example}
+                              </span>
+                              <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+                                {r.hit_count}
+                              </span>
+                            </div>
+                          </div>
                         </Link>
                       ))}
                     </div>
@@ -606,62 +600,43 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     {t("noDrawRecords")}
                   </p>
                 ) : (
-                  filteredDrawRecords.slice(0, 10).map((row) => {
-                    const logo = DRAW_OPERATOR_LOGOS[row.operator];
-                    const label =
-                      DRAW_OPERATOR_LABELS[row.operator] ?? row.operator;
-                    return (
-                      <div
-                        key={row.id}
-                        className="flex items-center gap-2 border-b py-1.5"
-                        style={{ borderColor: "var(--border-dim)" }}
-                      >
-                        <span
-                          className="w-[72px] shrink-0 font-sans text-[10px] tabular-nums"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {formatDrawDate(row.date)}
-                        </span>
-                        <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                          {logo && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={logo}
-                              alt={row.operator}
-                              className="shrink-0"
-                              style={{
-                                height: 16,
-                                width: "auto",
-                                display: "block",
-                              }}
-                            />
-                          )}
-                          <span
-                            className="truncate font-sans text-[10px] tracking-[0.06em]"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {label}
+                  filteredDrawRecords.slice(0, 10).map((row) => (
+                    <Link
+                      key={row.id}
+                      href={`/draw/${row.date}-${row.operator}`}
+                      className="block mb-2"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 10, padding: "10px 14px" }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.2)")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.06)")}>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>
+                            {formatDrawDate(row.date)}
                           </span>
-                        </span>
-                        <span
-                          className="shrink-0 font-mono text-[15px] font-medium tabular-nums"
-                          style={{
-                            color: "var(--cyan)",
-                            letterSpacing: "0.08em",
-                          }}
-                        >
-                          {row.first_prize ?? "—"}
-                        </span>
+                          <span className="flex items-center gap-1.5 flex-1 min-w-0">
+                            {DRAW_OPERATOR_LOGOS[row.operator] && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={DRAW_OPERATOR_LOGOS[row.operator]} alt={row.operator} style={{ height: 16, width: "auto", display: "block", flexShrink: 0 }} />
+                            )}
+                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em" }}>
+                              {DRAW_OPERATOR_LABELS[row.operator] ?? row.operator}
+                            </span>
+                          </span>
+                          <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em", flexShrink: 0 }}>
+                            {row.first_prize ?? "—"}
+                          </span>
+                        </div>
                       </div>
-                    );
-                  })
+                    </Link>
+                  ))
                 )}
                 <Link
                   href="/draws"
-                  className="mt-3 inline-block font-sans text-[11px] transition-colors hover:underline"
-                  style={{ color: "var(--text-dim)" }}
+                  className="block mt-3 text-center"
+                  style={{ padding: "10px", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.15)", borderRadius: 10, fontSize: 12, color: "#00E5FF", textDecoration: "none", letterSpacing: "0.08em" }}
                 >
-                  {t("viewFullRecords")}
+                  {t("viewFullRecords")} →
                 </Link>
               </div>
             )}
@@ -738,36 +713,27 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                       <Link
                         key={row.number}
                         href={`/number/${row.number}`}
-                        className="flex items-center gap-2 border-b py-1.5"
-                        style={{ borderColor: "var(--border-dim)" }}
+                        className="block mb-1.5"
+                        style={{ textDecoration: "none" }}
                       >
-                        <span
-                          className="w-7 shrink-0 font-mono text-[10px] tabular-nums"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {String(i + 1).padStart(3, "0")}
-                        </span>
-                        <span
-                          className="shrink-0 font-mono text-[22px] font-medium tabular-nums"
-                          style={{
-                            color: "var(--muted)",
-                            letterSpacing: "0.08em",
-                          }}
-                        >
-                          {row.number}
-                        </span>
-                        <span
-                          className="font-mono text-sm tabular-nums"
-                          style={{ color: "var(--amber)" }}
-                        >
-                          {row.gap_days}D
-                        </span>
-                        <span
-                          className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {t("last")} {formatDrawDate(row.last_seen_date)}
-                        </span>
+                        <div style={{ background: "linear-gradient(135deg, #1a0e0a, #0a0e1a)", border: "1px solid rgba(255,176,32,0.06)", borderRadius: 10, padding: "10px 14px" }}
+                          onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,176,32,0.2)")}
+                          onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,176,32,0.06)")}>
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", width: 24, flexShrink: 0 }}>
+                              {String(i + 1).padStart(3, "0")}
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", flex: 1 }}>
+                              {row.number}
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 13, color: "#FFB020", fontWeight: 600 }}>
+                              {row.gap_days}D
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                              {t("last")} {formatDrawDate(row.last_seen_date)}
+                            </span>
+                          </div>
+                        </div>
                       </Link>
                     ))}
 
@@ -776,36 +742,27 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                       <Link
                         key={row.number}
                         href={`/number/${row.number}`}
-                        className="flex items-center gap-2 border-b py-1.5"
-                        style={{ borderColor: "var(--border-dim)" }}
+                        className="block mb-1.5"
+                        style={{ textDecoration: "none" }}
                       >
-                        <span
-                          className="w-7 shrink-0 font-mono text-[10px] tabular-nums"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {String(i + 1).padStart(3, "0")}
-                        </span>
-                        <span
-                          className="shrink-0 font-mono text-[22px] font-medium tabular-nums"
-                          style={{
-                            color: "var(--cyan)",
-                            letterSpacing: "0.08em",
-                          }}
-                        >
-                          {row.number}
-                        </span>
-                        <span
-                          className="font-mono text-[11px] tabular-nums"
-                          style={{ color: "#FFD700" }}
-                        >
-                          🥇 {row.first_hits}
-                        </span>
-                        <span
-                          className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {t("last")} {formatDrawDate(row.last_seen)}
-                        </span>
+                        <div style={{ background: "linear-gradient(135deg, #1a1400, #0a0e1a)", border: "1px solid rgba(255,215,0,0.06)", borderRadius: 10, padding: "10px 14px" }}
+                          onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,215,0,0.2)")}
+                          onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,215,0,0.06)")}>
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", width: 24, flexShrink: 0 }}>
+                              {String(i + 1).padStart(3, "0")}
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em", flex: 1 }}>
+                              {row.number}
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 13, color: "#FFD700", fontWeight: 600 }}>
+                              🥇 {row.first_hits}
+                            </span>
+                            <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                              {t("last")} {formatDrawDate(row.last_seen)}
+                            </span>
+                          </div>
+                        </div>
                       </Link>
                     ))}
                 </div>
