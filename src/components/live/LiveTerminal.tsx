@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
-import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 import {
   damacai3D,
@@ -135,7 +134,6 @@ export function LiveTerminal() {
   const [isLive, setIsLive] = useState(false);
   const [isDrawDay, setIsDrawDay] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [luckyOpen, setLuckyOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [todayStr, setTodayStr] = useState("");
@@ -310,16 +308,6 @@ export function LiveTerminal() {
           ) : (
             <span />
           )}
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLuckyOpen(true)}
-              className="rounded-lg border border-line-strong bg-surface-3 px-3 py-1.5 text-sm text-foreground hover:bg-surface-4 transition-colors"
-              aria-haspopup="dialog"
-            >
-              {t("lucky")}
-            </button>
-          </div>
         </div>
 
         <RegionTabs active={region} onChange={setRegion} />
@@ -465,7 +453,6 @@ export function LiveTerminal() {
         </main>
         {/* ADSENSE_SLOT_SIDEBAR */}
       </PageLayout>
-      <LuckyModal open={luckyOpen} onClose={() => setLuckyOpen(false)} />
     </>
   );
 }
