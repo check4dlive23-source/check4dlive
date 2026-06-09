@@ -39,9 +39,9 @@ function generateNumbers(game: GameType, lottoMax: number): { numbers: string[];
       return { numbers: winning.map(String) };
     }
     case "damacai3plus3d": {
-      const n1 = rand3D(), n2 = rand3D(), n3 = rand3D();
+      const n1 = rand3D(), n2 = rand3D();
       const zodiac = ZODIACS[randInt(0, 11)];
-      return { numbers: [n1, n2, n3], zodiac };
+      return { numbers: [n1, n2], zodiac };
     }
     case "lotto": {
       const pool = Array.from({ length: lottoMax }, (_, i) => i + 1);
@@ -214,7 +214,7 @@ export function LuckyModal({ open, onClose }: LuckyModalProps) {
               <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                 <button onClick={handleAgain}
                   style={{ flex: 1, padding: 14, borderRadius: 12, background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.3)", color: "#00E5FF", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                  🔄 {t("luckyAgain")}
+                  ↺ {t("luckyAgain")}
                 </button>
                 {(game === "4d" || game === "3d") && result?.numbers[0] && (
                   <a href={`/number/${result.numbers[0]}`}
