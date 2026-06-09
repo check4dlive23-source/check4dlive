@@ -1,14 +1,11 @@
 "use client";
 
 const BALL_BASE =
-  "flex items-center justify-center rounded-full bg-surface-4 font-bold font-number text-foreground border border-line";
-
+  "flex items-center justify-center rounded-full font-bold font-number";
 const BONUS_BASE =
-  "flex items-center justify-center rounded-md bg-[#0d0d14] font-bold font-number text-gold border-2 border-gold";
-
-/** Ball sizes: sm/md/lg — all rows centered with justify-center */
+  "flex items-center justify-center rounded-md font-bold font-number";
 const PENDING_BALL =
-  "flex items-center justify-center rounded-full bg-surface-3/60 font-bold font-number text-muted border border-line/70 opacity-70";
+  "flex items-center justify-center rounded-full font-bold font-number opacity-70";
 
 export function LottoBalls({
   balls,
@@ -49,6 +46,7 @@ export function LottoBalls({
           <span
             key={`p-${i}`}
             className={`${PENDING_BALL} ${pendingSize} text-[10px] tracking-tight`}
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)" }}
           >
             ----
           </span>
@@ -58,6 +56,7 @@ export function LottoBalls({
             <span className="text-muted text-sm font-medium">+</span>
             <span
               className={`${PENDING_BALL} ${pendingSize} text-[10px] tracking-tight`}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)" }}
             >
               ----
             </span>
@@ -70,14 +69,23 @@ export function LottoBalls({
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 py-1">
       {balls.map((ball, i) => (
-        <span key={`${i}-${ball}`} className={ballClass}>
+        <span
+          key={`${i}-${ball}`}
+          className={ballClass}
+          style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white" }}
+        >
           {ball}
         </span>
       ))}
       {hasBonus && typeof bonus === "number" && (
         <>
           <span className="text-muted text-sm font-medium">+</span>
-          <span className={bonusClass}>{bonus}</span>
+          <span
+            className={bonusClass}
+            style={{ background: "rgba(255,176,32,0.15)", border: "2px solid #FFB020", color: "#FFB020" }}
+          >
+            {bonus}
+          </span>
         </>
       )}
     </div>
