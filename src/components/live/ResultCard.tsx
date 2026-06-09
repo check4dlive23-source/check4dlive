@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { todayMYT } from "@/lib/draw-time";
 import { LogoBadge } from "@/components/ui/LogoBadge";
 import { useLang } from "@/lib/language-context";
@@ -23,6 +23,34 @@ const brandColors: Record<OperatorId, string> = {
   hari: "#059669",
   sgpools: "#EC4899",
 };
+
+const filledSlotStyle: CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
+  textAlign: "center",
+  padding: "4px 2px",
+  background: "rgba(0,229,255,0.05)",
+  border: "1px solid rgba(0,229,255,0.1)",
+  borderRadius: 6,
+  color: "var(--cyan)",
+  display: "block",
+  fontFamily: "var(--font-jetbrains)",
+};
+
+const emptySlotStyle: CSSProperties = {
+  fontSize: 13,
+  textAlign: "center",
+  padding: "4px 2px",
+  background: "transparent",
+  border: "1px solid rgba(255,255,255,0.05)",
+  borderRadius: 6,
+  color: "rgba(255,255,255,0.1)",
+  display: "block",
+};
+
+function slotCellStyle(n: string, revealed: boolean): CSSProperties {
+  return !revealed || n === "----" ? emptySlotStyle : filledSlotStyle;
+}
 
 interface ResultCardProps {
   data: DrawResult;
@@ -51,7 +79,7 @@ export function ResultCard({ data }: ResultCardProps) {
     <article style={{
       background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)",
       border: `1px solid ${isLive ? brand : isDrawn ? "rgba(0,229,255,0.12)" : "rgba(255,255,255,0.06)"}`,
-      borderRadius: 16,
+      borderRadius: 12,
       overflow: "hidden",
       boxShadow: isLive ? `0 0 20px ${brand}30` : "none",
       transition: "border-color 0.3s",
@@ -62,7 +90,9 @@ export function ResultCard({ data }: ResultCardProps) {
       {/* 卡片头部 */}
       <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: `${brand}10` }}>
         <div className="flex items-center gap-3">
-          <LogoBadge operator={data.operator} />
+          <div style={{ width: 48, height: 48 }} className="shrink-0">
+            <LogoBadge operator={data.operator} size={48} />
+          </div>
           <div className="flex-1 min-w-0">
             <h3 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 2 }} className="truncate">
               {data.displayName}
@@ -108,24 +138,24 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="grid grid-cols-3" style={{ padding: "8px 4px" }}>
           <div style={{ textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
             {revealed && data.first_prize ? (
-              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 900, color: "#FFD700", letterSpacing: "0.1em", display: "block" }}>{data.first_prize}</span>
+              <span className="font-mono tabular-nums" style={{ fontSize: 26, fontWeight: 900, color: "#FFD700", letterSpacing: "0.1em", display: "block" }}>{data.first_prize}</span>
             ) : (
-              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+              <span style={{ fontSize: 26, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
             )}
             {showZodiac && <span style={{ fontSize: 10, color: "#FFD700" }}>{data.zodiac}</span>}
           </div>
           <div style={{ textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
             {revealed && data.second_prize ? (
-              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: "rgba(192,192,192,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.second_prize}</span>
+              <span className="font-mono tabular-nums" style={{ fontSize: 26, fontWeight: 900, color: "rgba(192,192,192,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.second_prize}</span>
             ) : (
-              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+              <span style={{ fontSize: 26, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
             )}
           </div>
           <div style={{ textAlign: "center" }}>
             {revealed && data.third_prize ? (
-              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: "rgba(205,127,50,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.third_prize}</span>
+              <span className="font-mono tabular-nums" style={{ fontSize: 26, fontWeight: 900, color: "rgba(205,127,50,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.third_prize}</span>
             ) : (
-              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+              <span style={{ fontSize: 26, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
             )}
           </div>
         </div>
@@ -137,7 +167,7 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="space-y-1">
           <div className="grid grid-cols-5 gap-1">
             {specialFirstRow.map((n, i) => (
-              <span key={`sp-${i}`} className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(0,229,255,0.05)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,229,255,0.12)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(0,229,255,0.9)", display: "block" }}>
+              <span key={`sp-${i}`} className="font-mono tabular-nums" style={slotCellStyle(n, revealed)}>
                 {revealed ? (n === "----" ? "—" : n) : "----"}
               </span>
             ))}
@@ -145,7 +175,7 @@ export function ResultCard({ data }: ResultCardProps) {
           {specialLastRow.length > 0 && (
             <div className="grid grid-cols-5 gap-1">
               {specialLastRow.map((n, i) => (
-                <span key={`sp-last-${i}`} className={`font-mono tabular-nums ${i === 0 ? "col-start-2" : ""}`} style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(0,229,255,0.05)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,229,255,0.12)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(0,229,255,0.9)", display: "block" }}>
+                <span key={`sp-last-${i}`} className={`font-mono tabular-nums ${i === 0 ? "col-start-2" : ""}`} style={slotCellStyle(n, revealed)}>
                   {revealed ? (n === "----" ? "—" : n) : "----"}
                 </span>
               ))}
@@ -159,7 +189,7 @@ export function ResultCard({ data }: ResultCardProps) {
         <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t("consolationSection")}</p>
         <div className="grid grid-cols-5 gap-1">
           {consolationSlots.map((n, i) => (
-            <span key={`cn-${i}`} className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(255,255,255,0.03)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(255,255,255,0.08)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)", display: "block" }}>
+            <span key={`cn-${i}`} className="font-mono tabular-nums" style={slotCellStyle(n, revealed)}>
               {revealed ? (n === "----" ? "—" : n) : "----"}
             </span>
           ))}

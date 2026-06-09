@@ -7,6 +7,7 @@ import type { LogoKey } from "@/types";
 interface LogoBadgeProps {
   operator: LogoKey | string;
   className?: string;
+  size?: number;
 }
 
 const LOGO_FILES: Record<string, string> = {
@@ -56,16 +57,18 @@ const LABELS: Record<string, string> = {
 function FallbackPill({
   operatorKey,
   className,
+  size,
 }: {
   operatorKey: string;
   className: string;
+  size: number;
 }) {
   return (
     <div
       className={`shrink-0 rounded-lg ${className}`}
       style={{
-        width: 40,
-        height: 40,
+        width: size,
+        height: size,
         background: COLORS[operatorKey] ?? "#333",
         display: "flex",
         alignItems: "center",
@@ -81,7 +84,7 @@ function FallbackPill({
   );
 }
 
-export function LogoBadge({ operator, className = "" }: LogoBadgeProps) {
+export function LogoBadge({ operator, className = "", size = 40 }: LogoBadgeProps) {
   const key = String(operator).toLowerCase();
   const [failed, setFailed] = useState(false);
 
@@ -89,14 +92,14 @@ export function LogoBadge({ operator, className = "" }: LogoBadgeProps) {
     return (
       <div
         className={`relative shrink-0 overflow-hidden rounded-lg ${className}`}
-        style={{ width: 40, height: 40 }}
+        style={{ width: size, height: size }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={HARI_SRC}
           alt="hari"
-          width={40}
-          height={40}
+          width={size}
+          height={size}
           className="h-full w-full object-cover"
         />
       </div>
@@ -106,7 +109,7 @@ export function LogoBadge({ operator, className = "" }: LogoBadgeProps) {
   const src = LOGO_FILES[key];
 
   if (!src || failed) {
-    return <FallbackPill operatorKey={key} className={className} />;
+    return <FallbackPill operatorKey={key} className={className} size={size} />;
   }
 
   const isGif = src.endsWith(".gif");
@@ -114,15 +117,15 @@ export function LogoBadge({ operator, className = "" }: LogoBadgeProps) {
   return (
     <div
       className={`relative shrink-0 overflow-hidden rounded-lg bg-white/95 ${className}`}
-      style={{ width: 40, height: 40 }}
+      style={{ width: size, height: size }}
     >
       {isGif ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt={key}
-          width={40}
-          height={40}
+          width={size}
+          height={size}
           className="h-full w-full object-contain"
           onError={() => setFailed(true)}
         />
@@ -130,8 +133,8 @@ export function LogoBadge({ operator, className = "" }: LogoBadgeProps) {
         <Image
           src={src}
           alt={key}
-          width={40}
-          height={40}
+          width={size}
+          height={size}
           unoptimized
           className="h-full w-full object-contain"
           onError={() => setFailed(true)}
