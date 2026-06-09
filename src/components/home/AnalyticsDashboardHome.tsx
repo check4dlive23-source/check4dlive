@@ -378,7 +378,7 @@ export function AnalyticsDashboardHome({
       {/* 1. Top nav */}
       <header className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between" style={{ padding: "52px 22px 0" }}>
         <div style={{ lineHeight: 1 }}>
-          <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "clamp(16px, 4.5vw, 22px)", fontWeight: 900, letterSpacing: "0.08em", color: "#fff" }}>
+          <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "clamp(22px, 5.5vw, 28px)", fontWeight: 900, letterSpacing: "0.08em", color: "#fff" }}>
             CHECK<span style={{ color: "#00E5FF" }}>4D</span>
           </div>
           <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "8px", fontWeight: 400, letterSpacing: "0.35em", color: "rgba(0,229,255,0.6)", marginTop: "2px" }}>
@@ -423,7 +423,7 @@ export function AnalyticsDashboardHome({
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>·</span>
               {hero?.heat_score != null && (
                 <span style={{ fontSize: 12, color: hero.heat_score >= 70 ? "#00E5FF" : hero.heat_score >= 40 ? "#FFB020" : "#FF4D4D", fontFamily: "var(--font-jetbrains)", fontWeight: 700 }}>
-                  {t("heatScore")} {hero.heat_score}
+                  {t("heatScore")} {Math.round((hero.heat_score ?? 0) * 100)}
                 </span>
               )}
             </div>
