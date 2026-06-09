@@ -44,6 +44,7 @@ function daysAgoLabel(
   return `${diff} ${t("daysAgo")}`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatDateShort(dateISO: string | null): string {
   if (!dateISO) return "—";
   const [y, m, d] = dateISO.split("-");
@@ -397,12 +398,17 @@ export function AnalyticsDashboardHome({
         </div>
         <div className="absolute bottom-0 left-0 right-0 z-10">
           <div className="mx-auto w-full max-w-[390px] lg:max-w-3xl" style={{ padding: "0 22px 28px" }}>
-            {anyLive && (
-              <span className="mb-4 inline-flex items-center font-mono" style={{ gap: 5, background: "rgba(0,255,136,0.12)", border: "1px solid rgba(0,255,136,0.25)", borderRadius: 100, padding: "5px 11px", fontSize: 10, color: "#00FF88" }}>
-                <span className="animate-pulse rounded-full" style={{ width: 6, height: 6, backgroundColor: "#00FF88", boxShadow: "0 0 8px #00FF88" }} />
-                {t("liveDrawing")}
-              </span>
-            )}
+            <Link
+              href="/live"
+              className="mb-4 inline-flex items-center font-mono"
+              style={{ gap: 5, background: anyLive ? "rgba(0,255,136,0.12)" : "rgba(0,229,255,0.06)", border: anyLive ? "1px solid rgba(0,255,136,0.25)" : "1px solid rgba(0,229,255,0.15)", borderRadius: 100, padding: "5px 11px", fontSize: 10, color: anyLive ? "#00FF88" : "rgba(0,229,255,0.6)", textDecoration: "none" }}
+            >
+              <span
+                className={anyLive ? "animate-pulse rounded-full" : "rounded-full"}
+                style={{ width: 6, height: 6, backgroundColor: anyLive ? "#00FF88" : "rgba(0,229,255,0.4)", boxShadow: anyLive ? "0 0 8px #00FF88" : "none" }}
+              />
+              {anyLive ? t("liveDrawing") : t("liveDraw")}
+            </Link>
             {hero && !loading ? (
               <Link href={`/number/${hero.number}`} className="block">
                 <p className="font-mono tabular-nums" style={{ fontSize: 96, fontWeight: 900, color: "white", textShadow: "0 0 80px rgba(0,229,255,0.5), 0 0 160px rgba(0,229,255,0.25)", letterSpacing: "0.02em", lineHeight: 0.9 }}>
@@ -417,13 +423,21 @@ export function AnalyticsDashboardHome({
             <p style={{ fontSize: 12, color: "rgba(0,229,255,0.8)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", marginBottom: 4 }}>
               ⭐ {t("weeklyStarLabel")}
             </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>
-              <span>{t("appeared")} {hero?.total_hits ?? "—"} {t("times")}</span>
-              <span style={{ margin: "0 6px", opacity: 0.3 }}>·</span>
-              <span>{formatDateShort(hero?.last_seen ?? null)}</span>
-              <span style={{ margin: "0 6px", opacity: 0.3 }}>·</span>
-              <span>{t("yearsData")}</span>
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1" style={{ marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+                {t("appeared")} <span style={{ color: "white", fontWeight: 600 }}>{hero?.total_hits ?? "—"}</span> {t("times")}
+              </span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>·</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+                {hero?.last_seen ? daysAgoLabel(hero.last_seen, t) : "—"}
+              </span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>·</span>
+              {hero?.heat_score != null && (
+                <span style={{ fontSize: 12, color: hero.heat_score >= 70 ? "#00E5FF" : hero.heat_score >= 40 ? "#FFB020" : "#FF4D4D", fontFamily: "var(--font-jetbrains)", fontWeight: 700 }}>
+                  {t("heatScore")} {hero.heat_score}
+                </span>
+              )}
+            </div>
             {lastWeekRank && lastWeekRank > 1 && (
               <p style={{ fontSize: 11, color: "rgba(0,255,136,0.7)", fontFamily: "var(--font-jetbrains)" }}>
                 {t("lastWeekRank")} #{lastWeekRank} → {t("thisWeek")} #1 ↑{lastWeekRank - 1}
@@ -586,7 +600,7 @@ export function AnalyticsDashboardHome({
         {/* 3. Hot numbers */}
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between" style={{ padding: "0 22px" }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>🔥 {t("weeklyHot")}</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>{t("weeklyHot")}</h2>
             <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>{t("viewAll")} →</Link>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ padding: "0 22px" }}>
@@ -597,7 +611,7 @@ export function AnalyticsDashboardHome({
         {/* 4. Cold numbers */}
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between" style={{ padding: "0 22px" }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>🧊 {t("coldAlert")}</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>{t("coldAlert")}</h2>
             <Link href="/rankings" style={{ fontSize: 12, color: "#00E5FF" }}>{t("viewAll")} →</Link>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ padding: "0 22px" }}>
@@ -609,7 +623,7 @@ export function AnalyticsDashboardHome({
         {rising.length > 0 && (
           <section className="mt-8">
             <div className="flex items-center justify-between" style={{ marginBottom: 12, padding: "0 22px" }}>
-              <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>📈 {t("risingTitle")}</h2>
+              <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>{t("risingTitle")}</h2>
               <span style={{ fontSize: 11, color: "rgba(0,229,255,0.6)", letterSpacing: "0.05em" }}>{t("risingSubtitle")}</span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", padding: "0 22px" }}>
@@ -632,15 +646,15 @@ export function AnalyticsDashboardHome({
         {/* 数据仪表盘 */}
         <section className="mt-8" style={{ padding: "0 22px" }}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>📊 市场概览</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "white" }}>📊 {t("marketOverview")}</h2>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>LIVE DATA</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "数据库规模", value: "22,885", unit: "期开彩记录" },
-              { label: "号码档案", value: "10,000", unit: "个独立分析页" },
-              { label: "历史跨度", value: "40", unit: "年数据" },
-              { label: "平均开彩间隔", value: "18", unit: "天/号码" },
+              { label: t("dbScale"), value: "22,885", unit: t("dbScaleUnit") },
+              { label: t("numberProfiles"), value: "10,000", unit: t("numberProfilesUnit") },
+              { label: t("dataSpan"), value: "40", unit: t("dataSpanUnit") },
+              { label: t("avgDrawInterval"), value: "18", unit: t("avgIntervalUnit") },
             ].map((item) => (
               <div key={item.label} style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.08)", borderRadius: 14, padding: "16px" }}>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{item.label}</p>
@@ -667,7 +681,7 @@ export function AnalyticsDashboardHome({
 
         {/* SEO 热门号码 */}
         <section style={{ padding: "0 22px", marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 24 }}>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>热门号码</p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{t("hotNumbersLabel")}</p>
           <div className="flex flex-wrap gap-2 mb-6">
             {SEO_HOT.map((n) => (
               <Link key={n} href={`/number/${n}`} style={{ padding: "6px 14px", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, fontSize: 14, fontWeight: 700, color: "#00E5FF", fontFamily: "var(--font-jetbrains)", textDecoration: "none" }}>
@@ -675,10 +689,10 @@ export function AnalyticsDashboardHome({
               </Link>
             ))}
           </div>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>热门搜索</p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{t("popularSearches")}</p>
           <div className="flex flex-wrap gap-2 mb-8">
             {SEO_SEARCHES.map((s) => (
-              <Link key={s.label} href={s.href} style={{ padding: "5px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>
+              <Link key={s.label} href={s.href} style={{ padding: "5px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none", whiteSpace: "nowrap" }}>
                 {s.label}
               </Link>
             ))}
