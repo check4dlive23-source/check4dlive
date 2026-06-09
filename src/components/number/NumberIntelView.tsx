@@ -302,9 +302,6 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{b.label}</span>
                   </div>
                   <p className="font-number" style={{ fontSize: 28, fontWeight: 800, color: "white" }}>{b.total}</p>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
-                    {b.first > 0 && `🥇×${b.first} `}{b.special > 0 && `特×${b.special} `}{b.consolation > 0 && `慰×${b.consolation}`}
-                  </p>
                 </div>
               ))}
             </div>
