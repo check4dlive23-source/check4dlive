@@ -1,10 +1,7 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { todayMYT } from "@/lib/draw-time";
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { PrizeNumber } from "@/components/ui/PrizeNumber";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import {
@@ -16,15 +13,15 @@ import type { DrawResult, OperatorId } from "@/types";
 
 const brandColors: Record<OperatorId, string> = {
   magnum: "#FFD700",
-  damacai: "#1a3a8f",
-  toto: "#CC0000",
-  sabah: "#b45309",
-  sarawak: "#0e7490",
-  sandakan: "#4c1d95",
-  gd: "#b91c1c",
-  perdana: "#5b21b6",
-  hari: "#065f46",
-  sgpools: "#9d174d",
+  damacai: "#4466FF",
+  toto: "#FF3333",
+  sabah: "#F59E0B",
+  sarawak: "#06B6D4",
+  sandakan: "#8B5CF6",
+  gd: "#EF4444",
+  perdana: "#7C3AED",
+  hari: "#059669",
+  sgpools: "#EC4899",
 };
 
 interface ResultCardProps {
@@ -34,135 +31,154 @@ interface ResultCardProps {
 export function ResultCard({ data }: ResultCardProps) {
   const { t } = useLang();
   const operator = data.operator;
-  const brand = brandColors[operator];
+  const brand = brandColors[operator] ?? "#00E5FF";
   const spCount = getSpecialCount(operator);
   const specialSlots = padPrizeSlots(data.special_numbers, spCount);
   const specialFirstRow = specialSlots.slice(0, 10);
   const specialLastRow = spCount > 10 ? specialSlots.slice(10) : [];
-  const consolationSlots = padPrizeSlots(
-    data.consolation_numbers,
-    CONSOLATION_SLOT_COUNT
-  );
+  const consolationSlots = padPrizeSlots(data.consolation_numbers, CONSOLATION_SLOT_COUNT);
   const revealed = data.status !== "pending";
   const [today, setToday] = useState("");
+  useEffect(() => { setToday(todayMYT()); }, []);
+  const isTodayPending = data.status === "pending" && Boolean(today) && data.date === today;
+  const showZodiac = revealed && operator === "toto" && Boolean(data.zodiac);
+  const showJackpot = revealed && (operator === "magnum" || operator === "damacai" || operator === "toto") && (data.jackpot1_amount ?? 0) > 0;
 
-  useEffect(() => {
-    setToday(todayMYT());
-  }, []);
-
-  const isTodayPending =
-    data.status === "pending" && Boolean(today) && data.date === today;
-
-  const showZodiac =
-    revealed && operator === "toto" && Boolean(data.zodiac);
-
-  const showJackpot =
-    revealed &&
-    (operator === "magnum" ||
-      operator === "damacai" ||
-      operator === "toto") &&
-    (data.jackpot1_amount ?? 0) > 0;
+  const isLive = data.status === "live";
+  const isDrawn = data.status === "drawn";
 
   return (
-    <article className="subpage-card overflow-hidden">
-      <header
-        className="flex items-start gap-2 px-2 py-1.5 border-b border-line"
-        style={{ backgroundColor: `${brand}18` }}
-      >
-        <LogoBadge operator={data.operator} />
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-foreground truncate">
-            {data.displayName}
-          </h3>
-          <div className="flex items-center justify-between text-[10px] text-muted mt-0.5">
-            <span>{formatDrawDate(data.date)}</span>
-            <span>{data.draw_no ?? "—"}</span>
+    <article style={{
+      background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)",
+      border: `1px solid ${isLive ? brand : isDrawn ? "rgba(0,229,255,0.12)" : "rgba(255,255,255,0.06)"}`,
+      borderRadius: 16,
+      overflow: "hidden",
+      boxShadow: isLive ? `0 0 20px ${brand}30` : "none",
+      transition: "border-color 0.3s",
+    }}>
+      {/* 顶部品牌色条 */}
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${brand}, transparent)` }} />
+      
+      {/* 卡片头部 */}
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: `${brand}10` }}>
+        <div className="flex items-center gap-3">
+          <LogoBadge operator={data.operator} />
+          <div className="flex-1 min-w-0">
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 2 }} className="truncate">
+              {data.displayName}
+            </h3>
+            <div className="flex items-center justify-between">
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{formatDrawDate(data.date)}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{data.draw_no ?? "—"}</span>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <StatusTag status={data.status} />
-          {isTodayPending && (
-            <span className="text-[9px] text-muted whitespace-nowrap">
-              今日等待开彩
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            {isLive && (
+              <span className="inline-flex items-center gap-1" style={{ background: "rgba(0,255,136,0.12)", border: "1px solid rgba(0,255,136,0.3)", borderRadius: 100, padding: "3px 8px", fontSize: 9, color: "#00FF88", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+                <span className="animate-pulse rounded-full" style={{ width: 5, height: 5, backgroundColor: "#00FF88" }} />
+                LIVE
+              </span>
+            )}
+            {isDrawn && (
+              <span style={{ background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontSize: 9, color: "#00E5FF", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+                {t("completed")}
+              </span>
+            )}
+            {!isLive && !isDrawn && (
+              <span style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "3px 8px", fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+                {t("pending")}
+              </span>
+            )}
+            {isTodayPending && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>今日等待开彩</span>
+            )}
+          </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-3 border-b border-line bg-surface-3 text-center text-[10px] text-muted">
-        <div className="py-1.5 border-r border-line">{t("firstPrize")}</div>
-        <div className="py-1.5 border-r border-line">{t("secondPrize")}</div>
-        <div className="py-1.5">{t("thirdPrize")}</div>
-      </div>
-      <div className="grid grid-cols-3 border-b border-line text-center py-1.5">
-        <div className="border-r border-line flex flex-col items-center gap-0.5 px-1">
-          <PrizeNumber value={data.first_prize} size="lg" revealed={revealed} />
-          {showZodiac && (
-            <span className="text-[10px] text-gold">{data.zodiac}</span>
-          )}
+      {/* 前三奖 */}
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="grid grid-cols-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+          {[t("firstPrize"), t("secondPrize"), t("thirdPrize")].map((label, i) => (
+            <div key={i} style={{ padding: "6px 4px", textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+              {label}
+            </div>
+          ))}
         </div>
-        <div className="border-r border-line px-1">
-          <PrizeNumber value={data.second_prize} size="lg" revealed={revealed} />
-        </div>
-        <div className="px-1">
-          <PrizeNumber value={data.third_prize} size="lg" revealed={revealed} />
+        <div className="grid grid-cols-3" style={{ padding: "8px 4px" }}>
+          <div style={{ textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
+            {revealed && data.first_prize ? (
+              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 900, color: "#FFD700", letterSpacing: "0.1em", display: "block" }}>{data.first_prize}</span>
+            ) : (
+              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+            )}
+            {showZodiac && <span style={{ fontSize: 10, color: "#FFD700" }}>{data.zodiac}</span>}
+          </div>
+          <div style={{ textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
+            {revealed && data.second_prize ? (
+              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: "rgba(192,192,192,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.second_prize}</span>
+            ) : (
+              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+            )}
+          </div>
+          <div style={{ textAlign: "center" }}>
+            {revealed && data.third_prize ? (
+              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 800, color: "rgba(205,127,50,0.9)", letterSpacing: "0.1em", display: "block" }}>{data.third_prize}</span>
+            ) : (
+              <span style={{ fontSize: 22, color: "rgba(255,255,255,0.1)", display: "block", textAlign: "center" }}>----</span>
+            )}
+          </div>
         </div>
       </div>
 
-      <section className="px-2 py-1.5 border-b border-line">
-        <p className="text-[10px] text-muted mb-1.5 uppercase tracking-wider">
-          {t("specialSection")}
-        </p>
+      {/* 特别奖 */}
+      <section style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t("specialSection")}</p>
         <div className="space-y-1">
           <div className="grid grid-cols-5 gap-1">
             {specialFirstRow.map((n, i) => (
-              <PrizeNumber
-                key={`sp-${i}`}
-                value={n}
-                size="sm"
-                revealed={revealed}
-              />
+              <span key={`sp-${i}`} className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(0,229,255,0.05)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,229,255,0.12)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(0,229,255,0.9)", display: "block" }}>
+                {revealed ? (n === "----" ? "—" : n) : "----"}
+              </span>
             ))}
           </div>
           {specialLastRow.length > 0 && (
             <div className="grid grid-cols-5 gap-1">
               {specialLastRow.map((n, i) => (
-                <div key={`sp-last-${i}`} className={i === 0 ? "col-start-2" : ""}>
-                  <PrizeNumber value={n} size="sm" revealed={revealed} />
-                </div>
+                <span key={`sp-last-${i}`} className={`font-mono tabular-nums ${i === 0 ? "col-start-2" : ""}`} style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(0,229,255,0.05)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,229,255,0.12)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(0,229,255,0.9)", display: "block" }}>
+                  {revealed ? (n === "----" ? "—" : n) : "----"}
+                </span>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      <section className="px-2 py-1.5 border-b border-line">
-        <p className="text-[10px] text-muted mb-1.5 uppercase tracking-wider">
-          {t("consolationSection")}
-        </p>
+      {/* 安慰奖 */}
+      <section style={{ padding: "10px 14px", borderBottom: showJackpot ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t("consolationSection")}</p>
         <div className="grid grid-cols-5 gap-1">
           {consolationSlots.map((n, i) => (
-            <PrizeNumber key={`cn-${i}`} value={n} size="sm" revealed={revealed} />
+            <span key={`cn-${i}`} className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 600, textAlign: "center", padding: "4px 2px", background: n === "----" ? "transparent" : "rgba(255,255,255,0.03)", border: n === "----" ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(255,255,255,0.08)", borderRadius: 6, color: n === "----" ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)", display: "block" }}>
+              {revealed ? (n === "----" ? "—" : n) : "----"}
+            </span>
           ))}
         </div>
       </section>
 
+      {/* Jackpot */}
       {showJackpot && (
-        <section className="px-2 py-1.5 border-b border-line space-y-1">
+        <section style={{ padding: "10px 14px" }}>
           {data.jackpot1_amount != null && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted">{t("jackpot1")}</span>
-              <span className="font-number text-gold">
-                {formatCurrency(data.jackpot1_amount)}
-              </span>
+            <div className="flex justify-between items-center" style={{ marginBottom: 4 }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{t("jackpot1")}</span>
+              <span className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: "#FFB020" }}>{formatCurrency(data.jackpot1_amount)}</span>
             </div>
           )}
           {data.jackpot2_amount != null && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted">{t("jackpot2")}</span>
-              <span className="font-number text-gold">
-                {formatCurrency(data.jackpot2_amount)}
-              </span>
+            <div className="flex justify-between items-center">
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{t("jackpot2")}</span>
+              <span className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: "#FFB020" }}>{formatCurrency(data.jackpot2_amount)}</span>
             </div>
           )}
         </section>
