@@ -225,7 +225,7 @@ export async function runLiveCronIngest(): Promise<{
             third_prize: (row.third_prize as string) ?? null,
             special_numbers: (row.special_numbers as string[]) ?? null,
             consolation_numbers: (row.consolation_numbers as string[]) ?? null,
-            extra_data: null,
+            extra_data: (row.extra_data as Record<string, unknown>) ?? null,
             source: "scrape",
           });
         }
