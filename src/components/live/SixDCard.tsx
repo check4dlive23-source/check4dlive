@@ -1,7 +1,5 @@
 "use client";
-
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, Toto6DTier } from "@/types";
@@ -15,58 +13,37 @@ interface SixDCardProps {
   tiers: Toto6DTier[];
 }
 
-export function SixDCard({
-  displayName,
-  subtitle,
-  date,
-  draw_no,
-  status,
-  tiers,
-}: SixDCardProps) {
+export function SixDCard({ displayName, subtitle, date, draw_no, status, tiers }: SixDCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
-  const tierBox = revealed
-    ? "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3 border border-line rounded py-2 text-foreground tracking-wide"
-    : "font-mono font-bold font-number text-xl text-center flex-1 min-w-0 bg-surface-3/60 border border-line/70 rounded py-2 text-muted opacity-70 tracking-wide";
-
   return (
-    <article className="subpage-card overflow-hidden">
-      <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
+    <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,51,51,0.15)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ height: 3, background: "linear-gradient(90deg, #FF3333, transparent)" }} />
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,51,51,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
         <LogoBadge operator="toto_6d" />
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-foreground">{displayName}</h3>
-          <p className="text-[10px] text-muted">{subtitle ?? t("bothSidesWin")}</p>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{displayName}</h3>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{subtitle ?? t("bothSidesWin")}</p>
         </div>
-        <StatusTag status={status} />
+        <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+          {status === "drawn" ? t("completed") : t("pending")}
+        </span>
       </header>
-      <section className="divide-y divide-border">
+      <section>
         {tiers.map((tier) => (
-          <div
-            key={tier.label}
-            className="flex flex-row items-center gap-2 px-3 py-2"
-          >
-            <span className="text-xs text-muted w-12 shrink-0">{tier.label}</span>
-            <span className={tierBox}>
-              {!revealed ? (
-                "----"
-              ) : tier.label === "1st" ? (
-                tier.front
-              ) : (
-                <>
-                  {tier.front}{" "}
-                  <span className="text-muted text-sm font-sans font-normal">
-                    OR
-                  </span>{" "}
-                  {tier.back}
-                </>
+          <div key={tier.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 32, flexShrink: 0 }}>{tier.label}</span>
+            <span className="font-mono tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: revealed ? "#00E5FF" : "rgba(255,255,255,0.1)", flex: 1, textAlign: "center", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, padding: "4px 8px" }}>
+              {!revealed ? "----" : tier.label === "1st" ? tier.front : (
+                <>{tier.front} <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>OR</span> {tier.back}</>
               )}
             </span>
           </div>
         ))}
       </section>
-      <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
-        <span>{formatDrawDate(date)}</span>
-        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
+      <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(date)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );

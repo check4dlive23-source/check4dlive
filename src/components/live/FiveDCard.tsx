@@ -1,8 +1,5 @@
 "use client";
-
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { PrizeNumber } from "@/components/ui/PrizeNumber";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, Toto5DExtra } from "@/types";
@@ -24,39 +21,34 @@ const tiers = [
   { key: "sixth" as const, label: "6th (3D)" },
 ];
 
-export function FiveDCard({
-  displayName,
-  date,
-  draw_no,
-  status,
-  prizes,
-}: FiveDCardProps) {
+export function FiveDCard({ displayName, date, draw_no, status, prizes }: FiveDCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
-
   return (
-    <article className="subpage-card overflow-hidden">
-      <header className="flex items-center gap-2 px-3 py-2.5 border-b border-line bg-surface-3">
+    <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,51,51,0.15)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ height: 3, background: "linear-gradient(90deg, #FF3333, transparent)" }} />
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,51,51,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
         <LogoBadge operator="toto_5d" />
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-foreground">{displayName}</h3>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{displayName}</h3>
         </div>
-        <StatusTag status={status} />
+        <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+          {status === "drawn" ? t("completed") : t("pending")}
+        </span>
       </header>
-      <section className="divide-y divide-border">
+      <section>
         {tiers.map(({ key, label }) => (
-          <div
-            key={key}
-            className="flex items-center justify-between px-3 py-2"
-          >
-            <span className="text-xs text-muted w-20">{label}</span>
-            <PrizeNumber value={prizes[key]} size="md" revealed={revealed} />
+          <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 72 }}>{label}</span>
+            <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: revealed ? "#00E5FF" : "rgba(255,255,255,0.1)", background: revealed ? "rgba(0,229,255,0.05)" : "transparent", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, padding: "4px 12px", minWidth: 80, textAlign: "center", display: "inline-block" }}>
+              {revealed ? (prizes[key] ?? "—") : "----"}
+            </span>
           </div>
         ))}
       </section>
-      <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
-        <span>{formatDrawDate(date)}</span>
-        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
+      <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(date)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );
