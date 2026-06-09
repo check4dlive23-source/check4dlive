@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { LuckyModal } from "./LuckyModal";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
@@ -295,6 +296,7 @@ export function AnalyticsDashboardHome({
   const [searchErr, setSearchErr] = useState(false);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [luckyOpen, setLuckyOpen] = useState(false);
 
   // 倒计时：下次开奖（马来西亚时间 19:00）
   const [countdown, setCountdown] = useState("");
@@ -438,9 +440,14 @@ export function AnalyticsDashboardHome({
               <span className="font-mono tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em" }}>{countdown}</span>
             </div>
             <div className="mt-4 flex gap-3">
-              <Link href={hero && !loading ? `/number/${hero.number}` : "#"} onClick={!hero || loading ? (e) => e.preventDefault() : undefined} className="flex-1 text-center font-sans" style={{ background: "#00E5FF", color: "#050816", fontWeight: 800, borderRadius: 10, padding: 14, boxShadow: "0 4px 28px rgba(0,229,255,0.4)", fontSize: 14 }}>
-                {t("viewDetails")}
-              </Link>
+              <button
+                type="button"
+                onClick={() => setLuckyOpen(true)}
+                className="flex-1 text-center font-sans"
+                style={{ background: "linear-gradient(135deg, #00E5FF, #0080FF)", color: "#050816", fontWeight: 800, borderRadius: 10, padding: 14, boxShadow: "0 4px 28px rgba(0,229,255,0.4)", fontSize: 14, cursor: "pointer", border: "none" }}
+              >
+                {t("luckyNumber")}
+              </button>
               <Link
                 href="/live"
                 className="flex-1 text-center font-sans backdrop-blur"
@@ -712,6 +719,7 @@ export function AnalyticsDashboardHome({
         </section>
 
       </div>
+      <LuckyModal open={luckyOpen} onClose={() => setLuckyOpen(false)} />
     </div>
   );
 }
