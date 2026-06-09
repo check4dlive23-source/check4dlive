@@ -36,8 +36,7 @@ function generateNumbers(game: GameType, lottoMax: number): { numbers: string[];
       const pool = Array.from({ length: 36 }, (_, i) => i + 1);
       const shuffled = pool.sort(() => Math.random() - 0.5);
       const winning = shuffled.slice(0, 8).sort((a, b) => a - b);
-      const bonus = shuffled.slice(8, 10).sort((a, b) => a - b);
-      return { numbers: winning.map(String), bonus: bonus[0] };
+      return { numbers: winning.map(String) };
     }
     case "damacai3plus3d": {
       const n1 = rand3D(), n2 = rand3D(), n3 = rand3D();
@@ -48,23 +47,22 @@ function generateNumbers(game: GameType, lottoMax: number): { numbers: string[];
       const pool = Array.from({ length: lottoMax }, (_, i) => i + 1);
       const shuffled = pool.sort(() => Math.random() - 0.5);
       const balls = shuffled.slice(0, 6).sort((a, b) => a - b);
-      const bonus = shuffled[6];
-      return { numbers: balls.map(String), bonus };
+      return { numbers: balls.map(String) };
     }
     default: return { numbers: [rand4D()] };
   }
 }
 
-const GAMES: { id: GameType; label: string; desc: string }[] = [
-  { id: "4d", label: "4D", desc: "0000–9999" },
-  { id: "3d", label: "3D", desc: "000–999" },
-  { id: "5d", label: "5D", desc: "00000–99999" },
-  { id: "6d", label: "6D", desc: "000000–999999" },
-  { id: "jackpot4d", label: "4D Jackpot", desc: "2 numbers" },
-  { id: "jackpotgold", label: "Jackpot Gold", desc: "6 digits + golden" },
-  { id: "magnumlife", label: "Magnum Life", desc: "8+2 from 1–36" },
-  { id: "damacai3plus3d", label: "3+3D Bonus", desc: "3 numbers + zodiac" },
-  { id: "lotto", label: "Lotto", desc: "6 balls" },
+const GAMES: { id: GameType; label: string }[] = [
+  { id: "4d", label: "4D" },
+  { id: "3d", label: "3D" },
+  { id: "5d", label: "5D" },
+  { id: "6d", label: "6D" },
+  { id: "jackpot4d", label: "4D Jackpot" },
+  { id: "jackpotgold", label: "Jackpot Gold" },
+  { id: "magnumlife", label: "Magnum Life" },
+  { id: "damacai3plus3d", label: "3+3D Bonus" },
+  { id: "lotto", label: "Lotto" },
 ];
 
 interface LuckyModalProps {
@@ -137,9 +135,8 @@ export function LuckyModal({ open, onClose }: LuckyModalProps) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
               {GAMES.map((g) => (
                 <button key={g.id} onClick={() => setGame(g.id)}
-                  style={{ padding: "10px 8px", borderRadius: 10, border: game === g.id ? "1px solid #00E5FF" : "1px solid rgba(255,255,255,0.08)", background: game === g.id ? "rgba(0,229,255,0.1)" : "rgba(255,255,255,0.03)", color: game === g.id ? "#00E5FF" : "rgba(255,255,255,0.5)", cursor: "pointer", textAlign: "center" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--font-jetbrains)" }}>{g.label}</div>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{g.desc}</div>
+                  style={{ padding: "14px 8px", borderRadius: 10, border: game === g.id ? "1px solid #00E5FF" : "1px solid rgba(255,255,255,0.08)", background: game === g.id ? "rgba(0,229,255,0.1)" : "rgba(255,255,255,0.03)", color: game === g.id ? "#00E5FF" : "rgba(255,255,255,0.5)", cursor: "pointer", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--font-jetbrains)" }}>{g.label}</span>
                 </button>
               ))}
             </div>
@@ -197,14 +194,6 @@ export function LuckyModal({ open, onClose }: LuckyModalProps) {
                       {n}
                     </span>
                   ))}
-                  {!rolling && result?.bonus != null && (
-                    <>
-                      <span style={{ color: "rgba(255,255,255,0.3)", alignSelf: "center" }}>+</span>
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: "50%", background: "rgba(255,176,32,0.15)", border: "2px solid #FFB020", fontSize: 16, fontWeight: 900, color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>
-                        {result.bonus}
-                      </span>
-                    </>
-                  )}
                 </div>
               ) : (
                 displayNums.map((n, i) => (
@@ -219,15 +208,6 @@ export function LuckyModal({ open, onClose }: LuckyModalProps) {
               <div style={{ textAlign: "center", marginBottom: 12 }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginRight: 8 }}>生肖 Zodiac:</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#FFD700" }}>{result.zodiac}</span>
-              </div>
-            )}
-            {/* Magnum Life bonus */}
-            {!rolling && game === "magnumlife" && result?.bonus != null && (
-              <div style={{ textAlign: "center", marginBottom: 12 }}>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginRight: 8 }}>Bonus:</span>
-                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: "rgba(255,176,32,0.15)", border: "2px solid #FFB020", fontSize: 16, fontWeight: 900, color: "#FFB020" }}>
-                  {result.bonus}
-                </span>
               </div>
             )}
             {!rolling && (
