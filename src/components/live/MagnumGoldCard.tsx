@@ -17,8 +17,8 @@ function DigitCell({ value, revealed }: { value: string; revealed: boolean }) {
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
-      height: 40, width: 36, borderRadius: 8, fontFamily: "var(--font-jetbrains)",
-      fontSize: 16, fontWeight: 800,
+      height: 34, width: 30, borderRadius: 8, fontFamily: "var(--font-jetbrains)",
+      fontSize: 14, fontWeight: 800,
       background: empty ? "rgba(255,255,255,0.03)" : "rgba(255,215,0,0.08)",
       border: empty ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,215,0,0.3)",
       color: revealed && !empty ? "#FFD700" : "rgba(255,255,255,0.15)",
