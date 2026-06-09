@@ -6,6 +6,7 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 import {
+  damacai3D,
   damacai3Plus3D,
   eastMain4D,
   magnumGold,
@@ -35,6 +36,7 @@ import {
 import { todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
 import type { DrawResult, Region } from "@/types";
+import { Damacai3DCard } from "./Damacai3DCard";
 import { Damacai3Plus3DCard } from "./Damacai3Plus3DCard";
 import { FiveDCard } from "./FiveDCard";
 import { LottoBallCard } from "./LottoBallCard";
@@ -268,6 +270,7 @@ export function LiveTerminal() {
     () => mapMagnumLifeExtra(magnumExtra?.life, magnumLife),
     [magnumExtra]
   );
+  const damacai3DData = useMemo(() => damacai3D, []);
   const damacai3Plus3DData = useMemo(
     () =>
       mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D, damacai3Plus3D),
@@ -385,6 +388,12 @@ export function LiveTerminal() {
                 </div>
 
                 <SectionTitle>{t("damacaiOther")}</SectionTitle>
+                <Damacai3DCard
+                  date={damacaiDraw.date}
+                  draw_no={damacaiDraw.draw_no}
+                  status={damacaiDraw.status}
+                  data={damacai3DData}
+                />
                 <Damacai3Plus3DCard
                   date={damacaiDraw.date}
                   draw_no={damacaiDraw.draw_no}

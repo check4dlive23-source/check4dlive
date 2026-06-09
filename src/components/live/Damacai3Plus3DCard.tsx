@@ -102,17 +102,6 @@ export function Damacai3Plus3DCard({
         <SixDigitGrid numbers={data.consolation} revealed={revealed} />
       </section>
 
-      {data.jackpot3d_amount != null && (
-        <section style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex justify-between items-center">
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3D Jackpot</span>
-            <span className="font-mono tabular-nums" style={{ fontSize: 13, fontWeight: 700, color: "#FFB020" }}>
-              {status !== "pending" ? formatCurrency(data.jackpot3d_amount) : "—"}
-            </span>
-          </div>
-        </section>
-      )}
-
       <footer className="flex justify-between px-2 py-1.5 text-[10px] text-dim">
         <span>{formatDrawDate(date)}</span>
         <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>

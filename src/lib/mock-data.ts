@@ -277,6 +277,14 @@ export const damacai3Plus3D: Damacai3Plus3DExtra = {
     "268603",
     "475753",
   ],
+};
+
+export const damacai3D = {
+  first: "441",
+  second: "682",
+  third: "345",
+  jackpot1_amount: 2574073.70,
+  jackpot2_amount: 104377.10,
   jackpot3d_amount: 761470.60,
 };
 

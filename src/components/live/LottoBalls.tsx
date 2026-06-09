@@ -24,17 +24,23 @@ export function LottoBalls({
   revealed?: boolean;
 }) {
   const ballClass =
-    size === "md" || size === "lg"
+    size === "lg"
       ? `${BALL_BASE} h-12 w-12 text-lg`
-      : `${BALL_BASE} h-11 w-11 text-base`;
+      : size === "md"
+      ? `${BALL_BASE} h-10 w-10 text-base`
+      : `${BALL_BASE} h-8 w-8 text-sm`;
 
   const bonusClass =
-    size === "md" || size === "lg"
+    size === "lg"
       ? `${BONUS_BASE} h-12 w-12 text-lg`
-      : `${BONUS_BASE} h-11 w-11 text-base`;
+      : size === "md"
+      ? `${BONUS_BASE} h-10 w-10 text-base`
+      : `${BONUS_BASE} h-8 w-8 text-sm`;
 
   const pendingSize =
-    size === "md" || size === "lg" ? "h-12 w-12 text-sm" : "h-11 w-11 text-sm";
+    size === "lg" ? "h-12 w-12 text-sm"
+    : size === "md" ? "h-10 w-10 text-sm"
+    : "h-8 w-8 text-xs";
 
   if (!revealed) {
     return (
