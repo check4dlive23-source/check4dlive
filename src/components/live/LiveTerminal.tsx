@@ -301,7 +301,7 @@ export function LiveTerminal() {
         subtitle={t("liveSubtitle")}
         rightAction={
           <Link href="/draws" style={{ fontSize: 10, color: "rgba(0,229,255,0.6)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", textDecoration: "none", border: "1px solid rgba(0,229,255,0.15)", borderRadius: 8, padding: "5px 12px", background: "rgba(0,229,255,0.05)", whiteSpace: "nowrap" }}>
-            DRAW RECORDS →
+            {t("drawRecords")} →
           </Link>
         }
       >
