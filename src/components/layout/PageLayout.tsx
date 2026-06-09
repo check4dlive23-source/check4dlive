@@ -7,6 +7,7 @@ interface PageLayoutProps {
   titleAccent: string;
   subtitle: string;
   showBack?: boolean;
+  rightAction?: ReactNode;
   children: ReactNode;
 }
 
@@ -15,6 +16,7 @@ export function PageLayout({
   titleAccent,
   subtitle,
   showBack,
+  rightAction,
   children,
 }: PageLayoutProps) {
   return (
@@ -64,28 +66,20 @@ export function PageLayout({
               ← BACK
             </button>
           )}
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 22,
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              color: "#fff",
-            }}
-          >
-            {title}
-            <span style={{ color: "#00E5FF" }}>{titleAccent}</span>
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-jetbrains)",
-              fontSize: 8,
-              letterSpacing: "0.35em",
-              color: "rgba(0,229,255,0.5)",
-              marginTop: 3,
-            }}
-          >
-            {subtitle}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 22, fontWeight: 900, letterSpacing: "0.08em", color: "#fff" }}>
+                {title}<span style={{ color: "#00E5FF" }}>{titleAccent}</span>
+              </div>
+              <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: 8, letterSpacing: "0.35em", color: "rgba(0,229,255,0.5)", marginTop: 3 }}>
+                {subtitle}
+              </div>
+            </div>
+            {rightAction && (
+              <div style={{ flexShrink: 0, paddingTop: 4 }}>
+                {rightAction}
+              </div>
+            )}
           </div>
         </div>
 

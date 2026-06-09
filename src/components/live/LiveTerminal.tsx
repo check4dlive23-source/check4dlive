@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useLang } from "@/lib/language-context";
 import {
@@ -298,6 +299,11 @@ export function LiveTerminal() {
         title="LI"
         titleAccent="VE"
         subtitle={t("liveSubtitle")}
+        rightAction={
+          <Link href="/draws" style={{ fontSize: 10, color: "rgba(0,229,255,0.6)", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", textDecoration: "none", border: "1px solid rgba(0,229,255,0.15)", borderRadius: 8, padding: "5px 12px", background: "rgba(0,229,255,0.05)", whiteSpace: "nowrap" }}>
+            DRAW RECORDS →
+          </Link>
+        }
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           {isLive ? (
