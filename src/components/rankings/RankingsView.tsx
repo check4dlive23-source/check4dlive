@@ -126,52 +126,34 @@ function Skeleton() {
 function DigitRow({ label, data }: { label: string; data: DigitFrequency[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
   const min = Math.min(...data.map((d) => d.count));
-
+  const champion = data.find((d) => d.count === max);
   return (
-    <div className="flex items-center gap-3 border-b border-[var(--border-dim)] py-2.5">
-      <span
-        className="w-20 shrink-0 font-sans text-[10px] uppercase tracking-[0.1em]"
-        style={{ color: "var(--text-dim)" }}
-      >
-        {label}
-      </span>
-      <div className="flex flex-1 gap-1">
+    <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.08)", borderRadius: 12, padding: "14px 16px", marginBottom: 8 }}>
+      <div className="flex items-center justify-between mb-3">
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</span>
+        {champion && (
+          <span style={{ fontSize: 11, fontFamily: "var(--font-jetbrains)", color: "#00FF88" }}>
+            strongest: <span style={{ fontSize: 16, fontWeight: 800 }}>{champion.digit}</span>
+          </span>
+        )}
+      </div>
+      <div className="flex gap-1">
         {data.map((cell) => {
           const isMax = cell.count === max;
           const isMin = cell.count === min;
-          const barColor = isMax
-            ? "var(--green)"
-            : isMin
-              ? "var(--text-dim)"
-              : "var(--cyan)";
+          const barColor = isMax ? "#00FF88" : isMin ? "rgba(255,255,255,0.1)" : "#00E5FF";
           const pct = Math.round((cell.count / max) * 100);
           return (
-            <div
-              key={cell.digit}
-              className="flex min-w-0 flex-1 flex-col items-center gap-1"
-            >
-              <span
-                className="font-mono text-[10px] tabular-nums"
-                style={{
-                  color: isMax
-                    ? "var(--green)"
-                    : isMin
-                      ? "var(--text-dim)"
-                      : "var(--text-secondary)",
-                }}
-              >
+            <div key={cell.digit} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+              <span style={{ fontSize: 11, fontFamily: "var(--font-jetbrains)", fontWeight: isMax ? 800 : 400, color: isMax ? "#00FF88" : isMin ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.5)" }}>
                 {cell.digit}
               </span>
-              <div className="h-1 w-full overflow-hidden bg-[var(--surface-3)]">
-                <div
-                  className="h-full"
-                  style={{
-                    width: `${pct}%`,
-                    backgroundColor: barColor,
-                    opacity: isMin ? 0.35 : isMax ? 1 : 0.65,
-                  }}
-                />
+              <div style={{ height: 40, width: "100%", display: "flex", alignItems: "flex-end" }}>
+                <div style={{ width: "100%", height: `${Math.max(pct, 4)}%`, backgroundColor: barColor, opacity: isMin ? 0.3 : isMax ? 1 : 0.6, borderRadius: 2 }} />
               </div>
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", fontFamily: "var(--font-jetbrains)" }}>
+                {cell.count}
+              </span>
             </div>
           );
         })}
@@ -546,10 +528,54 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
 
             {/* DIGIT STRENGTH */}
             {tab === "digit" && digit && (
-              <div>
+              <div className="pt-2">
                 {DIGIT_ROWS.map(({ key, label }) => (
                   <DigitRow key={key} label={label} data={digit[key]} />
                 ))}
+                {/* 冠军摘要 */}
+                <div style={{ marginTop: 16, marginBottom: 8 }}>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>STRONGEST DIGIT BY POSITION</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DIGIT_ROWS.map(({ key, label }) => {
+                      const data = digit[key];
+                      const max = Math.max(...data.map((d) => d.count), 1);
+                      const champion = data.find((d) => d.count === max);
+                      const total = data.reduce((a, b) => a + b.count, 0);
+                      const pct = total > 0 && champion ? Math.round((champion.count / total) * 100) : 0;
+                      return (
+                        <div key={key} style={{ background: "linear-gradient(135deg, #0a1a0a, #0a0e1a)", border: "1px solid rgba(0,255,136,0.15)", borderRadius: 10, padding: "12px 8px", textAlign: "center" }}>
+                          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</p>
+                          <p style={{ fontSize: 32, fontWeight: 900, color: "#00FF88", fontFamily: "var(--font-jetbrains)", lineHeight: 1 }}>{champion?.digit ?? "—"}</p>
+                          <p style={{ fontSize: 9, color: "rgba(0,255,136,0.5)", marginTop: 4 }}>{pct}% of draws</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* 尾数排行 */}
+                <div style={{ marginTop: 16 }}>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>UNITS DIGIT RANKING</p>
+                  <div className="space-y-1.5">
+                    {[...digit.units]
+                      .sort((a, b) => b.count - a.count)
+                      .map((cell, i) => {
+                        const max = Math.max(...digit.units.map((d) => d.count), 1);
+                        const pct = Math.round((cell.count / max) * 100);
+                        return (
+                          <div key={cell.digit} style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
+                            <div className="flex items-center gap-3">
+                              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", width: 20, flexShrink: 0 }}>{String(i + 1).padStart(2, "0")}</span>
+                              <span style={{ fontSize: 22, fontWeight: 800, color: i === 0 ? "#00FF88" : "#00E5FF", fontFamily: "var(--font-jetbrains)", width: 28, flexShrink: 0 }}>{cell.digit}</span>
+                              <div style={{ flex: 1, height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                                <div style={{ width: `${pct}%`, height: "100%", background: i === 0 ? "#00FF88" : "#00E5FF", opacity: 0.7, borderRadius: 2 }} />
+                              </div>
+                              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains)", flexShrink: 0 }}>{cell.count.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
               </div>
             )}
 
