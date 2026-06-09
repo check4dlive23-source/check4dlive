@@ -13,6 +13,7 @@ import type {
   PatternRow,
 } from "@/types/analytics";
 import { PageLayout } from "@/components/layout/PageLayout";
+import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 
 type Tab = "momentum" | "cold" | "digit" | "patterns" | "draws" | "top100";
@@ -123,7 +124,15 @@ function Skeleton() {
   );
 }
 
-function DigitRow({ label, data }: { label: string; data: DigitFrequency[] }) {
+function DigitRow({
+  label,
+  data,
+  t,
+}: {
+  label: string;
+  data: DigitFrequency[];
+  t: (key: TranslationKey) => string;
+}) {
   const max = Math.max(...data.map((d) => d.count), 1);
   const min = Math.min(...data.map((d) => d.count));
   const champion = data.find((d) => d.count === max);
@@ -133,7 +142,7 @@ function DigitRow({ label, data }: { label: string; data: DigitFrequency[] }) {
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</span>
         {champion && (
           <span style={{ fontSize: 11, fontFamily: "var(--font-jetbrains)", color: "#00FF88" }}>
-            strongest: <span style={{ fontSize: 16, fontWeight: 800 }}>{champion.digit}</span>
+            {t("strongestDigit")}: <span style={{ fontSize: 16, fontWeight: 800 }}>{champion.digit}</span>
           </span>
         )}
       </div>
@@ -530,11 +539,11 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
             {tab === "digit" && digit && (
               <div className="pt-2">
                 {DIGIT_ROWS.map(({ key, label }) => (
-                  <DigitRow key={key} label={label} data={digit[key]} />
+                  <DigitRow key={key} label={label} data={digit[key]} t={t} />
                 ))}
                 {/* 冠军摘要 */}
                 <div style={{ marginTop: 16, marginBottom: 8 }}>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>STRONGEST DIGIT BY POSITION</p>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{t("strongestByPosition")}</p>
                   <div className="grid grid-cols-4 gap-2">
                     {DIGIT_ROWS.map(({ key, label }) => {
                       const data = digit[key];
@@ -546,7 +555,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                         <div key={key} style={{ background: "linear-gradient(135deg, #0a1a0a, #0a0e1a)", border: "1px solid rgba(0,255,136,0.15)", borderRadius: 10, padding: "12px 8px", textAlign: "center" }}>
                           <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</p>
                           <p style={{ fontSize: 32, fontWeight: 900, color: "#00FF88", fontFamily: "var(--font-jetbrains)", lineHeight: 1 }}>{champion?.digit ?? "—"}</p>
-                          <p style={{ fontSize: 9, color: "rgba(0,255,136,0.5)", marginTop: 4 }}>{pct}% of draws</p>
+                          <p style={{ fontSize: 9, color: "rgba(0,255,136,0.5)", marginTop: 4 }}>{pct}%&nbsp;{t("ofDraws")}</p>
                         </div>
                       );
                     })}
@@ -554,7 +563,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                 </div>
                 {/* 尾数排行 */}
                 <div style={{ marginTop: 16 }}>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>UNITS DIGIT RANKING</p>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>{t("unitsRanking")}</p>
                   <div className="space-y-1.5">
                     {[...digit.units]
                       .sort((a, b) => b.count - a.count)
