@@ -1,7 +1,5 @@
 "use client";
-
 import { LogoBadge, resolveLottoLogo } from "@/components/ui/LogoBadge";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { LottoBallResult } from "@/types";
@@ -16,38 +14,34 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
   const { t } = useLang();
   const logo = resolveLottoLogo(data);
   const revealed = data.status !== "pending";
-  const hasJackpot =
-    data.jackpot1_amount != null ||
-    data.jackpot2_amount != null ||
-    data.jackpot_amount != null;
+  const hasJackpot = data.jackpot1_amount != null || data.jackpot2_amount != null || data.jackpot_amount != null;
+
+  const isSabah = data.operator === "sabah";
+  const isSG = data.operator === "sgpools";
+  const borderColor = isSabah ? "rgba(180,83,9,0.2)" : isSG ? "rgba(157,23,77,0.2)" : "rgba(255,51,51,0.15)";
+  const topColor = isSabah ? "#F59E0B" : isSG ? "#EC4899" : "#FF3333";
+  const headerBg = isSabah ? "rgba(180,83,9,0.06)" : isSG ? "rgba(157,23,77,0.06)" : "rgba(255,51,51,0.05)";
 
   return (
-    <article className="subpage-card overflow-hidden">
-      <header className="flex items-center gap-2 px-2.5 py-2 border-b border-line bg-surface-3">
+    <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: `1px solid ${borderColor}`, borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${topColor}, transparent)` }} />
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: headerBg, display: "flex", alignItems: "center", gap: 12 }}>
         <LogoBadge operator={logo} />
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-foreground">{data.displayName}</h3>
-          {data.subtitle && (
-            <p className="text-[10px] text-muted">{data.subtitle}</p>
-          )}
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{data.displayName}</h3>
+          {data.subtitle && <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{data.subtitle}</p>}
         </div>
-        <StatusTag status={data.status} />
+        <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+          {data.status === "drawn" ? t("completed") : t("pending")}
+        </span>
       </header>
-
-      <section className="px-3 py-4 space-y-2">
-        <LottoBalls
-          balls={data.balls}
-          bonus={data.bonus}
-          hasBonus={data.hasBonus}
-          size="md"
-          revealed={revealed}
-        />
+      <section style={{ padding: "14px" }}>
+        <LottoBalls balls={data.balls} bonus={data.bonus} hasBonus={data.hasBonus} size="md" revealed={revealed} />
         {revealed && hasJackpot && <LottoJackpotLines data={data} readable />}
       </section>
-
-      <footer className="flex justify-between px-2.5 py-1.5 text-[10px] text-dim border-t border-line">
-        <span>{formatDrawDate(data.date)}</span>
-        <span>{t("drawNoLabel")} {data.draw_no ?? "—"}</span>
+      <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(data.date)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {data.draw_no ?? "—"}</span>
       </footer>
     </article>
   );
