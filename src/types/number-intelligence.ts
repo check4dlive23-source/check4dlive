@@ -14,6 +14,9 @@ export interface NumberStatsPayload {
   last_seen_operator: string | null;
   last_seen_position: string | null;
   avg_gap_days: number | null;
+  max_gap_days: number | null;
+  min_gap_days: number | null;
+  max_consecutive: number | null;
   current_gap_days: number | null;
   heat_score: number | null;
   heat_level: HeatLevel;

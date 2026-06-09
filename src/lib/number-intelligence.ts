@@ -59,6 +59,48 @@ const URL_TO_V2_OPERATOR: Record<string, string> = {
 
 const HISTORY_FROM = "1985-01-01";
 
+function computeGapStats(dates: string[]): {
+  avg_gap_days: number | null;
+  max_gap_days: number | null;
+  min_gap_days: number | null;
+  max_consecutive: number | null;
+} {
+  if (dates.length < 2) {
+    return {
+      avg_gap_days: null,
+      max_gap_days: null,
+      min_gap_days: null,
+      max_consecutive: null,
+    };
+  }
+  const sorted = [...dates].sort((a, b) => a.localeCompare(b));
+  const gaps: number[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = Math.round(
+      (new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) /
+        86400000
+    );
+    gaps.push(diff);
+  }
+  const avg = Math.round(gaps.reduce((a, b) => a + b, 0) / gaps.length);
+  const max = Math.max(...gaps);
+  const min = Math.min(...gaps);
+  let maxConsec = 1;
+  let curConsec = 1;
+  for (let i = 0; i < gaps.length; i++) {
+    if (gaps[i] <= 7) {
+      curConsec++;
+      maxConsec = Math.max(maxConsec, curConsec);
+    } else curConsec = 1;
+  }
+  return {
+    avg_gap_days: avg,
+    max_gap_days: max,
+    min_gap_days: min,
+    max_consecutive: maxConsec,
+  };
+}
+
 interface StatsV2Row {
   number: string;
   operator: string;
@@ -297,6 +339,9 @@ function computeStatsFromAppearances(
     last_seen_operator: last?.operator ?? null,
     last_seen_position: last?.position ?? null,
     avg_gap_days: null,
+    max_gap_days: null,
+    min_gap_days: null,
+    max_consecutive: null,
     current_gap_days: currentGap,
     heat_score: Math.round(heatScore * 1000) / 1000,
     heat_level: computeHeatLevel(appearances.length, currentGap, null),
@@ -355,6 +400,9 @@ function aggregateStatsV2(
     last_seen_operator: lastSeenOperator,
     last_seen_position: lastSeenPosition,
     avg_gap_days: null,
+    max_gap_days: null,
+    min_gap_days: null,
+    max_consecutive: null,
     current_gap_days: currentGap,
     heat_score: Math.round(heatScore * 1000) / 1000,
     heat_level: computeHeatLevel(totalHits, currentGap, null),
@@ -644,6 +692,9 @@ function emptyResponse(number: string): NumberIntelligenceResponse {
     last_seen_operator: null,
     last_seen_position: null,
     avg_gap_days: null,
+    max_gap_days: null,
+    min_gap_days: null,
+    max_consecutive: null,
     current_gap_days: null,
     heat_score: null,
     heat_level: "cold",
@@ -726,6 +777,12 @@ export async function getNumberIntelligence(
     statsRows.length > 0
       ? aggregateStatsV2(number, statsRows, earliestDrawDate)
       : computeStatsFromAppearances(number, allAppearances);
+
+  const gapStats = computeGapStats(primaryDrawRows.map((r) => r.draw_date));
+  stats.avg_gap_days = gapStats.avg_gap_days;
+  stats.max_gap_days = gapStats.max_gap_days;
+  stats.min_gap_days = gapStats.min_gap_days;
+  stats.max_consecutive = gapStats.max_consecutive;
 
   const recent24mo = allAppearances.filter((row) => row.date >= since24mo);
   const recent = allAppearances.slice(0, 20).map(toRecentAppearance);
