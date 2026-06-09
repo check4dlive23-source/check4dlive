@@ -295,25 +295,19 @@ export function DrawExplorer() {
               return (
                 <div key={row.id} style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: `1px solid ${open ? "rgba(0,229,255,0.3)" : "rgba(0,229,255,0.08)"}`, borderRadius: 12, overflow: "hidden", transition: "border-color 0.2s" }}>
                   {/* 主行 */}
-                  <div className="flex items-center gap-3 cursor-pointer" style={{ padding: "12px 16px" }} onClick={() => setExpandedId(open ? null : row.id)}>
+                  <div className="flex items-center gap-2 cursor-pointer" style={{ padding: "12px 16px" }} onClick={() => setExpandedId(open ? null : row.id)}>
                     <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", width: 12, flexShrink: 0 }}>{open ? "▼" : "▶"}</span>
-                    <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0, width: 72 }}>
+                    <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", flexShrink: 0, width: 68 }}>
                       {formatDrawDate(row.date)}
                     </span>
-                    <span className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span style={{ flexShrink: 0, width: 28, display: "flex", alignItems: "center" }}>
                       <OperatorLogo operatorKey={row.operator} />
-                      <span className="font-sans truncate" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>
-                        {OPERATOR_LABELS[row.operator] ?? row.operator}
-                      </span>
                     </span>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="font-mono tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: "#FFD700" }}>{row.first_prize ?? "—"}</span>
-                      <span className="font-mono tabular-nums" style={{ fontSize: 13, color: "rgba(192,192,192,0.8)" }}>{row.second_prize ?? "—"}</span>
-                      <span className="font-mono tabular-nums" style={{ fontSize: 13, color: "rgba(205,127,50,0.8)" }}>{row.third_prize ?? "—"}</span>
+                    <div className="flex items-center flex-1 justify-end gap-2">
+                      <span className="font-mono tabular-nums" style={{ fontSize: 17, fontWeight: 800, color: "#FFD700", width: 44, textAlign: "right" }}>{row.first_prize ?? "—"}</span>
+                      <span className="font-mono tabular-nums" style={{ fontSize: 14, color: "rgba(192,192,192,0.8)", width: 44, textAlign: "right" }}>{row.second_prize ?? "—"}</span>
+                      <span className="font-mono tabular-nums" style={{ fontSize: 14, color: "rgba(205,127,50,0.8)", width: 44, textAlign: "right" }}>{row.third_prize ?? "—"}</span>
                     </div>
-                    {row.draw_no && (
-                      <span className="font-mono tabular-nums" style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>{row.draw_no}</span>
-                    )}
                   </div>
                   {/* 展开详情 */}
                   {open && (
