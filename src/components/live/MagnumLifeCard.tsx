@@ -1,7 +1,5 @@
 "use client";
-
 import { LogoBadge } from "@/components/ui/LogoBadge";
-import { StatusTag } from "@/components/ui/StatusTag";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, MagnumLifeExtra } from "@/types";
@@ -13,65 +11,43 @@ interface MagnumLifeCardProps {
   data: MagnumLifeExtra;
 }
 
-export function MagnumLifeCard({
-  date,
-  draw_no,
-  status,
-  data,
-}: MagnumLifeCardProps) {
+export function MagnumLifeCard({ date, draw_no, status, data }: MagnumLifeCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
-  const ballPending =
-    "flex h-11 w-11 items-center justify-center rounded-full border border-line/70 bg-surface-3/60 text-base font-bold font-number text-muted opacity-70";
-
   return (
-    <article className="subpage-card overflow-hidden">
-      <header
-        className="flex items-center gap-2 px-3 py-2.5 border-b border-line"
-        style={{ backgroundColor: "#FFD70018" }}
-      >
+    <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ height: 3, background: "linear-gradient(90deg, #FFD700, transparent)" }} />
+      <header style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,215,0,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
         <LogoBadge operator="magnum_life" />
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-foreground">Magnum Life</h3>
-          <p className="text-[10px] text-muted">8 winning + 2 bonus (1–36)</p>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>Magnum Life</h3>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>8 winning + 2 bonus (1–36)</p>
         </div>
-        <StatusTag status={status} />
+        <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
+          {status === "drawn" ? t("completed") : t("pending")}
+        </span>
       </header>
-      <section className="px-3 py-4">
-        <p className="text-[10px] text-muted mb-2">{t("winningNumbers")}</p>
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-          {(revealed ? data.winning : data.winning.map(() => 0)).map((n, i) => (
-            <span
-              key={`w-${i}-${n}`}
-              className={
-                revealed
-                  ? "flex h-11 w-11 items-center justify-center rounded-full bg-surface-4 text-base font-bold font-number border border-line"
-                  : ballPending
-              }
-            >
+      <section style={{ padding: "14px" }}>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{t("winningNumbers")}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2" style={{ marginBottom: 16 }}>
+          {data.winning.map((n, i) => (
+            <span key={`w-${i}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: revealed ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)", border: revealed ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 700, color: revealed ? "white" : "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)" }}>
               {revealed ? n : "—"}
             </span>
           ))}
         </div>
-        <p className="text-[10px] text-muted mb-2">{t("bonus")}</p>
+        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{t("bonus")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {(revealed ? data.bonus : data.bonus.map(() => 0)).map((n, i) => (
-            <span
-              key={`b-${i}-${n}`}
-              className={
-                revealed
-                  ? "flex h-11 w-11 items-center justify-center rounded-full bg-surface-3 text-base font-bold font-number border-2 border-gold text-gold"
-                  : ballPending
-              }
-            >
+          {data.bonus.map((n, i) => (
+            <span key={`b-${i}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: revealed ? "rgba(255,176,32,0.15)" : "rgba(255,255,255,0.05)", border: revealed ? "2px solid #FFB020" : "1px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 700, color: revealed ? "#FFB020" : "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)" }}>
               {revealed ? n : "—"}
             </span>
           ))}
         </div>
       </section>
-      <footer className="flex justify-between px-3 py-2 text-[10px] text-dim border-t border-line">
-        <span>{formatDrawDate(date)}</span>
-        <span>{t("drawNoLabel")} {draw_no ?? "—"}</span>
+      <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(date)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {draw_no ?? "—"}</span>
       </footer>
     </article>
   );
