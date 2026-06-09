@@ -277,6 +277,7 @@ export const damacai3Plus3D: Damacai3Plus3DExtra = {
     "268603",
     "475753",
   ],
+  jackpot3d_amount: 761470.60,
 };
 
 export const toto5D: Toto5DExtra = {

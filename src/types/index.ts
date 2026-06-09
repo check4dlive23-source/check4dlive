@@ -133,6 +133,7 @@ export interface Damacai3Plus3DExtra {
   prizes: Damacai3Plus3DPrize[];
   special: string[];
   consolation: string[];
+  jackpot3d_amount?: number;
 }
 
 export interface Sabah3DExtra {
