@@ -13,12 +13,12 @@ interface FiveDCardProps {
 }
 
 const tiers = [
-  { key: "first" as const, label: "1st (5D)" },
-  { key: "second" as const, label: "2nd (5D)" },
-  { key: "third" as const, label: "3rd (5D)" },
-  { key: "fourth" as const, label: "4th (4D)" },
-  { key: "fifth" as const, label: "5th (4D)" },
-  { key: "sixth" as const, label: "6th (3D)" },
+  { key: "first" as const, label: "1st" },
+  { key: "second" as const, label: "2nd" },
+  { key: "third" as const, label: "3rd" },
+  { key: "fourth" as const, label: "4th" },
+  { key: "fifth" as const, label: "5th" },
+  { key: "sixth" as const, label: "6th" },
 ];
 
 export function FiveDCard({ displayName, date, draw_no, status, prizes }: FiveDCardProps) {
@@ -39,7 +39,7 @@ export function FiveDCard({ displayName, date, draw_no, status, prizes }: FiveDC
       <section>
         {tiers.map(({ key, label }) => (
           <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 72 }}>{label}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 32 }}>{label}</span>
             <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: revealed ? "#00E5FF" : "rgba(255,255,255,0.1)", background: revealed ? "rgba(0,229,255,0.05)" : "transparent", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, padding: "4px 12px", minWidth: 80, textAlign: "center", display: "inline-block" }}>
               {revealed ? (prizes[key] ?? "—") : "----"}
             </span>
