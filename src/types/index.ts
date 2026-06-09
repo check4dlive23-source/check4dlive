@@ -1,4 +1,4 @@
-export type Region = "west" | "east" | "cambodia" | "singapore";
+export type Region = "west" | "east" | "singapore";
 
 export type OperatorId =
   | "magnum"

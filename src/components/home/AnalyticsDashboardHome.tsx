@@ -19,7 +19,7 @@ const SEARCH_OPERATORS = [
   { id: "singapore", logo: "/logos/sgpools.gif" },
 ] as const;
 
-const LIVE_REGIONS: Region[] = ["west", "east", "cambodia", "singapore"];
+const LIVE_REGIONS: Region[] = ["west", "east", "singapore"];
 
 const PARTICLES = [
   { top: "18%", left: "12%", size: 4, delay: "0s" },

@@ -196,7 +196,7 @@ export async function runLiveCronIngest(): Promise<{
   v2?: { upserted: number; operators: string[]; errors: string[] };
   error?: string;
 }> {
-  const regions: Region[] = ["west", "east", "cambodia", "singapore"];
+  const regions: Region[] = ["west", "east", "singapore"];
   const liveRegions = regions.filter((r) => isRegionLiveDraw(r));
   if (liveRegions.length === 0) {
     return { skipped: true };

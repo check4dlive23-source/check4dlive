@@ -118,15 +118,6 @@ function identify4dOperator(headerTable: string): OperatorMatch | null {
   if (headerTable.includes("logo_sabah88.gif") && /Sabah 88 4D/i.test(text) && !/Lotto/i.test(text)) {
     return { operator: "sabah", region: "east" };
   }
-  if (headerTable.includes("logo_gdlotto.jpg")) {
-    return { operator: "gd", region: "cambodia" };
-  }
-  if (headerTable.includes("logo_perdana.jpg")) {
-    return { operator: "perdana", region: "cambodia" };
-  }
-  if (headerTable.includes("logo_harihari.jpg")) {
-    return { operator: "hari", region: "cambodia" };
-  }
   return null;
 }
 

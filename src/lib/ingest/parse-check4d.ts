@@ -35,10 +35,6 @@ const COMPANY_MAP: Record<string, OperatorId> = {
 const REGION_PAGES: Partial<Record<Region, string[]>> = {
   west: ["https://www.check4dresult.com/"],
   east: ["https://www.check4dresult.com/sabah-sarawak-4d-results"],
-  cambodia: [
-    "https://www.check4dresult.com/grand-dragon-lotto",
-    "https://www.check4dresult.com/cambodia/",
-  ],
   singapore: ["https://www.check4dresult.com/singapore-4d-result"],
 };
 
@@ -217,7 +213,6 @@ function parseTotoExtras(block: string): Record<string, unknown> | undefined {
 }
 
 function regionForOperator(op: OperatorId): Region {
-  if (op === "gd" || op === "perdana" || op === "hari") return "cambodia";
   if (op === "sabah" || op === "sarawak" || op === "sandakan") return "east";
   if (op === "sgpools") return "singapore";
   return "west";
@@ -229,6 +224,9 @@ function parseCompanyBlock(
 ): ParsedDraw | null {
   const operator = COMPANY_MAP[company];
   if (!operator) return null;
+  if (operator === "gd" || operator === "perdana" || operator === "hari") {
+    return null;
+  }
 
   const date =
     field(block, "DrawDateIsoFormat") ??
@@ -303,7 +301,7 @@ export async function fetchCheck4dHtml(
   return res.text();
 }
 
-/** Scrape west, east, and cambodia operators from all known check4dresult pages */
+/** Scrape west, east, and singapore operators from all known check4dresult pages */
 export async function fetchAllCheck4dDraws(
   region?: Region
 ): Promise<ParsedDraw[]> {

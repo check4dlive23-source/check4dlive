@@ -11,14 +11,12 @@ function addDaysIso(iso: string, days: number): string {
 }
 
 function drawDaysForRegion(region: Region): number[] {
-  if (region === "cambodia") return [0, 1, 2, 3, 4, 5, 6];
   if (region === "singapore") return DRAW_DAYS_WSS;
   return DRAW_DAYS_WSS;
 }
 
 function drawCutoffHour(region: Region): number {
   if (region === "east") return 19.5;
-  if (region === "cambodia") return 19;
   if (region === "singapore") return 19.5;
   return 20;
 }

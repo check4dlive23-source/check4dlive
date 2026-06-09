@@ -15,7 +15,6 @@ import type { Region } from "@/types";
 export const INGEST_REGIONS: Region[] = [
   "west",
   "east",
-  "cambodia",
   "singapore",
 ];
 

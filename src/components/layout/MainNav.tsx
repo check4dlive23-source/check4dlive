@@ -8,7 +8,7 @@ import { isRegionLiveDraw } from "@/lib/draw-time";
 import { useLang } from "@/lib/language-context";
 import type { Region } from "@/types";
 
-const REGIONS: Region[] = ["west", "east", "cambodia", "singapore"];
+const REGIONS: Region[] = ["west", "east", "singapore"];
 
 /** True when any region is currently in its live-draw window (client-only). */
 function useAnyRegionLive(): boolean {

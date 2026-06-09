@@ -35,7 +35,6 @@ const DISPLAY_NAMES: Record<string, string> = {
 const SUBTITLES: Partial<Record<Region, string>> = {
   west: "Wed/Sat/Sun 7:00PM",
   east: "Wed/Sat/Sun 6:30PM",
-  cambodia: "Daily",
   singapore: "Wed/Sat/Sun 6:30PM SGT",
 };
 

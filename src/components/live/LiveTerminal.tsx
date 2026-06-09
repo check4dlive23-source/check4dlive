@@ -6,7 +6,6 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { LuckyModal } from "@/components/ui/LuckyModal";
 import { useLang } from "@/lib/language-context";
 import {
-  cambodiaMain4D,
   damacai3Plus3D,
   eastMain4D,
   magnumGold,
@@ -78,7 +77,6 @@ function CardGrid({
 
 const WEST_OPERATORS = ["magnum", "damacai", "toto"] as const;
 const EAST_OPERATORS = ["sabah", "sarawak", "sandakan"] as const;
-const CAMBODIA_OPERATORS = ["gd", "perdana", "hari"] as const;
 
 function LoadingSkeleton({ cols = 3 }: { cols?: 2 | 3 }) {
   const count = cols === 3 ? 3 : 2;
@@ -236,18 +234,6 @@ export function LiveTerminal() {
         eastMain4D,
         results,
         EAST_OPERATORS,
-        drawDayActive,
-        todayStr
-      ),
-    [results, drawDayActive, todayStr]
-  );
-
-  const cambodiaMain4DDisplay = useMemo(
-    () =>
-      mergeRegionDraws(
-        cambodiaMain4D,
-        results,
-        CAMBODIA_OPERATORS,
         drawDayActive,
         todayStr
       ),
@@ -437,19 +423,6 @@ export function LiveTerminal() {
                         status: drawDayActive ? "pending" : g.status,
                       }}
                     />
-                  ))}
-                </CardGrid>
-              </>
-            )}
-
-            {region === "cambodia" && (
-              <>
-                <p className="text-sm text-muted mb-4">
-                  {regionLabels.cambodia.schedule}
-                </p>
-                <CardGrid cols={3}>
-                  {cambodiaMain4DDisplay.map((d) => (
-                    <ResultCard key={d.operator} data={d} />
                   ))}
                 </CardGrid>
               </>

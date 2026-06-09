@@ -8,12 +8,11 @@ interface RegionTabsProps {
   onChange: (region: Region) => void;
 }
 
-const regions: Region[] = ["west", "east", "cambodia", "singapore"];
+const regions: Region[] = ["west", "east", "singapore"];
 
 const regionKeys = {
   west: "westMY",
   east: "eastMY",
-  cambodia: "cambodia",
   singapore: "singapore",
 } as const;
 

@@ -431,51 +431,6 @@ export const sabahLottoGames: LottoBallResult[] = [
   },
 ];
 
-export const cambodiaMain4D: DrawResult[] = [
-  {
-    operator: "gd",
-    region: "cambodia",
-    displayName: "Grand Dragon Lotto 4D",
-    subtitle: "Daily",
-    date: MOCK_DATE,
-    draw_no: "GD-1532",
-    status: "daily",
-    first_prize: "8821",
-    second_prize: "3047",
-    third_prize: "5196",
-    special_numbers: special13,
-    consolation_numbers: consolation10,
-  },
-  {
-    operator: "perdana",
-    region: "cambodia",
-    displayName: "Perdana 4D",
-    subtitle: "Daily",
-    date: MOCK_DATE,
-    draw_no: "P-882",
-    status: "daily",
-    first_prize: "1274",
-    second_prize: "6503",
-    third_prize: "9381",
-    special_numbers: special13,
-    consolation_numbers: consolation10,
-  },
-  {
-    operator: "hari",
-    region: "cambodia",
-    displayName: "Lucky Hari Hari 4D",
-    subtitle: "Daily",
-    date: MOCK_DATE,
-    draw_no: "HH-441",
-    status: "daily",
-    first_prize: "7032",
-    second_prize: "1845",
-    third_prize: "4268",
-    special_numbers: special13,
-    consolation_numbers: consolation10,
-  },
-];
-
 export const singapore4D: DrawResult = {
   operator: "sgpools",
   region: "singapore",
@@ -512,6 +467,5 @@ export const regionLabels: Record<
 > = {
   west: { flag: "🇲🇾", label: "西马", schedule: "主要 4D — 三/六/日 晚7PM" },
   east: { flag: "🏝", label: "东马", schedule: "东马 4D — 三/六/日 晚6:30PM" },
-  cambodia: { flag: "🇰🇭", label: "柬埔寨", schedule: "每日开奖" },
   singapore: { flag: "🇸🇬", label: "新加坡", schedule: "新加坡彩票" },
 };
