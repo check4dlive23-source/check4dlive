@@ -388,18 +388,20 @@ export function LiveTerminal() {
                 </div>
 
                 <SectionTitle>{t("damacaiOther")}</SectionTitle>
-                <Damacai3DCard
-                  date={damacaiDraw.date}
-                  draw_no={damacaiDraw.draw_no}
-                  status={damacaiDraw.status}
-                  data={damacai3DData}
-                />
-                <Damacai3Plus3DCard
-                  date={damacaiDraw.date}
-                  draw_no={damacaiDraw.draw_no}
-                  status={damacaiDraw.status}
-                  data={damacai3Plus3DData}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Damacai3DCard
+                    date={damacaiDraw.date}
+                    draw_no={damacaiDraw.draw_no}
+                    status={damacaiDraw.status}
+                    data={damacai3DData}
+                  />
+                  <Damacai3Plus3DCard
+                    date={damacaiDraw.date}
+                    draw_no={damacaiDraw.draw_no}
+                    status={damacaiDraw.status}
+                    data={damacai3Plus3DData}
+                  />
+                </div>
               </>
             )}
 

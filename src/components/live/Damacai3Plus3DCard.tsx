@@ -32,7 +32,7 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
             {data.prizes.map((p) => (
               <tr key={p.position} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <td style={{ padding: "8px 8px 8px 0", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", width: 32 }}>{p.position}</td>
-                <td style={{ padding: "8px 8px", fontFamily: "var(--font-jetbrains)", fontSize: 15, fontWeight: 700, color: revealed ? "white" : "rgba(255,255,255,0.1)", whiteSpace: "nowrap" }}>
+                <td style={{ padding: "8px 8px", fontFamily: "var(--font-jetbrains)", fontSize: 15, fontWeight: 700, color: revealed ? p.position === "1st" ? "#FFD700" : p.position === "2nd" ? "rgba(192,192,192,0.9)" : "rgba(205,127,50,0.9)" : "rgba(255,255,255,0.1)", whiteSpace: "nowrap" }}>
                   {revealed ? p.number : "------"}
                 </td>
                 <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{p.zodiac}</td>
