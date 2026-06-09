@@ -116,8 +116,8 @@ export function LogoBadge({ operator, className = "", size = 40 }: LogoBadgeProp
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden rounded-lg bg-white/95 ${className}`}
-      style={{ width: size, height: size }}
+      className={`relative shrink-0 overflow-hidden rounded-lg ${className}`}
+      style={{ width: size, height: size, background: "transparent" }}
     >
       {isGif ? (
         // eslint-disable-next-line @next/next/no-img-element
