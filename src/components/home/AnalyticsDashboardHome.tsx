@@ -398,17 +398,6 @@ export function AnalyticsDashboardHome({
         </div>
         <div className="absolute bottom-0 left-0 right-0 z-10">
           <div className="mx-auto w-full max-w-[390px] lg:max-w-3xl" style={{ padding: "0 22px 28px" }}>
-            <Link
-              href="/live"
-              className="mb-4 inline-flex items-center font-mono"
-              style={{ gap: 5, background: anyLive ? "rgba(0,255,136,0.12)" : "rgba(0,229,255,0.06)", border: anyLive ? "1px solid rgba(0,255,136,0.25)" : "1px solid rgba(0,229,255,0.15)", borderRadius: 100, padding: "5px 11px", fontSize: 10, color: anyLive ? "#00FF88" : "rgba(0,229,255,0.6)", textDecoration: "none" }}
-            >
-              <span
-                className={anyLive ? "animate-pulse rounded-full" : "rounded-full"}
-                style={{ width: 6, height: 6, backgroundColor: anyLive ? "#00FF88" : "rgba(0,229,255,0.4)", boxShadow: anyLive ? "0 0 8px #00FF88" : "none" }}
-              />
-              {anyLive ? t("liveDrawing") : t("liveDraw")}
-            </Link>
             {hero && !loading ? (
               <Link href={`/number/${hero.number}`} className="block">
                 <p className="font-mono tabular-nums" style={{ fontSize: 96, fontWeight: 900, color: "white", textShadow: "0 0 80px rgba(0,229,255,0.5), 0 0 160px rgba(0,229,255,0.25)", letterSpacing: "0.02em", lineHeight: 0.9 }}>
@@ -452,7 +441,30 @@ export function AnalyticsDashboardHome({
               <Link href={hero && !loading ? `/number/${hero.number}` : "#"} onClick={!hero || loading ? (e) => e.preventDefault() : undefined} className="flex-1 text-center font-sans" style={{ background: "#00E5FF", color: "#050816", fontWeight: 800, borderRadius: 10, padding: 14, boxShadow: "0 4px 28px rgba(0,229,255,0.4)", fontSize: 14 }}>
                 {t("viewDetails")}
               </Link>
-              <Link href="/live" className="flex-1 text-center font-sans backdrop-blur" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "white", borderRadius: 10, padding: 14, fontSize: 14, fontWeight: 600 }}>
+              <Link
+                href="/live"
+                className="flex-1 text-center font-sans backdrop-blur"
+                style={{
+                  background: anyLive ? "rgba(0,255,136,0.1)" : "rgba(255,255,255,0.08)",
+                  border: anyLive ? "1px solid rgba(0,255,136,0.4)" : "1px solid rgba(255,255,255,0.12)",
+                  color: anyLive ? "#00FF88" : "white",
+                  borderRadius: 10,
+                  padding: 14,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  textDecoration: "none",
+                }}
+              >
+                {anyLive && (
+                  <span
+                    className="animate-pulse rounded-full"
+                    style={{ width: 6, height: 6, backgroundColor: "#00FF88", boxShadow: "0 0 8px #00FF88", flexShrink: 0 }}
+                  />
+                )}
                 {t("liveDraw")}
               </Link>
             </div>
@@ -680,7 +692,7 @@ export function AnalyticsDashboardHome({
         </section>
 
         {/* SEO 热门号码 */}
-        <section style={{ padding: "0 22px", marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 24 }}>
+        <section style={{ padding: "0 22px", marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 24, paddingBottom: 120 }}>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{t("hotNumbersLabel")}</p>
           <div className="flex flex-wrap gap-2 mb-6">
             {SEO_HOT.map((n) => (
