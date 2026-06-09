@@ -235,7 +235,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           fetch(`/api/history?page=1${historyOp}${sq}`).then((r) => r.json()),
           noFilter
             ? Promise.resolve({ rows: hot })
-            : fetch(`/api/analytics/hot?period=100draws${oq}${sq}`).then((r) =>
+            : fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then((r) =>
                 r.json()
               ),
           noFilter

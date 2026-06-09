@@ -271,7 +271,7 @@ export async function computeColdNumbers(
 }
 
 export async function getTopHotNumbers(limit = 100): Promise<HotNumberRow[]> {
-  const { rows } = await getHotNumbers("100draws", {});
+  const { rows } = await getHotNumbers("100draws", { limit });
   return rows.slice(0, limit);
 }
 
