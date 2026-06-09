@@ -469,59 +469,35 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     <Link
                       key={row.number}
                       href={`/number/${row.number}`}
-                      className="block border-b py-1.5"
-                      style={{ borderColor: "var(--border-dim)" }}
+                      className="block mb-2"
+                      style={{ textDecoration: "none" }}
                     >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-5 shrink-0 font-mono text-[10px] tabular-nums"
-                          style={{ color: "var(--text-dim)" }}
-                        >
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span
-                          className="shrink-0 font-mono text-[24px] font-medium tabular-nums"
-                          style={{
-                            color: "var(--cyan)",
-                            letterSpacing: "0.08em",
-                          }}
-                        >
-                          {row.number}
-                        </span>
-                        <span
-                          className="ml-auto font-mono text-[11px] tabular-nums"
-                          style={{ color: "var(--green)" }}
-                        >
-                          {t("freq")} {row.total_hits}
-                        </span>
-                        {gap !== null && (
-                          <span
-                            className="font-mono text-[10px] tabular-nums"
-                            style={{ color: "var(--text-dim)" }}
-                          >
-                            {t("gap")} {gap}D
+                      <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.08)", borderRadius: 12, padding: "12px 16px", transition: "border-color 0.2s" }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.25)")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.08)")}>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", width: 20, flexShrink: 0 }}>
+                            {String(i + 1).padStart(2, "0")}
                           </span>
-                        )}
-                        <span
-                          className="w-14 shrink-0 text-right font-mono text-[10px] uppercase tracking-[0.08em]"
-                          style={{ color: label.color }}
-                        >
-                          {label.text}
-                        </span>
-                      </div>
-                      <div className="mt-0.5">
-                        <div
-                          className="h-0.5 w-full overflow-hidden"
-                          style={{ backgroundColor: "var(--surface-3)" }}
-                        >
-                          <div
-                            className="h-full"
-                            style={{
-                              width: `${barPct}%`,
-                              backgroundColor: "var(--cyan)",
-                              opacity: 0.6,
-                            }}
-                          />
+                          <span className="font-mono tabular-nums" style={{ fontSize: 28, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.08em", flex: 1 }}>
+                            {row.number}
+                          </span>
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="font-mono tabular-nums" style={{ fontSize: 12, color: "#00FF88", fontWeight: 600 }}>
+                              {t("freq")} {row.total_hits}
+                            </span>
+                            {gap !== null && (
+                              <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+                                {t("gap")} {gap}D
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", color: label.color, background: `${label.color}18`, border: `1px solid ${label.color}40`, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>
+                            {label.text}
+                          </span>
+                        </div>
+                        <div className="mt-2" style={{ height: 2, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                          <div style={{ width: `${barPct}%`, height: "100%", background: "linear-gradient(90deg, #00E5FF, #0080FF)", borderRadius: 2 }} />
                         </div>
                       </div>
                     </Link>
@@ -537,36 +513,32 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                   <Link
                     key={row.number}
                     href={`/number/${row.number}`}
-                    className="flex items-center gap-2 border-b py-1.5"
-                    style={{ borderColor: "var(--border-dim)" }}
+                    className="block mb-2"
+                    style={{ textDecoration: "none" }}
                   >
-                    <span
-                      className="w-5 shrink-0 font-mono text-[10px] tabular-nums"
-                      style={{ color: "var(--text-dim)" }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span
-                      className="shrink-0 font-mono text-[22px] font-medium tabular-nums"
-                      style={{
-                        color: "var(--muted)",
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      {row.number}
-                    </span>
-                    <span
-                      className="font-mono text-sm tabular-nums"
-                      style={{ color: "var(--amber)" }}
-                    >
-                      {row.gap_days}D
-                    </span>
-                    <span
-                      className="ml-auto font-sans text-[11px] uppercase tracking-[0.08em]"
-                      style={{ color: "var(--text-dim)" }}
-                    >
-                      {t("last")} {row.last_seen_date ?? "—"}
-                    </span>
+                    <div style={{ background: "linear-gradient(135deg, #1a0e0a, #0a0e1a)", border: "1px solid rgba(255,176,32,0.08)", borderRadius: 12, padding: "12px 16px" }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,176,32,0.25)")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,176,32,0.08)")}>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", width: 20, flexShrink: 0 }}>
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="font-mono tabular-nums" style={{ fontSize: 28, fontWeight: 800, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", flex: 1 }}>
+                          {row.number}
+                        </span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="font-mono tabular-nums" style={{ fontSize: 14, color: "#FFB020", fontWeight: 700 }}>
+                            {row.gap_days}D
+                          </span>
+                          <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+                            {t("last")} {row.last_seen_date ?? "—"}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 9, fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em", color: "#FFB020", background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>
+                          COLD
+                        </span>
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -733,53 +705,28 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                         <Link
                           key={row.number}
                           href={`/number/${row.number}`}
-                          className="block border-b py-1.5"
-                          style={{ borderColor: "var(--border-dim)" }}
+                          className="block mb-1.5"
+                          style={{ textDecoration: "none" }}
                         >
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-7 shrink-0 font-mono text-[10px] tabular-nums"
-                              style={{ color: "var(--text-dim)" }}
-                            >
-                              {String(i + 1).padStart(3, "0")}
-                            </span>
-                            <span
-                              className="shrink-0 font-mono text-[22px] font-medium tabular-nums"
-                              style={{
-                                color: "var(--cyan)",
-                                letterSpacing: "0.08em",
-                              }}
-                            >
-                              {row.number}
-                            </span>
-                            <span
-                              className="ml-auto font-mono text-[11px] tabular-nums"
-                              style={{ color: "var(--green)" }}
-                            >
-                              {t("freq")} {row.total_hits}
-                            </span>
-                            {gap !== null && (
-                              <span
-                                className="font-mono text-[10px] tabular-nums"
-                                style={{ color: "var(--text-dim)" }}
-                              >
-                                {t("gap")} {gap}D
+                          <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 10, padding: "10px 14px" }}>
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", width: 24, flexShrink: 0 }}>
+                                {String(i + 1).padStart(3, "0")}
                               </span>
-                            )}
-                          </div>
-                          <div className="mt-0.5 pl-9">
-                            <div
-                              className="h-px w-full overflow-hidden"
-                              style={{ backgroundColor: "var(--surface-3)" }}
-                            >
-                              <div
-                                className="h-full"
-                                style={{
-                                  width: `${barPct}%`,
-                                  backgroundColor: "var(--cyan)",
-                                  opacity: 0.4,
-                                }}
-                              />
+                              <span className="font-mono tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em", flex: 1 }}>
+                                {row.number}
+                              </span>
+                              <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "#00FF88" }}>
+                                {t("freq")} {row.total_hits}
+                              </span>
+                              {gap !== null && (
+                                <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                                  {gap}D
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1.5 pl-9" style={{ height: 2, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden" }}>
+                              <div style={{ width: `${barPct}%`, height: "100%", background: "rgba(0,229,255,0.5)", borderRadius: 2 }} />
                             </div>
                           </div>
                         </Link>
