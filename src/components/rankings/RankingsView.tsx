@@ -224,8 +224,8 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           selectedOperators.length === 0 && selectedPeriod === "all";
 
         const [h, c, d, p, draws, hotTop, coldTop] = await Promise.all([
-          fetch(`/api/analytics/hot?period=30d${oq}${sq}`).then((r) => r.json()),
-          fetch(`/api/analytics/cold?min_gap=30${oq}${sq}`).then((r) => r.json()),
+          fetch(`/api/analytics/hot?period=30d&limit=100${oq}${sq}`).then((r) => r.json()),
+          fetch(`/api/analytics/cold?min_gap=30&limit=100${oq}${sq}`).then((r) => r.json()),
           fetch(
             `/api/analytics/digit${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
