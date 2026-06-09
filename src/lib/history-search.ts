@@ -34,6 +34,7 @@ function heatLevel(total: number, gap: number): HeatLevel {
 
 export async function getDrawHistory(params: {
   date?: string;
+  dateTo?: string;
   operator?: string;
   page: number;
   pageSize?: number;
@@ -57,10 +58,22 @@ export async function getDrawHistory(params: {
       "id, draw_date, draw_no, operator, first_prize, second_prize, third_prize, special_numbers, consolation_numbers",
       { count: "exact" }
     )
-    .order("draw_date", { ascending: false });
+    .order("draw_date", { ascending: false })
+    .order("operator", { ascending: true });
 
-  if (params.date) query = query.eq("draw_date", params.date);
-  if (params.operator) query = query.eq("operator", params.operator);
+  if (params.date && params.dateTo && params.dateTo !== params.date) {
+    query = query.gte("draw_date", params.date).lte("draw_date", params.dateTo);
+  } else if (params.date) {
+    query = query.eq("draw_date", params.date);
+  }
+  if (params.operator) {
+    const ops = params.operator.split(",").map((s) => s.trim()).filter(Boolean);
+    if (ops.length === 1) {
+      query = query.eq("operator", ops[0]);
+    } else if (ops.length > 1) {
+      query = query.in("operator", ops);
+    }
+  }
 
   const from = (page - 1) * pageSize;
   const { data, count, error } = await query.range(from, from + pageSize - 1);

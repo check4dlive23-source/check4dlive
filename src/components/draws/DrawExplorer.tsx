@@ -20,19 +20,6 @@ import { useLang } from "@/lib/language-context";
 import { PageLayout } from "@/components/layout/PageLayout";
 import type { DrawListItem } from "@/types/analytics";
 
-const OPERATOR_LABELS: Record<string, string> = {
-  magnum: "Magnum",
-  damacai: "Damacai",
-  toto: "Toto",
-  sabah: "Sabah",
-  sarawak: "Cash Sweep",
-  sandakan: "Sandakan",
-  gd: "GD Lotto",
-  perdana: "Perdana",
-  hari: "Lucky HH",
-  sgpools: "SG Pools",
-};
-
 const OPERATOR_LOGOS: Record<string, string> = {
   magnum: "/logos/magnum.gif",
   damacai: "/logos/damacai.gif",
@@ -100,7 +87,8 @@ function OperatorLogo({
 export function DrawExplorer() {
   const { t } = useLang();
   const [date, setDate] = useState("");
-  const [operator, setOperator] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<DrawListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -120,13 +108,14 @@ export function DrawExplorer() {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page) });
     params.set("date", date);
-    if (operator) params.set("operator", operator);
+    if (dateTo && dateTo !== date) params.set("dateTo", dateTo);
+    if (selectedOperators.length > 0) params.set("operator", selectedOperators.join(","));
     const res = await fetch(`/api/history?${params}`);
     const data = await res.json();
     setItems(data.items ?? []);
     setTotal(data.total ?? 0);
     setLoading(false);
-  }, [date, operator, page]);
+  }, [date, dateTo, selectedOperators, page]);
 
   useEffect(() => {
     load();
@@ -134,10 +123,20 @@ export function DrawExplorer() {
 
   const applyQuickFilter = (mode: "today" | "yesterday" | "week" | "month") => {
     const today = todayMYT();
-    if (mode === "today") setDate(today);
-    else if (mode === "yesterday") setDate(addDaysIso(today, -1));
-    else if (mode === "week") setDate(addDaysIso(today, -7));
-    else setDate(startOfMonthIso(today));
+    if (mode === "today") {
+      setDate(today);
+      setDateTo(today);
+    } else if (mode === "yesterday") {
+      const y = addDaysIso(today, -1);
+      setDate(y);
+      setDateTo(y);
+    } else if (mode === "week") {
+      setDate(addDaysIso(today, -7));
+      setDateTo(today);
+    } else {
+      setDate(startOfMonthIso(today));
+      setDateTo(today);
+    }
     setPage(1);
     setExpandedId(null);
   };
@@ -213,7 +212,7 @@ export function DrawExplorer() {
         </div>
 
         {/* Date + operator filters */}
-        <div className="mt-4 flex flex-wrap items-end gap-3">
+        <div className="mt-4 space-y-4">
           <label
             className="font-sans text-[10px] uppercase"
             style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
@@ -231,29 +230,40 @@ export function DrawExplorer() {
               style={inputStyle}
             />
           </label>
-          <label
-            className="font-sans text-[10px] uppercase"
-            style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}
-          >
-            {t("operatorLabel")}
-            <select
-              value={operator}
-              onChange={(e) => {
-                setOperator(e.target.value);
-                setPage(1);
-                setExpandedId(null);
-              }}
-              className="mt-1 block min-w-[160px] rounded-none px-3 py-2 font-mono text-sm"
-              style={inputStyle}
-            >
-              <option value="">{t("allOperators")}</option>
-              {OPERATORS.map((op) => (
-                <option key={op} value={op}>
-                  {OPERATOR_LABELS[op] ?? op}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div>
+            <p className="font-sans text-[10px] uppercase mb-2" style={{ letterSpacing: "0.08em", color: "var(--text-dim)" }}>{t("operatorLabel")}</p>
+            <div className="flex gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedOperators([])}
+                className="rounded font-sans text-[10px] uppercase"
+                style={{ padding: "6px 10px", border: selectedOperators.length === 0 ? "1px solid var(--cyan)" : "1px solid rgba(0,229,255,0.15)", background: selectedOperators.length === 0 ? "rgba(0,229,255,0.08)" : "transparent", color: selectedOperators.length === 0 ? "var(--cyan)" : "var(--text-dim)", borderRadius: 8 }}
+              >
+                {t("allOperators")}
+              </button>
+              {OPERATORS.map((op) => {
+                const active = selectedOperators.includes(op);
+                return (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => {
+                      setSelectedOperators(prev =>
+                        prev.includes(op) ? prev.filter(o => o !== op) : [...prev, op]
+                      );
+                      setPage(1);
+                      setExpandedId(null);
+                    }}
+                    className="shrink-0 rounded"
+                    style={{ padding: "6px 10px", border: active ? "1px solid var(--cyan)" : "1px solid rgba(0,229,255,0.15)", background: active ? "rgba(0,229,255,0.08)" : "transparent", borderRadius: 8 }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={OPERATOR_LOGOS[op] ?? ""} alt={op} style={{ height: 20, width: "auto", display: "block" }} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <button
             type="button"
             onClick={downloadCsv}
