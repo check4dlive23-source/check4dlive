@@ -809,7 +809,7 @@ export async function getNumberIntelligence(
     number,
     stats,
     timeline: buildTimeline(recent24mo),
-    breakdown: buildBreakdown(recent24mo),
+    breakdown: buildBreakdown(allAppearances),
     recent,
     history: {
       groups: historyGroups,

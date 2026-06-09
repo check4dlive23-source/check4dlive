@@ -215,7 +215,7 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
                 </span>
                 {stats.current_gap_days != null && (
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-                    ({stats.current_gap_days} {t("days")} {t("daysAgo")})
+                    ({stats.current_gap_days} {t("daysAgo")})
                   </span>
                 )}
               </div>
@@ -303,7 +303,7 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
                   </div>
                   <p className="font-number" style={{ fontSize: 28, fontWeight: 800, color: "white" }}>{b.total}</p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
-                    {b.first > 0 && `1st×${b.first} `}{b.special > 0 && `Sp×${b.special} `}{b.consolation > 0 && `Cn×${b.consolation}`}
+                    {b.first > 0 && `🥇×${b.first} `}{b.special > 0 && `特×${b.special} `}{b.consolation > 0 && `慰×${b.consolation}`}
                   </p>
                 </div>
               ))}
@@ -334,7 +334,9 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
                   onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.4)")}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.12)")}>
                   <span className="font-number" style={{ fontSize: 20, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.15em" }}>{r.number}</span>
-                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em" }}>{r.reason}</span>
+                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em" }}>
+                    {r.reason === "same_last2" ? (lang === "zh" ? "尾2相同" : "Same last 2") : (lang === "zh" ? "排列" : "Permutation")}
+                  </span>
                 </a>
               ))}
             </div>
