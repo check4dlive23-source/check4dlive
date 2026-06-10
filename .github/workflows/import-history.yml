@@ -1,0 +1,42 @@
+name: Import Historical Draw Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      operator:
+        description: 'Operator (sabah / sandakan)'
+        required: true
+        default: 'sabah'
+      from:
+        description: 'From date (YYYY-MM-DD)'
+        required: true
+        default: '2020-01-01'
+      to:
+        description: 'To date (YYYY-MM-DD)'
+        required: true
+        default: '2026-06-10'
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run import
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "${{ inputs.operator }}" = "sabah" ]; then
+            npx tsx src/scripts/import-sabah88-history.ts --from=${{ inputs.from }} --to=${{ inputs.to }} --delay=500
+          elif [ "${{ inputs.operator }}" = "sandakan" ]; then
+            npx tsx src/scripts/import-stc-history.ts --from=${{ inputs.from }} --to=${{ inputs.to }} --delay=500
+          else
+            echo "Unknown operator: ${{ inputs.operator }}"
+            exit 1
+          fi
