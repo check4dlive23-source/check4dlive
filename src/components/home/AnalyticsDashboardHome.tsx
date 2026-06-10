@@ -20,6 +20,16 @@ const SEARCH_OPERATORS = [
   { id: "singapore", logo: "/logos/sgpools.gif" },
 ] as const;
 
+const OPERATOR_CONFIG = [
+  { id: "magnum", label: "Magnum", emoji: "🟡", color: "#FFD700", logo: "/logos/magnum.gif" },
+  { id: "damacai", label: "Damacai", emoji: "🔵", color: "#4466FF", logo: "/logos/damacai.gif" },
+  { id: "toto", label: "Toto", emoji: "🔴", color: "#FF3333", logo: "/logos/toto.gif" },
+  { id: "sabah88", label: "Sabah 88", emoji: "🟠", color: "#F59E0B", logo: "/logos/sabah88.gif" },
+  { id: "stc", label: "STC", emoji: "🟠", color: "#F59E0B", logo: "/logos/sandakan.gif" },
+  { id: "cashsweep", label: "CashSweep", emoji: "🟢", color: "#00FF88", logo: "/logos/cashsweep.gif" },
+  { id: "singapore", label: "SG Pools", emoji: "🩷", color: "#EC4899", logo: "/logos/sgpools.gif" },
+] as const;
+
 const LIVE_REGIONS: Region[] = ["west", "east", "singapore"];
 
 const PARTICLES = [
@@ -273,6 +283,7 @@ interface AnalyticsDashboardHomeProps {
   initialWeeklyHero: HotNumberRow | null;
   initialRising: HotNumberRow[];
   initialLastWeekRank: number | null;
+  initialOperatorHot: { operator: string; topNumber: string | null; totalHits: number }[];
 }
 
 export function AnalyticsDashboardHome({
@@ -281,6 +292,7 @@ export function AnalyticsDashboardHome({
   initialWeeklyHero,
   initialRising,
   initialLastWeekRank,
+  initialOperatorHot,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
   const { t } = useLang();
@@ -661,6 +673,45 @@ export function AnalyticsDashboardHome({
             </div>
           </section>
         )}
+
+        <section className="mt-8">
+          <div className="flex items-center justify-between" style={{ marginBottom: 12, padding: "0 22px" }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: 16, color: "#fff" }}>{t("operatorSection")}</h2>
+            <span style={{ fontSize: 11, color: "rgba(0,229,255,0.6)", letterSpacing: "0.05em" }}>{t("operatorSubtitle")}</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", padding: "0 22px" }}>
+            {OPERATOR_CONFIG.map((op) => {
+              const data = initialOperatorHot.find((o) => o.operator === op.id);
+              return (
+                <Link
+                  key={op.id}
+                  href={`/operator/${op.id}`}
+                  className="relative block shrink-0 overflow-hidden rounded-2xl"
+                  style={{ width: 148, height: 180 }}
+                >
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0d1f3c 0%, #0a0e1a 100%)" }} />
+                  <div className="absolute" style={{ top: -30, left: -30, width: 140, height: 140, background: `radial-gradient(circle, ${op.color}40, transparent 65%)` }} />
+                  <div className="absolute left-0 right-0 top-0" style={{ height: 2, background: `linear-gradient(90deg, ${op.color}, transparent)` }} />
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ border: `1px solid ${op.color}30` }} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={op.logo} alt={op.label} style={{ position: "absolute", top: 12, left: 14, height: 18, width: "auto" }} />
+                  <span className="absolute font-mono uppercase" style={{ top: 12, right: 10, fontSize: 9, color: op.color, background: `${op.color}26`, borderRadius: 100, padding: "3px 7px" }}>
+                    #1 HOT
+                  </span>
+                  <span className="absolute font-mono tabular-nums" style={{ bottom: 50, left: 16, fontSize: 44, fontWeight: 900, color: "white", textShadow: `0 0 30px ${op.color}99`, lineHeight: 1 }}>
+                    {data?.topNumber ?? "----"}
+                  </span>
+                  <span className="absolute font-mono font-semibold tabular-nums" style={{ bottom: 30, left: 16, fontSize: 11, color: op.color }}>
+                    {data?.totalHits ? `${t("operatorHotLabel")} ${data.totalHits}` : t("operatorNoData")}
+                  </span>
+                  <span className="absolute font-mono" style={{ bottom: 14, left: 16, fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+                    {t("operatorClickHint")}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
 
         {/* 数据仪表盘 */}
         <section className="mt-8" style={{ padding: "0 22px" }}>
