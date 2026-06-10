@@ -23,6 +23,8 @@ const V2_BREAKDOWN_OPERATORS = [
   "toto",
   "cashsweep",
   "singapore",
+  "sabah88",
+  "stc",
 ] as const;
 
 type V2BreakdownOperator = (typeof V2_BREAKDOWN_OPERATORS)[number];
@@ -33,6 +35,8 @@ const V2_OPERATOR_LABELS: Record<V2BreakdownOperator, string> = {
   toto: "Sports Toto",
   cashsweep: "Cash Sweep",
   singapore: "Singapore Pools",
+  sabah88: "Sabah 88",
+  stc: "STC Sandakan",
 };
 
 /** Map draw_results_v2 / number_stats_v2 operator → OperatorId for API types */

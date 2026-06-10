@@ -173,14 +173,15 @@ export async function computeHotNumbers(
             )
           )
         : 999;
-      const heat = calculateHeatScore(v.total, 30, gap);
+      const avgGap = v.total > 0 ? 30 : 999;
+      const heat = calculateHeatScore(v.total, Math.max(30, gap + 1), gap);
       return {
         number,
         total_hits: v.total,
         first_hits: v.first,
         last_seen: v.last || null,
         heat_score: Math.round(heat * 1000) / 1000,
-        heat_level: heatLevel(v.total, gap, 30),
+        heat_level: heatLevel(v.total, gap, avgGap),
       };
     })
     .sort((a, b) => b.total_hits - a.total_hits)
@@ -762,7 +763,7 @@ export async function getRisingNumbers(
     map90d.set(n, cur);
   }
 
-  // 黑马：近7天有出现，且 7天占比 > 40%（近期突然活跃）
+  // 黑马：近7天有出现，且 7天占比 >= 30%（近期突然活跃）
   const rising: HotNumberRow[] = [];
   for (const entry of Array.from(map7d.entries())) {
     const number = entry[0];
@@ -770,7 +771,7 @@ export async function getRisingNumbers(
     const data90d = map90d.get(number);
     if (!data90d) continue;
     const ratio = hits7d / data90d.total; // 近7天占90天总出现比例
-    if (ratio >= 0.3 && data90d.total <= 10) {
+    if (ratio >= 0.3 && data90d.total <= 15) {
       // 比例高且总次数不多（历史不热门）
       rising.push({
         number,
