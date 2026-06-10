@@ -541,37 +541,56 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
 
             {/* PATTERN SIGNALS */}
             {tab === "patterns" && (
-              <div className="space-y-4 pt-2">
-                {groupedPatterns.map(([pattern, rows]) => (
-                  <div key={pattern}>
-                    <h3 style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8, marginTop: 16 }}>
-                      {pattern}
-                    </h3>
-                    <div>
-                      {rows.map((r, idx) => (
-                        <Link
-                          key={`${r.example}-${idx}`}
-                          href={`/number/${r.example}`}
-                          className="block mb-1.5"
-                          style={{ textDecoration: "none" }}
-                        >
-                          <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 8, padding: "8px 14px" }}
-                            onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.2)")}
-                            onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.06)")}>
-                            <div className="flex items-center justify-between">
-                              <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em" }}>
-                                {r.example}
-                              </span>
-                              <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-                                {r.hit_count}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
+              <div className="space-y-6 pt-2">
+                {groupedPatterns.map(([pattern, rows]) => {
+                  const sorted = [...rows].sort((a, b) => b.hit_count - a.hit_count);
+                  return (
+                    <div key={pattern}>
+                      <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+                        <h3 className="font-mono font-bold uppercase" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em" }}>
+                          {pattern}
+                        </h3>
+                        <span className="font-mono" style={{ fontSize: 10, color: "rgba(0,229,255,0.5)" }}>
+                          {sorted.length} {t("numbers")}
+                        </span>
+                      </div>
+                      <div className="overflow-hidden rounded-xl" style={{ border: "1px solid rgba(0,229,255,0.08)" }}>
+                        <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                          <table className="w-full" style={{ minWidth: 280 }}>
+                            <thead className="sticky top-0 z-10" style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)" }}>
+                              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                                <th className="font-mono" style={{ padding: "8px 12px", fontSize: 10, color: "rgba(255,255,255,0.3)", textAlign: "left", width: 32 }}>#</th>
+                                <th className="font-mono" style={{ padding: "8px 12px", fontSize: 10, color: "rgba(255,255,255,0.3)", textAlign: "left" }}>{t("number")}</th>
+                                <th className="font-mono" style={{ padding: "8px 12px", fontSize: 10, color: "rgba(255,255,255,0.3)", textAlign: "right" }}>{t("freq")}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sorted.map((r, idx) => (
+                                <tr key={`${r.example}-${idx}`}
+                                  style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,229,255,0.04)")}
+                                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                >
+                                  <td className="font-mono tabular-nums" style={{ padding: "8px 12px", fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
+                                    {String(idx + 1).padStart(2, "0")}
+                                  </td>
+                                  <td style={{ padding: "8px 12px" }}>
+                                    <Link href={`/number/${r.example}`} className="font-mono tabular-nums font-bold" style={{ fontSize: 20, color: "#00E5FF", textDecoration: "none", letterSpacing: "0.08em" }}>
+                                      {r.example}
+                                    </Link>
+                                  </td>
+                                  <td className="font-mono tabular-nums" style={{ padding: "8px 12px", fontSize: 13, color: "#00FF88", fontWeight: 600, textAlign: "right" }}>
+                                    {r.hit_count}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
