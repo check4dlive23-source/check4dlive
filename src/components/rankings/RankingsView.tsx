@@ -8,7 +8,6 @@ import type {
   ColdNumberRow,
   DigitAnalysis,
   DigitFrequency,
-  DrawListItem,
   HotNumberRow,
   PatternRow,
 } from "@/types/analytics";
@@ -16,7 +15,7 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 
-type Tab = "momentum" | "cold" | "digit" | "patterns" | "draws" | "top100";
+type Tab = "momentum" | "cold" | "digit" | "patterns" | "top100";
 type Top100Tab = "hot" | "cold" | "first";
 
 const SEARCH_OPERATORS = [
@@ -28,17 +27,6 @@ const SEARCH_OPERATORS = [
   { id: "sandakan", logo: "/logos/sandakan.gif" },
   { id: "singapore", logo: "/logos/sgpools.gif" },
 ] as const;
-
-/** draw history v1 operator column */
-const OPERATOR_TO_DRAW: Record<string, string> = {
-  magnum: "magnum",
-  damacai: "damacai",
-  toto: "toto",
-  cashsweep: "sarawak",
-  sabah: "sabah",
-  sandakan: "sandakan",
-  singapore: "sgpools",
-};
 
 function operatorsQuery(operators: string[]): string {
   return operators.length
@@ -67,37 +55,6 @@ function sinceDateFromPeriod(period: Period, today: string): string | undefined 
   d.setDate(d.getDate() - days);
   return d.toISOString().split("T")[0];
 }
-
-const DRAW_OPERATOR_LOGOS: Record<string, string> = {
-  magnum: "/logos/magnum.gif",
-  damacai: "/logos/damacai.gif",
-  toto: "/logos/toto.gif",
-  sarawak: "/logos/cashsweep.gif",
-  cashsweep: "/logos/cashsweep.gif",
-  sgpools: "/logos/sgpools.gif",
-  singapore: "/logos/sgpools.gif",
-  sabah: "/logos/sabah88.gif",
-  sabah88: "/logos/sabah88.gif",
-  sandakan: "/logos/sandakan.gif",
-  stc: "/logos/sandakan.gif",
-};
-
-const DRAW_OPERATOR_LABELS: Record<string, string> = {
-  magnum: "Magnum",
-  damacai: "Damacai",
-  toto: "Toto",
-  sarawak: "Cash Sweep",
-  cashsweep: "Cash Sweep",
-  sgpools: "SG Pools",
-  singapore: "SG Pools",
-  sabah: "Sabah",
-  sabah88: "Sabah 88",
-  sandakan: "Sandakan",
-  stc: "Sandakan 4D",
-  gd: "GD Lotto",
-  perdana: "Perdana",
-  hari: "Lucky HH",
-};
 
 interface RankingsViewProps {
   hot: HotNumberRow[];
@@ -190,7 +147,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const [coldReversal, setColdReversal] = useState<ColdNumberRow[]>([]);
   const [digit, setDigit] = useState<DigitAnalysis | null>(null);
   const [patterns, setPatterns] = useState<PatternRow[]>([]);
-  const [drawRecords, setDrawRecords] = useState<DrawListItem[]>([]);
   const [top100Hot, setTop100Hot] = useState<HotNumberRow[]>(hot);
   const [top100Cold, setTop100Cold] = useState<ColdNumberRow[]>(cold);
   const [top100First, setTop100First] = useState<HotNumberRow[]>(firstPrize);
@@ -205,16 +161,12 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     (async () => {
       const oq = operatorsQuery(selectedOperators);
       const sq = sinceQuery(sinceDateFromPeriod(selectedPeriod, today));
-      const historyOp =
-        selectedOperators.length === 1
-          ? `&operator=${encodeURIComponent(OPERATOR_TO_DRAW[selectedOperators[0]] ?? selectedOperators[0])}`
-          : "";
       const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
       try {
         const noFilter =
           selectedOperators.length === 0 && selectedPeriod === "all";
 
-        const [h, c, d, p, draws, hotTop, coldTop] = await Promise.all([
+        const [h, c, d, p, hotTop, coldTop] = await Promise.all([
           fetch(`/api/analytics/hot?period=30d&limit=100${oq}${sq}`).then((r) => r.json()),
           fetch(`/api/analytics/cold?min_gap=30&limit=100${oq}${sq}`).then((r) => r.json()),
           fetch(
@@ -223,7 +175,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           fetch(
             `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
-          fetch(`/api/history?page=1${historyOp}${sq}`).then((r) => r.json()),
           noFilter
             ? Promise.resolve({ rows: hot })
             : fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then((r) =>
@@ -245,7 +196,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           units: d.units ?? d.data?.units ?? [],
         });
         setPatterns(p.rows ?? []);
-        setDrawRecords(draws.items ?? []);
 
         if (selectedOperators.length === 0 && selectedPeriod === "all") {
           setTop100Hot(hot);
@@ -278,14 +228,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     [top100Hot]
   );
 
-  const filteredDrawRecords = useMemo(() => {
-    if (selectedOperators.length === 0) return drawRecords;
-    const drawOps = new Set(
-      selectedOperators.map((op) => OPERATOR_TO_DRAW[op] ?? op)
-    );
-    return drawRecords.filter((r) => drawOps.has(r.operator));
-  }, [drawRecords, selectedOperators]);
-
   const groupedPatterns = useMemo(() => {
     const m = new Map<string, PatternRow[]>();
     for (const r of patterns) {
@@ -306,7 +248,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     { key: "cold" as const, label: t("coldReversal") },
     { key: "digit" as const, label: t("digitStrength") },
     { key: "patterns" as const, label: t("patternSignals") },
-    { key: "draws" as const, label: t("drawRecords") },
     { key: "top100" as const, label: t("top100") },
   ];
 
@@ -621,58 +562,6 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {/* DRAW RECORDS */}
-            {tab === "draws" && (
-              <div>
-                {filteredDrawRecords.length === 0 ? (
-                  <p
-                    className="py-4 font-sans text-[11px]"
-                    style={{ color: "var(--text-dim)" }}
-                  >
-                    {t("noDrawRecords")}
-                  </p>
-                ) : (
-                  filteredDrawRecords.slice(0, 10).map((row) => (
-                    <Link
-                      key={row.id}
-                      href={`/draw/${row.date}-${row.operator}`}
-                      className="block mb-2"
-                      style={{ textDecoration: "none" }}
-                    >
-                      <div style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.06)", borderRadius: 10, padding: "10px 14px" }}
-                        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.2)")}
-                        onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.06)")}>
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>
-                            {formatDrawDate(row.date)}
-                          </span>
-                          <span className="flex items-center gap-1.5 flex-1 min-w-0">
-                            {DRAW_OPERATOR_LOGOS[row.operator] && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={DRAW_OPERATOR_LOGOS[row.operator]} alt={row.operator} style={{ height: 16, width: "auto", display: "block", flexShrink: 0 }} />
-                            )}
-                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em" }}>
-                              {DRAW_OPERATOR_LABELS[row.operator] ?? row.operator}
-                            </span>
-                          </span>
-                          <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em", flexShrink: 0 }}>
-                            {row.first_prize ?? "—"}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))
-                )}
-                <Link
-                  href="/draws"
-                  className="block mt-3 text-center"
-                  style={{ padding: "10px", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.15)", borderRadius: 10, fontSize: 12, color: "#00E5FF", textDecoration: "none", letterSpacing: "0.08em" }}
-                >
-                  {t("viewFullRecords")} →
-                </Link>
               </div>
             )}
 
