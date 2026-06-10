@@ -1,14 +1,15 @@
 /**
- * 全量回填 number_scores：
- * 读 draw_results_v2 全部期数 → 展开每期号码 → 聚合 → computeAllScores → upsert。
- * 模式照抄 aggregate-stats-v2.ts（分页读 1000 / 分批写 500）。
+ * 全量回填 number_scores（127 scope × 10,000 号码）：
+ * 读 draw_results_v2 按单运营商分桶 → 126 组合 + all 合并 → computeAllScores → upsert。
  * Run: npm run backfill:scores
  */
 import { loadEnvLocal } from "@/lib/script-env";
 import { createServerClient } from "@/lib/supabase/server";
+import { V2_OPERATORS } from "@/lib/score/config";
 import {
   computeAllScores,
   type NumberAggregate,
+  type NumberScoreRow,
 } from "@/lib/score/compute";
 
 loadEnvLocal();
@@ -16,8 +17,11 @@ loadEnvLocal();
 const PAGE = 1000;
 const UPSERT_BATCH = 500;
 
+const V2_OP_SET = new Set<string>(V2_OPERATORS);
+
 interface DrawRow {
   draw_date: string;
+  operator: string;
   first_prize: string | null;
   second_prize: string | null;
   third_prize: string | null;
@@ -43,6 +47,82 @@ function daysAgoISO(days: number): string {
   return d.toISOString().split("T")[0];
 }
 
+function allCombos(ops: readonly string[]): string[][] {
+  const out: string[][] = [];
+  const n = ops.length;
+  for (let mask = 1; mask < 1 << n; mask++) {
+    const combo: string[] = [];
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) combo.push(ops[i]);
+    out.push(combo);
+  }
+  return out;
+}
+
+function accMapToAggregates(merged: Map<string, Acc>): NumberAggregate[] {
+  return Array.from(merged.entries()).map(([number, a]) => ({
+    number,
+    totalHits: a.totalHits,
+    hits30d: a.hits30d,
+    hits90d: a.hits90d,
+    hits365d: a.hits365d,
+    uniqueDates: Array.from(a.dates).sort(),
+  }));
+}
+
+function mergeBuckets(
+  accByOp: Map<string, Map<string, Acc>>,
+  opsInScope: string[]
+): Map<string, Acc> {
+  const merged = new Map<string, Acc>();
+  for (const op of opsInScope) {
+    const bucket = accByOp.get(op);
+    if (!bucket) continue;
+    for (const [num, a] of Array.from(bucket.entries())) {
+      let m = merged.get(num);
+      if (!m) {
+        m = {
+          totalHits: 0,
+          hits30d: 0,
+          hits90d: 0,
+          hits365d: 0,
+          dates: new Set(),
+        };
+        merged.set(num, m);
+      }
+      m.totalHits += a.totalHits;
+      m.hits30d += a.hits30d;
+      m.hits90d += a.hits90d;
+      m.hits365d += a.hits365d;
+      for (const d of Array.from(a.dates)) m.dates.add(d);
+    }
+  }
+  return merged;
+}
+
+async function upsertScopeRows(
+  supabase: NonNullable<ReturnType<typeof createServerClient>>,
+  scope: string,
+  rows: NumberScoreRow[]
+): Promise<void> {
+  for (let i = 0; i < rows.length; i += UPSERT_BATCH) {
+    const batch = rows.slice(i, i + UPSERT_BATCH).map((r) => ({
+      ...r,
+      updated_at: new Date().toISOString(),
+    }));
+    const { error } = await supabase
+      .from("number_scores")
+      .upsert(batch, { onConflict: "number,scope" });
+    if (error) {
+      console.error(
+        `Upsert error scope=${scope} batch=${i}:`,
+        error.message
+      );
+      process.exit(1);
+    }
+  }
+  console.log(`[${scope}] ${rows.length} rows upserted`);
+}
+
 async function main() {
   const supabase = createServerClient();
   if (!supabase) {
@@ -55,13 +135,21 @@ async function main() {
   const d90 = daysAgoISO(90);
   const d365 = daysAgoISO(365);
 
-  const acc = new Map<string, Acc>();
+  const accByOp = new Map<string, Map<string, Acc>>();
+  for (const op of V2_OPERATORS) accByOp.set(op, new Map());
 
-  function record(num: unknown, drawDate: string) {
-    if (!isValid4D(num)) return;
+  function record(op: string, num: unknown, drawDate: string) {
+    if (!V2_OP_SET.has(op) || !isValid4D(num)) return;
+    const acc = accByOp.get(op)!;
     let a = acc.get(num);
     if (!a) {
-      a = { totalHits: 0, hits30d: 0, hits90d: 0, hits365d: 0, dates: new Set() };
+      a = {
+        totalHits: 0,
+        hits30d: 0,
+        hits90d: 0,
+        hits365d: 0,
+        dates: new Set(),
+      };
       acc.set(num, a);
     }
     a.totalHits += 1;
@@ -71,14 +159,13 @@ async function main() {
     a.dates.add(drawDate);
   }
 
-  // 分页读全部期数（不按运营商分，跨运营商合并口径）
   let from = 0;
   let totalDraws = 0;
   for (;;) {
     const { data, error } = await supabase
       .from("draw_results_v2")
       .select(
-        "draw_date, first_prize, second_prize, third_prize, special_numbers, consolation_numbers"
+        "draw_date, operator, first_prize, second_prize, third_prize, special_numbers, consolation_numbers"
       )
       .order("draw_date", { ascending: true })
       .range(from, from + PAGE - 1);
@@ -89,11 +176,12 @@ async function main() {
     if (!data || data.length === 0) break;
     for (const row of data as DrawRow[]) {
       const date = row.draw_date;
-      record(row.first_prize, date);
-      record(row.second_prize, date);
-      record(row.third_prize, date);
-      for (const n of row.special_numbers ?? []) record(n, date);
-      for (const n of row.consolation_numbers ?? []) record(n, date);
+      const op = row.operator;
+      record(op, row.first_prize, date);
+      record(op, row.second_prize, date);
+      record(op, row.third_prize, date);
+      for (const n of row.special_numbers ?? []) record(op, n, date);
+      for (const n of row.consolation_numbers ?? []) record(op, n, date);
     }
     totalDraws += data.length;
     console.log(`Read ${totalDraws} draws...`);
@@ -101,38 +189,29 @@ async function main() {
     from += PAGE;
   }
 
-  console.log(`Total draws: ${totalDraws}, distinct numbers: ${acc.size}`);
-
-  // 转 NumberAggregate
-  const aggregates: NumberAggregate[] = Array.from(acc.entries()).map(
-    ([number, a]) => ({
-      number,
-      totalHits: a.totalHits,
-      hits30d: a.hits30d,
-      hits90d: a.hits90d,
-      hits365d: a.hits365d,
-      uniqueDates: Array.from(a.dates).sort(),
-    })
+  const distinctTotal = new Set<string>();
+  for (const bucket of Array.from(accByOp.values())) {
+    for (const num of Array.from(bucket.keys())) distinctTotal.add(num);
+  }
+  console.log(
+    `Total draws: ${totalDraws}, distinct numbers (union): ${distinctTotal.size}`
   );
 
-  const rows = computeAllScores(aggregates, today);
-  console.log(`Computed ${rows.length} score rows. Upserting...`);
+  const combosToProcess: (string[] | null)[] = [
+    ...allCombos(V2_OPERATORS).filter(
+      (c) => c.length !== V2_OPERATORS.length
+    ),
+    null,
+  ];
+  console.log(`Processing ${combosToProcess.length} scopes...`);
 
-  let written = 0;
-  for (let i = 0; i < rows.length; i += UPSERT_BATCH) {
-    const batch = rows.slice(i, i + UPSERT_BATCH).map((r) => ({
-      ...r,
-      updated_at: new Date().toISOString(),
-    }));
-    const { error } = await supabase
-      .from("number_scores")
-      .upsert(batch, { onConflict: "number" });
-    if (error) {
-      console.error(`Upsert error at batch ${i}:`, error.message);
-      process.exit(1);
-    }
-    written += batch.length;
-    console.log(`Upserted ${written}/${rows.length}`);
+  for (const combo of combosToProcess) {
+    const scope = combo === null ? "all" : [...combo].sort().join("+");
+    const opsInScope = combo === null ? [...V2_OPERATORS] : combo;
+    const merged = mergeBuckets(accByOp, opsInScope);
+    const aggregates = accMapToAggregates(merged);
+    const rows = computeAllScores(aggregates, today, scope);
+    await upsertScopeRows(supabase, scope, rows);
   }
 
   console.log("Backfill complete.");

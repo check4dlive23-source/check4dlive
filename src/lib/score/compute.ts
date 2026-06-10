@@ -22,6 +22,7 @@ export interface NumberAggregate {
 
 export interface NumberScoreRow {
   number: string;
+  scope: string;
   total_hits: number;
   hits_30d: number;
   hits_90d: number;
@@ -140,7 +141,8 @@ function momentumScore(
  */
 export function computeAllScores(
   aggregates: NumberAggregate[],
-  today: string
+  today: string,
+  scope = "all"
 ): NumberScoreRow[] {
   // freq 百分位（按 totalHits）
   const freqPct = percentileRanks(aggregates.map((a) => a.totalHits));
@@ -165,6 +167,7 @@ export function computeAllScores(
     );
     return {
       number: agg.number,
+      scope,
       total_hits: agg.totalHits,
       hits_30d: agg.hits30d,
       hits_90d: agg.hits90d,

@@ -158,7 +158,7 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
       operators,
       mode,
     }),
-    getNumberScore(number),
+    getNumberScore(number, operators),
   ]);
   if (!data) {
     notFound();
