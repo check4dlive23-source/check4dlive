@@ -44,7 +44,7 @@ const OPERATOR_CONFIG: Record<string, {
   },
   stc: {
     label: "STC Sandakan",
-    color: "#F59E0B",
+    color: "#8B5CF6",
     logo: "/logos/sandakan.gif",
     games: ["Sandakan STC 4D"],
     drawOperator: "stc",

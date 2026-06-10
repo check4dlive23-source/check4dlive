@@ -25,7 +25,7 @@ const OPERATOR_CONFIG = [
   { id: "damacai", label: "Damacai", emoji: "🔵", color: "#4466FF", logo: "/logos/damacai.gif" },
   { id: "toto", label: "Toto", emoji: "🔴", color: "#FF3333", logo: "/logos/toto.gif" },
   { id: "sabah88", label: "Sabah 88", emoji: "🟠", color: "#F59E0B", logo: "/logos/sabah88.gif" },
-  { id: "stc", label: "STC", emoji: "🟠", color: "#F59E0B", logo: "/logos/sandakan.gif" },
+  { id: "stc", label: "STC", emoji: "🟣", color: "#8B5CF6", logo: "/logos/sandakan.gif" },
   { id: "cashsweep", label: "CashSweep", emoji: "🟢", color: "#00FF88", logo: "/logos/cashsweep.gif" },
   { id: "singapore", label: "SG Pools", emoji: "🩷", color: "#EC4899", logo: "/logos/sgpools.gif" },
 ] as const;
