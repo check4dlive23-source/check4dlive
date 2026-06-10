@@ -7,6 +7,7 @@ import {
   MIN_DATES_FOR_CYCLE,
   MIN_CAREER_DAYS,
   NEUTRAL_SCORE,
+  MOMENTUM_BLEND,
 } from "./config";
 
 export interface NumberAggregate {
@@ -120,12 +121,17 @@ function momentumScore(
   agg: NumberAggregate,
   today: string
 ): number {
-  if (agg.uniqueDates.length === 0) return NEUTRAL_SCORE;
+  if (agg.uniqueDates.length === 0) return 0;
   const careerDays = daysBetween(agg.uniqueDates[0], today);
   if (careerDays < MIN_CAREER_DAYS) return NEUTRAL_SCORE;
-  const expected30 = (agg.totalHits / careerDays) * 30;
-  const m = agg.hits30d / Math.max(expected30, 0.1);
-  return Math.round(clamp(m * 50, 0, 100));
+  const rate = agg.totalHits / careerDays;
+  const expected30 = rate * 30;
+  const expected90 = rate * 90;
+  const m30 = agg.hits30d / Math.max(expected30, 0.05);
+  const m90 = agg.hits90d / Math.max(expected90, 0.05);
+  const m = MOMENTUM_BLEND.w30 * m30 + MOMENTUM_BLEND.w90 * m90;
+  // 饱和曲线：m=1（等于历史均速）→ 50分；高于均速渐进逼近100，不撞顶
+  return Math.round((100 * m) / (m + 1));
 }
 
 /**

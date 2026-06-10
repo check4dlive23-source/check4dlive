@@ -13,3 +13,6 @@ export const MIN_DATES_FOR_CYCLE = 3;
 /** 生涯天数低于此 momentum 给中性分 */
 export const MIN_CAREER_DAYS = 30;
 export const NEUTRAL_SCORE = 50;
+
+/** momentum 混合窗口权重：30天为主，90天补颗粒度 */
+export const MOMENTUM_BLEND = { w30: 0.6, w90: 0.4 } as const;
