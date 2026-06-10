@@ -12,6 +12,7 @@ const OPERATOR_CONFIG: Record<string, {
   logo: string;
   games: string[];
   drawOperator: string;
+  dataNote?: string;
 }> = {
   magnum: {
     label: "Magnum",
@@ -61,6 +62,7 @@ const OPERATOR_CONFIG: Record<string, {
     logo: "/logos/sgpools.gif",
     games: ["Singapore Pools 4D", "Singapore Toto 6/45"],
     drawOperator: "singapore",
+    dataNote: "2007-10",
   },
 };
 
@@ -188,6 +190,7 @@ export default async function OperatorPage({ params }: { params: { name: string 
         totalDraws={totalDraws}
         earliestDate={earliestDate}
         latestDate={latestDraw}
+        dataNote={op.dataNote}
       />
     </>
   );

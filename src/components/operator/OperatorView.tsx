@@ -25,12 +25,13 @@ interface OperatorViewProps {
   totalDraws: number;
   earliestDate: string | null;
   latestDate: string | null;
+  dataNote?: string;
 }
 
 export function OperatorView({
   name, label, color, logo, games,
   hotNumbers, coldNumbers, recentDraws,
-  totalDraws, earliestDate, latestDate,
+  totalDraws, earliestDate, latestDate, dataNote,
 }: OperatorViewProps) {
   const { t } = useLang();
 
@@ -59,6 +60,13 @@ export function OperatorView({
             </div>
           ))}
         </div>
+        {dataNote && (
+          <div className="mt-4 rounded-xl" style={{ background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.2)", padding: "8px 14px" }}>
+            <span className="font-mono" style={{ fontSize: 11, color: "#FFB020" }}>
+              ⚠ {t("operatorDataNote")} {dataNote}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── 旗下游戏 ── */}
