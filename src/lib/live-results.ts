@@ -14,6 +14,16 @@ import type { Region } from "@/types";
 
 export type DrawRow = Record<string, unknown>;
 
+const SCRAPE_TO_V2_OPERATOR: Record<string, string> = {
+  magnum: "magnum",
+  damacai: "damacai",
+  toto: "toto",
+  sgpools: "singapore",
+  sarawak: "cashsweep",
+  sabah: "sabah88",
+  sandakan: "stc",
+};
+
 function toDbRow(draw: ParsedWestDraw) {
   return {
     date: draw.date,
@@ -219,7 +229,7 @@ export async function runLiveCronIngest(): Promise<{
           v2RowsFromScrape.push({
             draw_date: (row.date as string) ?? date,
             draw_no: (row.draw_no as string) ?? null,
-            operator,
+            operator: SCRAPE_TO_V2_OPERATOR[operator] ?? operator,
             first_prize: (row.first_prize as string) ?? null,
             second_prize: (row.second_prize as string) ?? null,
             third_prize: (row.third_prize as string) ?? null,
