@@ -54,3 +54,11 @@ export interface SearchResultRow {
   heat_level: HeatLevel;
   operators: Record<string, number>;
 }
+
+export interface MirrorPairRow {
+  numberA: string;
+  numberB: string;
+  hitsA: number;
+  hitsB: number;
+  totalHits: number;
+}

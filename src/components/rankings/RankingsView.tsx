@@ -9,13 +9,14 @@ import type {
   DigitAnalysis,
   DigitFrequency,
   HotNumberRow,
+  MirrorPairRow,
   PatternRow,
 } from "@/types/analytics";
 import { PageLayout } from "@/components/layout/PageLayout";
 import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 
-type Tab = "momentum" | "cold" | "digit" | "patterns" | "top100";
+type Tab = "momentum" | "cold" | "digit" | "patterns" | "mirror" | "top100";
 type Top100Tab = "hot" | "cold" | "first";
 
 const SEARCH_OPERATORS = [
@@ -147,6 +148,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
   const [coldReversal, setColdReversal] = useState<ColdNumberRow[]>([]);
   const [digit, setDigit] = useState<DigitAnalysis | null>(null);
   const [patterns, setPatterns] = useState<PatternRow[]>([]);
+  const [mirrorPairs, setMirrorPairs] = useState<MirrorPairRow[]>([]);
   const [top100Hot, setTop100Hot] = useState<HotNumberRow[]>(hot);
   const [top100Cold, setTop100Cold] = useState<ColdNumberRow[]>(cold);
   const [top100First, setTop100First] = useState<HotNumberRow[]>(firstPrize);
@@ -166,7 +168,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
         const noFilter =
           selectedOperators.length === 0 && selectedPeriod === "all";
 
-        const [h, c, d, p, hotTop, coldTop] = await Promise.all([
+        const [h, c, d, p, mirrorData, hotTop, coldTop] = await Promise.all([
           fetch(`/api/analytics/hot?period=30d&limit=100${oq}${sq}`).then((r) => r.json()),
           fetch(`/api/analytics/cold?min_gap=30&limit=100${oq}${sq}`).then((r) => r.json()),
           fetch(
@@ -175,6 +177,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           fetch(
             `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
+          fetch(`/api/analytics/mirror${sq}`).then((r) => r.json()),
           noFilter
             ? Promise.resolve({ rows: hot })
             : fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then((r) =>
@@ -196,6 +199,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           units: d.units ?? d.data?.units ?? [],
         });
         setPatterns(p.rows ?? []);
+        setMirrorPairs(mirrorData?.rows ?? []);
 
         if (selectedOperators.length === 0 && selectedPeriod === "all") {
           setTop100Hot(hot);
@@ -228,6 +232,11 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     [top100Hot]
   );
 
+  const mirrorMaxHits = useMemo(
+    () => mirrorPairs.reduce((m, r) => Math.max(m, r.totalHits), 1),
+    [mirrorPairs]
+  );
+
   const groupedPatterns = useMemo(() => {
     const m = new Map<string, PatternRow[]>();
     for (const r of patterns) {
@@ -248,6 +257,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
     { key: "cold" as const, label: t("coldReversal") },
     { key: "digit" as const, label: t("digitStrength") },
     { key: "patterns" as const, label: t("patternSignals") },
+    { key: "mirror" as const, label: t("mirrorPairs") },
     { key: "top100" as const, label: t("top100") },
   ];
 
@@ -562,6 +572,47 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* MIRROR PAIRS */}
+            {tab === "mirror" && (
+              <div>
+                {mirrorPairs.length === 0 ? (
+                  <p className="font-mono" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "40px 0" }}>
+                    暂无数据
+                  </p>
+                ) : mirrorPairs.map((pair, i) => {
+                  const barPct = Math.round((pair.totalHits / mirrorMaxHits) * 100);
+                  return (
+                    <div key={`${pair.numberA}-${pair.numberB}`} className="block mb-2"
+                      style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.08)", borderRadius: 12, padding: "12px 16px" }}>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", width: 20, flexShrink: 0 }}>
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <Link href={`/number/${pair.numberA}`} className="font-mono tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.08em", textDecoration: "none" }}>
+                          {pair.numberA}
+                        </Link>
+                        <span className="font-mono" style={{ fontSize: 14, color: "rgba(0,229,255,0.4)" }}>⇄</span>
+                        <Link href={`/number/${pair.numberB}`} className="font-mono tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.08em", textDecoration: "none", flex: 1 }}>
+                          {pair.numberB}
+                        </Link>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="font-mono tabular-nums" style={{ fontSize: 12, color: "#00FF88", fontWeight: 600 }}>
+                            {t("mirrorTotal")} {pair.totalHits}
+                          </span>
+                          <span className="font-mono tabular-nums" style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+                            {pair.hitsA} / {pair.hitsB}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-2" style={{ height: 2, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ width: `${barPct}%`, height: "100%", background: "linear-gradient(90deg, #00E5FF, #0080FF)", borderRadius: 2 }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

@@ -241,6 +241,8 @@ export const translations = {
     operatorTimes: "次",
     operatorDaysOut: "天未出",
     operatorNever: "从未",
+    mirrorPairs: "🔀 镜像对",
+    mirrorTotal: "合计",
     jackpotLabel: "Jackpot",
   },
   en: {
@@ -485,6 +487,8 @@ export const translations = {
     operatorTimes: "times",
     operatorDaysOut: "days out",
     operatorNever: "Never",
+    mirrorPairs: "🔀 Mirror Pairs",
+    mirrorTotal: "Total",
     jackpotLabel: "Jackpot",
   },
 } as const;

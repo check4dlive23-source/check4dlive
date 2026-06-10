@@ -12,6 +12,7 @@ import type {
   ColdNumberRow,
   DigitAnalysis,
   HotNumberRow,
+  MirrorPairRow,
   PatternRow,
 } from "@/types/analytics";
 import type { HeatLevel } from "@/types/number-intelligence";
@@ -715,4 +716,44 @@ export async function getRisingNumbers(
     rows: rows.length ? rows : MOCK_HOT.slice(0, limit),
     source: rows.length ? "db" : "mock",
   };
+}
+
+export async function computeMirrorPairs(
+  filter?: AnalyticsFilter
+): Promise<{ rows: MirrorPairRow[]; source: "db" | "mock" }> {
+  const supabase = createClient();
+  if (!supabase) return { rows: [], source: "mock" };
+  const data = await pageAllStatsV2(
+    supabase,
+    "number, total_appearances",
+    filter?.since,
+    filter?.operators
+  );
+  if (!data || !data.length) return { rows: [], source: "mock" };
+  const counts = new Map<string, number>();
+  for (const row of data) {
+    const n = row.number as string;
+    counts.set(n, (counts.get(n) ?? 0) + ((row.total_appearances as number) ?? 0));
+  }
+  const seen = new Set<string>();
+  const pairs: MirrorPairRow[] = [];
+  for (const [num, hitsA] of Array.from(counts.entries())) {
+    if (num.length !== 4) continue;
+    const mirror = num.split("").reverse().join("");
+    if (mirror === num) continue;
+    if (seen.has(num) || seen.has(mirror)) continue;
+    const hitsB = counts.get(mirror) ?? 0;
+    if (hitsA === 0 && hitsB === 0) continue;
+    seen.add(num);
+    seen.add(mirror);
+    pairs.push({ numberA: num, numberB: mirror, hitsA, hitsB, totalHits: hitsA + hitsB });
+  }
+  pairs.sort((a, b) => b.totalHits - a.totalHits);
+  return { rows: pairs.slice(0, 100), source: "db" };
+}
+
+export async function getMirrorPairs(
+  filter?: AnalyticsFilter
+): Promise<{ rows: MirrorPairRow[]; source: "db" | "mock" }> {
+  return computeMirrorPairs(filter);
 }
