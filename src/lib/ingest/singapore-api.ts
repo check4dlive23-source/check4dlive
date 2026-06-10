@@ -75,7 +75,7 @@ export async function fetchSgDrawList(): Promise<SgDrawRef[]> {
 
 function cellNumbers(html: string, className: string): string[] {
   const re = new RegExp(
-    `class="${className}"[^>]*>(\\d{4})`,
+    `class=["']${className}["'][^>]*>(\\d{4})`,
     "gi"
   );
   return Array.from(html.matchAll(re), (m) => m[1]).filter(isValid4d);

@@ -60,9 +60,6 @@ async function main() {
       const row = parseSingaporeResultsHtml(html);
       if (!row) {
         skip++;
-        if (drawNo <= 10) {
-          console.log(`[debug] Draw#${drawNo} HTML snippet:`, html.slice(0, 500));
-        }
       } else {
         const result = await upsertDrawResultsV2(supabase, [row]);
         upserted += result.upserted;
