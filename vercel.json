@@ -1,6 +1,6 @@
 {
   "crons": [
-    { "path": "/api/admin/ingest", "schedule": "5 16 * * *" },
+    { "path": "/api/admin/live-ingest", "schedule": "5 16 * * *" },
     { "path": "/api/admin/refresh-analytics", "schedule": "0 16 * * *" }
   ]
 }
