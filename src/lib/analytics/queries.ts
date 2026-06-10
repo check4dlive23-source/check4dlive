@@ -537,6 +537,19 @@ const AAAB_EXAMPLES = [
   "9990","9991","9992","9993","9994","9995","9996","9997","9998",
 ];
 
+const ABBB_EXAMPLES = [
+  "0111","0222","0333","0444","0555","0666","0777","0888","0999",
+  "1000","1222","1333","1444","1555","1666","1777","1888","1999",
+  "2000","2111","2333","2444","2555","2666","2777","2888","2999",
+  "3000","3111","3222","3444","3555","3666","3777","3888","3999",
+  "4000","4111","4222","4333","4555","4666","4777","4888","4999",
+  "5000","5111","5222","5333","5444","5666","5777","5888","5999",
+  "6000","6111","6222","6333","6444","6555","6777","6888","6999",
+  "7000","7111","7222","7333","7444","7555","7666","7888","7999",
+  "8000","8111","8222","8333","8444","8555","8666","8777","8999",
+  "9000","9111","9222","9333","9444","9555","9666","9777","9888",
+];
+
 function isTwin(n: string): boolean {
   return /^(\d)\1{3}$/.test(n);
 }
@@ -624,6 +637,14 @@ export async function computePatterns(
     });
   }
 
+  for (const ex of ABBB_EXAMPLES) {
+    rows.push({
+      pattern: "AAAB / ABBB",
+      example: ex,
+      hit_count: counts.get(ex) ?? 0,
+    });
+  }
+
   for (const ex of PAIR_EXAMPLES) {
     rows.push({
       pattern: "Repeating pair (AABB)",
@@ -642,7 +663,7 @@ export async function computePatterns(
       rows.push({ pattern: "Repeating pair (AABB)", example: num, hit_count: c });
     } else if (isABAB(num) && !ABAB_EXAMPLES.includes(num)) {
       rows.push({ pattern: "ABAB", example: num, hit_count: c });
-    } else if (isAAAB(num) && !AAAB_EXAMPLES.includes(num)) {
+    } else if (isAAAB(num) && !AAAB_EXAMPLES.includes(num) && !ABBB_EXAMPLES.includes(num)) {
       rows.push({ pattern: "AAAB / ABBB", example: num, hit_count: c });
     }
   }
