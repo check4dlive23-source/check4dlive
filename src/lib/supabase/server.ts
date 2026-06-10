@@ -10,8 +10,21 @@ export function createServerClient() {
     return null;
   }
 
+  // Node.js < 22 需要手动提供 ws 作为 WebSocket transport
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let websocketImpl: any = undefined;
+  if (typeof WebSocket === "undefined") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      websocketImpl = require("ws");
+    } catch {
+      // ws not available, skip
+    }
+  }
+
   return createSupabaseClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
+    realtime: websocketImpl ? { transport: websocketImpl } : undefined,
   });
 }
 
