@@ -284,6 +284,8 @@ interface AnalyticsDashboardHomeProps {
   initialRising: HotNumberRow[];
   initialLastWeekRank: number | null;
   initialOperatorHot: { operator: string; topNumber: string | null; totalHits: number }[];
+  totalDraws: number;
+  dataSpanYears: number;
 }
 
 export function AnalyticsDashboardHome({
@@ -293,6 +295,8 @@ export function AnalyticsDashboardHome({
   initialRising,
   initialLastWeekRank,
   initialOperatorHot,
+  totalDraws,
+  dataSpanYears,
 }: AnalyticsDashboardHomeProps) {
   const router = useRouter();
   const { t } = useLang();
@@ -721,9 +725,9 @@ export function AnalyticsDashboardHome({
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: t("dbScale"), value: "22,885", unit: t("dbScaleUnit") },
+              { label: t("dbScale"), value: totalDraws.toLocaleString(), unit: t("dbScaleUnit") },
               { label: t("numberProfiles"), value: "10,000", unit: t("numberProfilesUnit") },
-              { label: t("dataSpan"), value: "40", unit: t("dataSpanUnit") },
+              { label: t("dataSpan"), value: String(dataSpanYears), unit: t("dataSpanUnit") },
               { label: t("avgDrawInterval"), value: "18", unit: t("avgIntervalUnit") },
             ].map((item) => (
               <div key={item.label} style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.08)", borderRadius: 14, padding: "16px" }}>
