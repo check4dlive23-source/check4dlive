@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 import { todayMYT } from "@/lib/draw-time";
 import { LogoBadge } from "@/components/ui/LogoBadge";
@@ -22,6 +23,16 @@ const brandColors: Record<OperatorId, string> = {
   perdana: "#7C3AED",
   hari: "#059669",
   sgpools: "#EC4899",
+};
+
+const OPERATOR_TO_URL: Partial<Record<string, string>> = {
+  magnum: "magnum",
+  damacai: "damacai",
+  toto: "toto",
+  sabah: "sabah88",
+  sarawak: "cashsweep",
+  sandakan: "stc",
+  sgpools: "singapore",
 };
 
 const filledSlotStyle: CSSProperties = {
@@ -94,9 +105,20 @@ export function ResultCard({ data }: ResultCardProps) {
             <LogoBadge operator={data.operator} size={48} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 2 }} className="truncate">
-              {data.displayName}
-            </h3>
+            {OPERATOR_TO_URL[data.operator] ? (
+              <Link
+                href={`/operator/${OPERATOR_TO_URL[data.operator]}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 2 }} className="truncate">
+                  {data.displayName}
+                </h3>
+              </Link>
+            ) : (
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 2 }} className="truncate">
+                {data.displayName}
+              </h3>
+            )}
             <div className="flex items-center justify-between">
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{formatDrawDate(data.date)}</span>
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{data.draw_no ?? "—"}</span>
