@@ -515,6 +515,28 @@ const TWIN_EXAMPLES = ["0000", "1111", "2222", "3333", "4444", "5555", "6666", "
 const SEQ_EXAMPLES = ["0123", "1234", "2345", "3456", "4567", "5678", "6789", "7890"];
 const PAIR_EXAMPLES = ["0011", "1122", "2233", "3344", "4455", "5566", "6677", "7788", "8899", "9900"];
 
+const ABAB_EXAMPLES = [
+  "0101","1010","1212","2121","2323","3232","3434","4343",
+  "4545","5454","5656","6565","6767","7676","7878","8787",
+  "8989","9898","0202","0303","0404","0505","0606","0707",
+  "0808","0909","1313","1414","1515","1616","1717","1818",
+  "1919","2424","2525","2626","2727","2828","2929","3535",
+  "3636","3737","3838","3939","4646","4747","4848","4949",
+];
+
+const AAAB_EXAMPLES = [
+  "0001","0002","0003","0004","0005","0006","0007","0008","0009",
+  "1110","1112","1113","1114","1115","1116","1117","1118","1119",
+  "2220","2221","2223","2224","2225","2226","2227","2228","2229",
+  "3330","3331","3332","3334","3335","3336","3337","3338","3339",
+  "4440","4441","4442","4443","4445","4446","4447","4448","4449",
+  "5550","5551","5552","5553","5554","5556","5557","5558","5559",
+  "6660","6661","6662","6663","6664","6665","6667","6668","6669",
+  "7770","7771","7772","7773","7774","7775","7776","7778","7779",
+  "8880","8881","8882","8883","8884","8885","8886","8887","8889",
+  "9990","9991","9992","9993","9994","9995","9996","9997","9998",
+];
+
 function isTwin(n: string): boolean {
   return /^(\d)\1{3}$/.test(n);
 }
@@ -527,6 +549,15 @@ function isSequential(n: string): boolean {
 }
 function isRepeatingPair(n: string): boolean {
   return /^(\d)\1(\d)\2$/.test(n) && n[0] !== n[2];
+}
+
+function isABAB(n: string): boolean {
+  return /^(\d)(\d)\1\2$/.test(n) && n[0] !== n[1];
+}
+
+function isAAAB(n: string): boolean {
+  return (/^(\d)\1\1(\d)$/.test(n) || /^(\d)(\d)\1\1$/.test(n)) &&
+    (n[0] !== n[3] || n[0] !== n[1]);
 }
 
 export async function computePatterns(
@@ -574,6 +605,25 @@ export async function computePatterns(
       hit_count: counts.get(ex) ?? 0,
     });
   }
+
+  // ABAB 模式
+  for (const ex of ABAB_EXAMPLES) {
+    rows.push({
+      pattern: "ABAB",
+      example: ex,
+      hit_count: counts.get(ex) ?? 0,
+    });
+  }
+
+  // AAAB 模式
+  for (const ex of AAAB_EXAMPLES) {
+    rows.push({
+      pattern: "AAAB / ABBB",
+      example: ex,
+      hit_count: counts.get(ex) ?? 0,
+    });
+  }
+
   for (const ex of PAIR_EXAMPLES) {
     rows.push({
       pattern: "Repeating pair (AABB)",
@@ -590,6 +640,10 @@ export async function computePatterns(
       rows.push({ pattern: "Sequential", example: num, hit_count: c });
     } else if (isRepeatingPair(num) && !PAIR_EXAMPLES.includes(num)) {
       rows.push({ pattern: "Repeating pair (AABB)", example: num, hit_count: c });
+    } else if (isABAB(num) && !ABAB_EXAMPLES.includes(num)) {
+      rows.push({ pattern: "ABAB", example: num, hit_count: c });
+    } else if (isAAAB(num) && !AAAB_EXAMPLES.includes(num)) {
+      rows.push({ pattern: "AAAB / ABBB", example: num, hit_count: c });
     }
   }
 
