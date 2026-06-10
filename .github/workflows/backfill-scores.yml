@@ -2,6 +2,8 @@ name: Backfill Number Scores
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 16 * * *'
 
 jobs:
   backfill:
