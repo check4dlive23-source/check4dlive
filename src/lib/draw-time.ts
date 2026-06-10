@@ -73,10 +73,10 @@ export function isDrawDayAndNearDraw(region: Region, now = new Date()): boolean 
 
 /**
  * Regional live draw windows (MYT):
- * - west: Sun/Wed/Sat 19:00–20:00
- * - east: Sun/Wed/Sat 18:30–19:30
- * - singapore 4D: Sun/Wed/Sat 18:30–19:30
- * - singapore Toto: Mon/Thu ~21:30 (21:30–22:30 window)
+ * - west: Sun/Wed/Sat 18:50–20:00
+ * - east: Sun/Wed/Sat 18:50–20:00
+ * - singapore 4D: Sun/Wed/Sat 18:00–19:30
+ * - singapore Toto: Mon/Thu 21:30–22:30
  */
 export function isRegionLiveDraw(
   region: Region,
@@ -91,17 +91,17 @@ export function isRegionLiveDraw(
     case "west":
       return (
         DRAW_DAYS_WSS.includes(day) &&
-        inWindow(hour, minute, 19, 0, 20, 0)
+        inWindow(hour, minute, 18, 50, 20, 0)
       );
     case "east":
       return (
         DRAW_DAYS_WSS.includes(day) &&
-        inWindow(hour, minute, 18, 30, 19, 30)
+        inWindow(hour, minute, 18, 50, 20, 0)
       );
     case "singapore": {
       const sg4d =
         DRAW_DAYS_WSS.includes(day) &&
-        inWindow(hour, minute, 18, 30, 19, 30);
+        inWindow(hour, minute, 18, 0, 19, 30);
       const sgToto =
         [1, 4].includes(day) && inWindow(hour, minute, 21, 30, 22, 30);
       return sg4d || sgToto;
