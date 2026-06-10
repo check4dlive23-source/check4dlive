@@ -177,7 +177,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
           fetch(
             `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
           ).then((r) => r.json()),
-          fetch(`/api/analytics/mirror${sq}`).then((r) => r.json()),
+          fetch(`/api/analytics/mirror${operatorsSearch(selectedOperators, sinceDate)}`).then((r) => r.json()),
           noFilter
             ? Promise.resolve({ rows: hot })
             : fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then((r) =>
