@@ -7,6 +7,7 @@ import { NumberSearchBar } from "./NumberSearchBar";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import { parsePosition } from "@/lib/number-intelligence";
+import type { NumberScoreRow } from "@/lib/score/compute";
 import type {
   NumberIntelMode,
   NumberIntelligenceResponse,
@@ -145,11 +146,17 @@ function generateAiInsight(
 
 interface NumberIntelViewProps {
   data: NumberIntelligenceResponse;
+  score: NumberScoreRow | null;
   operators?: string[];
   mode?: NumberIntelMode;
 }
 
-export function NumberIntelView({ data, operators = [], mode = "single" }: NumberIntelViewProps) {
+export function NumberIntelView({
+  data,
+  score,
+  operators = [],
+  mode = "single",
+}: NumberIntelViewProps) {
   const { t, lang } = useLang();
   const router = useRouter();
   const pathname = usePathname();
@@ -247,7 +254,7 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
             </div>
           </div>
           <div className="flex flex-col items-center sm:items-end gap-2">
-            <NumberScoreGauge stats={stats} />
+            <NumberScoreGauge score={score} />
             <button type="button"
               onClick={() => {
                 if (typeof navigator !== "undefined" && navigator.clipboard) {

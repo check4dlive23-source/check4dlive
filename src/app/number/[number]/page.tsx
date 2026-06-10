@@ -4,6 +4,7 @@ import {
   isValid4D,
   normalize4D,
 } from "@/lib/number-intelligence";
+import { getNumberScore } from "@/lib/score/queries";
 import type { Metadata } from "next";
 import type {
   NumberIntelMode,
@@ -150,12 +151,15 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
   const operators = searchParams.operators?.split(",").filter(Boolean) ?? [];
   const mode = parseMode(searchParams.mode);
 
-  const data = await getNumberIntelligenceCached(number, {
-    page: 1,
-    pageSize: 500,
-    operators,
-    mode,
-  });
+  const [data, score] = await Promise.all([
+    getNumberIntelligenceCached(number, {
+      page: 1,
+      pageSize: 500,
+      operators,
+      mode,
+    }),
+    getNumberScore(number),
+  ]);
   if (!data) {
     notFound();
   }
@@ -168,7 +172,12 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
           __html: JSON.stringify(generateNumberJsonLd(number, data)),
         }}
       />
-      <NumberIntelView data={data} operators={operators} mode={mode} />
+      <NumberIntelView
+        data={data}
+        score={score}
+        operators={operators}
+        mode={mode}
+      />
     </>
   );
 }

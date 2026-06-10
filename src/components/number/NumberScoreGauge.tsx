@@ -1,57 +1,76 @@
 "use client";
 
-import { useMemo } from "react";
 import { useLang } from "@/lib/language-context";
-import type { NumberStatsPayload } from "@/types/number-intelligence";
+import { SCORE_LEVELS } from "@/lib/score/config";
+import type { NumberScoreRow } from "@/lib/score/compute";
 
 interface Props {
-  stats: NumberStatsPayload;
-}
-
-// 计算 0-100 综合评分
-function computeScore(stats: NumberStatsPayload): number {
-  // Frequency score (40%): total_hits 相对基准
-  // 基准：马来西亚4D平均每号码出现约 50 次（40年数据）
-  const freqScore = Math.min(100, (stats.total_hits / 80) * 100);
-
-  // Recency score (35%): 距离上次出现天数
-  // gap 越小分越高，超过 365 天给 0 分
-  const gap = stats.current_gap_days ?? 365;
-  const recencyScore = Math.max(0, Math.min(100, ((365 - gap) / 365) * 100));
-
-  // Momentum score (25%): 当前 gap vs 平均 gap
-  // 当前 gap < 平均 gap → 表现优于历史，给高分
-  const avgGap = stats.avg_gap_days ?? gap;
-  const momentumScore =
-    avgGap > 0
-      ? Math.max(0, Math.min(100, ((avgGap - gap) / avgGap + 1) * 50))
-      : 50;
-
-  return Math.round(freqScore * 0.4 + recencyScore * 0.35 + momentumScore * 0.25);
+  score: NumberScoreRow | null;
 }
 
 function scoreColor(score: number): string {
-  if (score >= 70) return "#00E5FF";
-  if (score >= 40) return "#FFB020";
+  if (score >= SCORE_LEVELS.bullish) return "#00E5FF";
+  if (score >= SCORE_LEVELS.weak) return "#FFB020";
   return "#FF4D4D";
 }
 
-export function NumberScoreGauge({ stats }: Props) {
+export function NumberScoreGauge({ score }: Props) {
   const { t } = useLang();
-  const score = useMemo(() => computeScore(stats), [stats]);
-  const color = scoreColor(score);
+
+  if (!score) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "var(--font-jetbrains, monospace)",
+            fontSize: 22,
+            fontWeight: 900,
+            color: "rgba(255,255,255,0.3)",
+          }}
+        >
+          —
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-jetbrains, monospace)",
+            fontSize: 9,
+            letterSpacing: "0.15em",
+            color: "rgba(255,255,255,0.3)",
+          }}
+        >
+          {t("scoreNoData")}
+        </div>
+      </div>
+    );
+  }
+
+  const overall = score.overall_score;
+  const color = scoreColor(overall);
   const label = (() => {
-    if (score >= 80) return t("scoreStrong");
-    if (score >= 70) return t("scoreBullish");
-    if (score >= 50) return t("scoreNeutral");
-    if (score >= 40) return t("scoreWeak");
+    if (overall >= SCORE_LEVELS.strong) return t("scoreStrong");
+    if (overall >= SCORE_LEVELS.bullish) return t("scoreBullish");
+    if (overall >= SCORE_LEVELS.neutral) return t("scoreNeutral");
+    if (overall >= SCORE_LEVELS.weak) return t("scoreWeak");
     return t("scoreCold");
   })();
 
-  // SVG 圆弧参数
   const radius = 36;
-  const circumference = Math.PI * radius; // 半圆
-  const strokeDashoffset = circumference * (1 - score / 100);
+  const circumference = Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - overall / 100);
+
+  const parts = [
+    { key: "scoreFreq", value: score.freq_score },
+    { key: "scoreCycle", value: score.cycle_score },
+    { key: "scoreMomentum", value: score.momentum_score },
+    { key: "scoreMirror", value: score.mirror_score },
+  ] as const;
 
   return (
     <div
@@ -63,7 +82,6 @@ export function NumberScoreGauge({ stats }: Props) {
       }}
     >
       <svg width="96" height="56" viewBox="0 0 96 56">
-        {/* 背景弧 */}
         <path
           d="M 12 48 A 36 36 0 0 1 84 48"
           fill="none"
@@ -71,7 +89,6 @@ export function NumberScoreGauge({ stats }: Props) {
           strokeWidth="8"
           strokeLinecap="round"
         />
-        {/* 分数弧 */}
         <path
           d="M 12 48 A 36 36 0 0 1 84 48"
           fill="none"
@@ -85,7 +102,6 @@ export function NumberScoreGauge({ stats }: Props) {
             transition: "stroke-dashoffset 0.8s ease",
           }}
         />
-        {/* 分数数字 */}
         <text
           x="48"
           y="44"
@@ -97,10 +113,9 @@ export function NumberScoreGauge({ stats }: Props) {
             fontWeight: 900,
           }}
         >
-          {score}
+          {overall}
         </text>
       </svg>
-      {/* 标签 */}
       <div
         style={{
           fontFamily: "var(--font-jetbrains, monospace)",
@@ -121,6 +136,53 @@ export function NumberScoreGauge({ stats }: Props) {
         }}
       >
         {t("numberScore")}
+      </div>
+      <div style={{ marginTop: 4, width: 120, display: "flex", flexDirection: "column", gap: 4 }}>
+        {parts.map((p) => (
+          <div
+            key={p.key}
+            style={{ display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <span
+              style={{
+                width: 44,
+                fontFamily: "var(--font-jetbrains, monospace)",
+                fontSize: 9,
+                color: "rgba(255,255,255,0.35)",
+              }}
+            >
+              {t(p.key)}
+            </span>
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                borderRadius: 2,
+                background: "rgba(255,255,255,0.08)",
+              }}
+            >
+              <div
+                style={{
+                  height: 4,
+                  borderRadius: 2,
+                  width: `${p.value}%`,
+                  backgroundColor: scoreColor(p.value),
+                }}
+              />
+            </div>
+            <span
+              style={{
+                width: 18,
+                textAlign: "right",
+                fontFamily: "var(--font-jetbrains, monospace)",
+                fontSize: 9,
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              {p.value}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

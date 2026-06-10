@@ -16,3 +16,11 @@ export const NEUTRAL_SCORE = 50;
 
 /** momentum 混合窗口权重：30天为主，90天补颗粒度 */
 export const MOMENTUM_BLEND = { w30: 0.6, w90: 0.4 } as const;
+
+/** 等级阈值（按实际分布 min9/avg40/max70 校准，区别于旧版 80/70/50/40） */
+export const SCORE_LEVELS = {
+  strong: 62,
+  bullish: 52,
+  neutral: 42,
+  weak: 30,
+} as const;
