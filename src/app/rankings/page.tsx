@@ -14,12 +14,23 @@ export const metadata: Metadata = {
     "Malaysia 4D number rankings based on 40 years of historical data. Top 100 most frequent numbers, coldest numbers, and first prize champions across Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan 4D and Singapore Pools.",
 };
 
-export default async function RankingsPage() {
+export default async function RankingsPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string; operators?: string };
+}) {
   const [hot, cold, firstPrize] = await Promise.all([
     getTopHotNumbers(100),
     getTopColdNumbers(100),
     getTopFirstPrizeNumbers(100),
   ]);
-
-  return <RankingsView hot={hot} cold={cold} firstPrize={firstPrize} />;
+  return (
+    <RankingsView
+      hot={hot}
+      cold={cold}
+      firstPrize={firstPrize}
+      initialTab={searchParams.tab}
+      initialOperators={searchParams.operators}
+    />
+  );
 }

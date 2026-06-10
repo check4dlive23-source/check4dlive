@@ -142,7 +142,7 @@ export function ResultCard({ data }: ResultCardProps) {
               </span>
             )}
             {isTodayPending && (
-              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>今日等待开彩</span>
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{t("waitingForDraw")}</span>
             )}
           </div>
         </div>

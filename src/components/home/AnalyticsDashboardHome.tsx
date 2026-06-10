@@ -382,12 +382,12 @@ export function AnalyticsDashboardHome({
   // SEO 热门号码
   const SEO_HOT = ["8888","1234","8267","2786","6873","4444","9999","1688","7788","8023"];
   const SEO_SEARCHES = [
-    { label: "Magnum 热号", href: "/rankings?tab=hot" },
-    { label: "Damacai 热号", href: "/rankings?tab=hot" },
-    { label: "Toto 热号", href: "/rankings?tab=hot" },
-    { label: "一等奖号码", href: "/rankings?tab=first" },
-    { label: "冷号预警", href: "/rankings?tab=cold" },
-    { label: "历史开彩记录", href: "/draws" },
+    { label: t("seoMagnumHot"), href: "/rankings?tab=hot&operators=magnum" },
+    { label: t("seoDamacaiHot"), href: "/rankings?tab=hot&operators=damacai" },
+    { label: t("seoTotoHot"), href: "/rankings?tab=hot&operators=toto" },
+    { label: t("seoFirstPrize"), href: "/rankings?tab=first" },
+    { label: t("seoColdAlert"), href: "/rankings?tab=cold" },
+    { label: t("seoDrawHistory"), href: "/draws" },
   ];
 
   return (

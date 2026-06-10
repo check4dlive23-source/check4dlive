@@ -24,8 +24,8 @@ const SEARCH_OPERATORS = [
   { id: "damacai", logo: "/logos/damacai.gif" },
   { id: "toto", logo: "/logos/toto.gif" },
   { id: "cashsweep", logo: "/logos/cashsweep.gif" },
-  { id: "sabah", logo: "/logos/sabah88.gif" },
-  { id: "sandakan", logo: "/logos/sandakan.gif" },
+  { id: "sabah88", logo: "/logos/sabah88.gif" },
+  { id: "stc", logo: "/logos/sandakan.gif" },
   { id: "singapore", logo: "/logos/sgpools.gif" },
 ] as const;
 
@@ -61,6 +61,8 @@ interface RankingsViewProps {
   hot: HotNumberRow[];
   cold: ColdNumberRow[];
   firstPrize: HotNumberRow[];
+  initialTab?: string;
+  initialOperators?: string;
 }
 
 function gapDays(lastSeen: string | null, today: string): number | null {
@@ -129,13 +131,42 @@ function DigitRow({
   );
 }
 
-export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
+export function RankingsView({
+  hot,
+  cold,
+  firstPrize,
+  initialTab,
+  initialOperators,
+}: RankingsViewProps) {
   const { t } = useLang();
-  const [tab, setTab] = useState<Tab>("momentum");
-  const [top100Tab, setTop100Tab] = useState<Top100Tab>("hot");
+  const TAB_ALIAS: Record<string, Tab> = {
+    hot: "momentum",
+    cold: "cold",
+    first: "top100",
+    top100: "top100",
+    digit: "digit",
+    patterns: "patterns",
+    mirror: "mirror",
+    momentum: "momentum",
+  };
+  const VALID_TABS: Tab[] = ["momentum", "cold", "digit", "patterns", "mirror", "top100"];
+  const resolvedTab = initialTab
+    ? (TAB_ALIAS[initialTab] ?? (VALID_TABS.includes(initialTab as Tab) ? (initialTab as Tab) : "momentum"))
+    : "momentum";
+  const [tab, setTab] = useState<Tab>(resolvedTab);
+  const TOP100_TAB_ALIAS: Record<string, Top100Tab> = {
+    first: "first",
+    hot: "hot",
+    cold: "cold",
+  };
+  const [top100Tab, setTop100Tab] = useState<Top100Tab>(
+    initialTab && TOP100_TAB_ALIAS[initialTab] ? TOP100_TAB_ALIAS[initialTab] : "hot"
+  );
   const [today, setToday] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
+  const [selectedOperators, setSelectedOperators] = useState<string[]>(
+    initialOperators ? initialOperators.split(",").filter(Boolean) : []
+  );
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("all");
 
   const toggleOperator = (id: string) => {
