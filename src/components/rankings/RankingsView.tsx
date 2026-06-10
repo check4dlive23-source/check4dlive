@@ -599,7 +599,7 @@ export function RankingsView({ hot, cold, firstPrize }: RankingsViewProps) {
               <div>
                 {mirrorPairs.length === 0 ? (
                   <p className="font-mono" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "40px 0" }}>
-                    暂无数据
+                    {t("operatorNoData")}
                   </p>
                 ) : mirrorPairs.map((pair, i) => {
                   const barPct = Math.round((pair.totalHits / mirrorMaxHits) * 100);

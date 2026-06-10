@@ -332,13 +332,35 @@ export function NumberIntelView({ data, operators = [], mode = "single" }: Numbe
                   onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.12)")}>
                   <span className="font-number" style={{ fontSize: 20, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.15em" }}>{r.number}</span>
                   <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em" }}>
-                    {r.reason === "same_last2" ? (lang === "zh" ? "尾2相同" : "Same last 2") : (lang === "zh" ? "排列" : "Permutation")}
+                    {r.reason === "same_last2" ? t("sameLastTwo") : t("permutation")}
                   </span>
                 </a>
               ))}
             </div>
           </section>
         )}
+
+        {(() => {
+          const mirror = data.number.split("").reverse().join("");
+          if (mirror === data.number) return null;
+          return (
+            <section>
+              <SectionTitle>{t("mirrorNumberTitle")}</SectionTitle>
+              <div className="flex items-center gap-4">
+                <a href={`/number/${mirror}`}
+                  style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", padding: "10px 16px", background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 10, textDecoration: "none", gap: 2 }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.5)")}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,229,255,0.2)")}>
+                  <span className="font-number" style={{ fontSize: 20, fontWeight: 800, color: "#00E5FF", letterSpacing: "0.15em" }}>{mirror}</span>
+                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em" }}>{t("mirrorReason")}</span>
+                </a>
+                <span className="font-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+                  {t("mirrorHint")}
+                </span>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* ── 历史记录 ── */}
         <section>
