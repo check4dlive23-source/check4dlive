@@ -11,6 +11,7 @@
     "import:magnum": "tsx src/scripts/import-magnum-history.ts",
     "import:toto": "tsx src/scripts/import-toto-history.ts",
     "import:singapore": "tsx src/scripts/import-singapore-history.ts",
+    "import:singapore:official": "tsx src/scripts/import-singapore-official.ts",
     "import:cashsweep": "tsx src/scripts/import-cashsweep-history.ts",
     "import:sabah88": "tsx src/scripts/import-sabah88-history.ts",
     "import:stc": "tsx src/scripts/import-stc-history.ts",
