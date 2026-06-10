@@ -7,10 +7,10 @@ const OPERATORS = [
   "magnum",
   "damacai",
   "toto",
-  "sabah",
-  "sarawak",
-  "sandakan",
-  "sgpools",
+  "sabah88",
+  "cashsweep",
+  "stc",
+  "singapore",
 ];
 
 export function wildcardToLike(pattern: string): string {
