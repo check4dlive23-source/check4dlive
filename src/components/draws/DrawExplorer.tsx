@@ -27,7 +27,9 @@ const OPERATOR_LOGOS: Record<string, string> = {
   cashsweep: "/logos/cashsweep.gif",
   sarawak: "/logos/cashsweep.gif",
   sabah: "/logos/sabah88.gif",
+  sabah88: "/logos/sabah88.gif",
   sandakan: "/logos/sandakan.gif",
+  stc: "/logos/sandakan.gif",
   sgpools: "/logos/sgpools.gif",
   singapore: "/logos/sgpools.gif",
 };
