@@ -16,7 +16,8 @@
     "import:cashsweep": "tsx src/scripts/import-cashsweep-history.ts",
     "import:sabah88": "tsx src/scripts/import-sabah88-history.ts",
     "import:stc": "tsx src/scripts/import-stc-history.ts",
-    "aggregate:v2": "tsx src/scripts/aggregate-stats-v2.ts"
+    "aggregate:v2": "tsx src/scripts/aggregate-stats-v2.ts",
+    "backfill:scores": "tsx src/scripts/backfill-scores.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
