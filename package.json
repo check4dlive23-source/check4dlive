@@ -12,6 +12,7 @@
     "import:toto": "tsx src/scripts/import-toto-history.ts",
     "import:singapore": "tsx src/scripts/import-singapore-history.ts",
     "import:singapore:official": "tsx src/scripts/import-singapore-official.ts",
+    "import:singapore:bydraw": "tsx src/scripts/import-singapore-by-drawnumber.ts",
     "import:cashsweep": "tsx src/scripts/import-cashsweep-history.ts",
     "import:sabah88": "tsx src/scripts/import-sabah88-history.ts",
     "import:stc": "tsx src/scripts/import-stc-history.ts",

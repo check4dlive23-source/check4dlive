@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       operator:
-        description: 'Operator (sabah / sandakan / singapore-official / sgpools)'
+        description: 'Operator (sabah / sandakan / singapore-official / sgpools / singapore-bydraw)'
         required: true
         default: 'sabah'
       from:
@@ -42,6 +42,8 @@ jobs:
             npx tsx src/scripts/import-singapore-official.ts --from=${{ inputs.from }} --to=${{ inputs.to }} --delay=500
           elif [ "${{ inputs.operator }}" = "sgpools" ]; then
             npx tsx src/scripts/import-singapore-history.ts --from=${{ inputs.from }} --to=${{ inputs.to }} --delay=500
+          elif [ "${{ inputs.operator }}" = "singapore-bydraw" ]; then
+            npx tsx src/scripts/import-singapore-by-drawnumber.ts --from=${{ inputs.from }} --to=${{ inputs.to }} --delay=500
           else
             echo "Unknown operator: ${{ inputs.operator }}"
             exit 1
