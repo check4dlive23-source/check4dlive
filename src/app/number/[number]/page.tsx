@@ -5,7 +5,10 @@ import {
   normalize4D,
 } from "@/lib/number-intelligence";
 import type { Metadata } from "next";
-import type { NumberIntelMode } from "@/types/number-intelligence";
+import type {
+  NumberIntelMode,
+  NumberIntelligenceResponse,
+} from "@/types/number-intelligence";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
@@ -101,6 +104,43 @@ export async function generateMetadata({
   };
 }
 
+function generateNumberJsonLd(number: string, data: NumberIntelligenceResponse) {
+  const hits = data.stats.total_hits ?? 0;
+  const lastDate = data.stats.last_seen_date;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: `4D Number ${number} Statistics`,
+    description: `Number ${number} has appeared ${hits} times across Malaysian 4D operators including Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan and Singapore Pools.`,
+    url: `https://check4dterminal.com/number/${number}`,
+    keywords: [
+      `4D number ${number}`,
+      `${number} 4D history`,
+      `Magnum ${number}`,
+      `Damacai ${number}`,
+      `Toto ${number}`,
+    ],
+    temporalCoverage: lastDate ? `../${lastDate}` : undefined,
+    variableMeasured: [
+      {
+        "@type": "PropertyValue",
+        name: "Total Appearances",
+        value: hits,
+      },
+      {
+        "@type": "PropertyValue",
+        name: "First Prize Wins",
+        value: data.stats.first_prize_hits ?? 0,
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Heat Level",
+        value: data.stats.heat_level,
+      },
+    ],
+  };
+}
+
 export default async function NumberPage({ params, searchParams }: PageProps) {
   const number = normalize4D(params.number);
   if (!isValid4D(number)) {
@@ -121,6 +161,14 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
   }
 
   return (
-    <NumberIntelView data={data} operators={operators} mode={mode} />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateNumberJsonLd(number, data)),
+        }}
+      />
+      <NumberIntelView data={data} operators={operators} mode={mode} />
+    </>
   );
 }

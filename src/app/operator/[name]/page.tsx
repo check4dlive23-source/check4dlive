@@ -77,6 +77,32 @@ export async function generateMetadata({ params }: { params: { name: string } })
   };
 }
 
+function generateOperatorJsonLd(
+  name: string,
+  op: (typeof OPERATOR_CONFIG)[string],
+  totalDraws: number,
+  earliestDate: string | null,
+  latestDate: string | null
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: op.label,
+    url: `https://check4dterminal.com/operator/${name}`,
+    description: `${op.label} 4D lottery operator. ${totalDraws} draws recorded from ${earliestDate ?? "unknown"} to ${latestDate ?? "present"}.`,
+    knowsAbout: op.games,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `${op.label} Games`,
+      itemListElement: op.games.map((game, i) => ({
+        "@type": "Offer",
+        position: i + 1,
+        name: game,
+      })),
+    },
+  };
+}
+
 export default async function OperatorPage({ params }: { params: { name: string } }) {
   const op = OPERATOR_CONFIG[params.name];
   if (!op) notFound();
@@ -135,18 +161,34 @@ export default async function OperatorPage({ params }: { params: { name: string 
   }));
 
   return (
-    <OperatorView
-      name={params.name}
-      label={op.label}
-      color={op.color}
-      logo={op.logo}
-      games={op.games}
-      hotNumbers={hotResult.rows}
-      coldNumbers={coldResult.rows}
-      recentDraws={recentDraws}
-      totalDraws={totalDraws}
-      earliestDate={earliestDate}
-      latestDate={latestDraw}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateOperatorJsonLd(
+              params.name,
+              op,
+              totalDraws,
+              earliestDate,
+              latestDraw
+            )
+          ),
+        }}
+      />
+      <OperatorView
+        name={params.name}
+        label={op.label}
+        color={op.color}
+        logo={op.logo}
+        games={op.games}
+        hotNumbers={hotResult.rows}
+        coldNumbers={coldResult.rows}
+        recentDraws={recentDraws}
+        totalDraws={totalDraws}
+        earliestDate={earliestDate}
+        latestDate={latestDraw}
+      />
+    </>
   );
 }
