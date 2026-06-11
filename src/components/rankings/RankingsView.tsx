@@ -163,7 +163,14 @@ export function RankingsView({
     initialTab && TOP100_TAB_ALIAS[initialTab] ? TOP100_TAB_ALIAS[initialTab] : "hot"
   );
   const [today, setToday] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>(() => ({
+    momentum: true,
+    cold: true,
+    digit: true,
+    patterns: true,
+    mirror: true,
+    top100: Boolean(initialOperators),
+  }));
   const [selectedOperators, setSelectedOperators] = useState<string[]>(
     initialOperators ? initialOperators.split(",").filter(Boolean) : []
   );
@@ -190,66 +197,142 @@ export function RankingsView({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    (async () => {
-      const oq = operatorsQuery(selectedOperators);
-      const sq = sinceQuery(sinceDateFromPeriod(selectedPeriod, today));
-      const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
-      try {
-        const noFilter =
-          selectedOperators.length === 0 && selectedPeriod === "all";
+    const oq = operatorsQuery(selectedOperators);
+    const sq = sinceQuery(sinceDateFromPeriod(selectedPeriod, today));
+    const sinceDate = sinceDateFromPeriod(selectedPeriod, today);
+    const noFilter =
+      selectedOperators.length === 0 && selectedPeriod === "all";
 
-        const [h, c, d, p, mirrorData, hotTop, coldTop] = await Promise.all([
-          fetch(`/api/analytics/hot?period=30d&limit=100${oq}${sq}`).then((r) => r.json()),
-          fetch(`/api/analytics/cold?min_gap=30&limit=100${oq}${sq}`).then((r) => r.json()),
-          fetch(
-            `/api/analytics/digit${operatorsSearch(selectedOperators, sinceDate)}`
-          ).then((r) => r.json()),
-          fetch(
-            `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
-          ).then((r) => r.json()),
-          fetch(`/api/analytics/mirror${operatorsSearch(selectedOperators, sinceDate)}`).then((r) => r.json()),
-          noFilter
-            ? Promise.resolve({ rows: hot })
-            : fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then((r) =>
-                r.json()
-              ),
-          noFilter
-            ? Promise.resolve({ rows: cold })
-            : fetch(`/api/analytics/cold?min_gap=0${oq}${sq}`).then((r) =>
-                r.json()
-              ),
-        ]);
-        if (cancelled) return;
-        setHotMomentum(h.rows ?? []);
-        setColdReversal(c.rows ?? []);
-        setDigit({
-          thousands: d.thousands ?? d.data?.thousands ?? [],
-          hundreds: d.hundreds ?? d.data?.hundreds ?? [],
-          tens: d.tens ?? d.data?.tens ?? [],
-          units: d.units ?? d.data?.units ?? [],
-        });
-        setPatterns(p.rows ?? []);
-        setMirrorPairs(mirrorData?.rows ?? []);
-
-        if (selectedOperators.length === 0 && selectedPeriod === "all") {
-          setTop100Hot(hot);
-          setTop100Cold(cold);
-          setTop100First(firstPrize);
-        } else {
-          const hotRows = (hotTop.rows ?? []) as HotNumberRow[];
-          setTop100Hot(hotRows);
-          setTop100Cold((coldTop.rows ?? []) as ColdNumberRow[]);
-          setTop100First(
-            [...hotRows].sort((a, b) => b.first_hits - a.first_hits)
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+    const setDomainLoading = (key: string, value: boolean) => {
+      if (!cancelled) {
+        setLoadingMap((prev) => ({ ...prev, [key]: value }));
       }
-    })();
+    };
+
+    setDomainLoading("momentum", true);
+    fetch(`/api/analytics/hot?period=30d&limit=100${oq}${sq}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setHotMomentum(data.rows ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setHotMomentum([]);
+      })
+      .finally(() => {
+        setDomainLoading("momentum", false);
+      });
+
+    const restTimer = setTimeout(() => {
+      if (cancelled) return;
+
+      setDomainLoading("cold", true);
+      fetch(`/api/analytics/cold?min_gap=30&limit=100${oq}${sq}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (cancelled) return;
+          setColdReversal(data.rows ?? []);
+        })
+        .catch(() => {
+          if (!cancelled) setColdReversal([]);
+        })
+        .finally(() => {
+          setDomainLoading("cold", false);
+        });
+
+      setDomainLoading("digit", true);
+      fetch(
+        `/api/analytics/digit${operatorsSearch(selectedOperators, sinceDate)}`
+      )
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return;
+          setDigit({
+            thousands: d.thousands ?? d.data?.thousands ?? [],
+            hundreds: d.hundreds ?? d.data?.hundreds ?? [],
+            tens: d.tens ?? d.data?.tens ?? [],
+            units: d.units ?? d.data?.units ?? [],
+          });
+        })
+        .catch(() => {
+          if (!cancelled) setDigit(null);
+        })
+        .finally(() => {
+          setDomainLoading("digit", false);
+        });
+
+      setDomainLoading("patterns", true);
+      fetch(
+        `/api/analytics/patterns${operatorsSearch(selectedOperators, sinceDate)}`
+      )
+        .then((r) => r.json())
+        .then((p) => {
+          if (cancelled) return;
+          setPatterns(p.rows ?? []);
+        })
+        .catch(() => {
+          if (!cancelled) setPatterns([]);
+        })
+        .finally(() => {
+          setDomainLoading("patterns", false);
+        });
+
+      setDomainLoading("mirror", true);
+      fetch(
+        `/api/analytics/mirror${operatorsSearch(selectedOperators, sinceDate)}`
+      )
+        .then((r) => r.json())
+        .then((mirrorData) => {
+          if (cancelled) return;
+          setMirrorPairs(mirrorData?.rows ?? []);
+        })
+        .catch(() => {
+          if (!cancelled) setMirrorPairs([]);
+        })
+        .finally(() => {
+          setDomainLoading("mirror", false);
+        });
+
+      if (noFilter) {
+        setTop100Hot(hot);
+        setTop100Cold(cold);
+        setTop100First(firstPrize);
+        setDomainLoading("top100", false);
+      } else {
+        setDomainLoading("top100", true);
+        Promise.all([
+          fetch(`/api/analytics/hot?period=100draws&limit=100${oq}${sq}`).then(
+            (r) => r.json()
+          ),
+          fetch(`/api/analytics/cold?min_gap=0${oq}${sq}`).then((r) =>
+            r.json()
+          ),
+        ])
+          .then(([hotTop, coldTop]) => {
+            if (cancelled) return;
+            const hotRows = (hotTop.rows ?? []) as HotNumberRow[];
+            setTop100Hot(hotRows);
+            setTop100Cold((coldTop.rows ?? []) as ColdNumberRow[]);
+            setTop100First(
+              [...hotRows].sort((a, b) => b.first_hits - a.first_hits)
+            );
+          })
+          .catch(() => {
+            if (!cancelled) {
+              setTop100Hot([]);
+              setTop100Cold([]);
+              setTop100First([]);
+            }
+          })
+          .finally(() => {
+            setDomainLoading("top100", false);
+          });
+      }
+    }, 100);
+
     return () => {
       cancelled = true;
+      clearTimeout(restTimer);
     };
   }, [selectedOperators, selectedPeriod, today, hot, cold, firstPrize]);
 
@@ -281,7 +364,7 @@ export function RankingsView({
     return Array.from(m.entries());
   }, [patterns]);
 
-  const showSkeleton = loading;
+  const showSkeleton = loadingMap[tab] ?? false;
 
   const TABS = [
     { key: "momentum" as const, label: t("hotMomentum") },

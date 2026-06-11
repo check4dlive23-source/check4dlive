@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LuckyModal } from "./LuckyModal";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import { getNextAnyDraw } from "@/lib/next-draw";
 import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
@@ -314,20 +315,25 @@ export function AnalyticsDashboardHome({
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [luckyOpen, setLuckyOpen] = useState(false);
 
-  // 倒计时：下次开奖（马来西亚时间 19:00）
+  // 倒计时：下一场真实开彩（4D 日三六 19:00 / SG Toto 一四 21:30 MYT）
   const [countdown, setCountdown] = useState("");
+  const [nextDrawKind, setNextDrawKind] = useState<"4d" | "sg_toto">("4d");
   useEffect(() => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const formatDiff = (diffMs: number) => {
+      const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+      const days = Math.floor(totalSec / 86400);
+      const h = Math.floor((totalSec % 86400) / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      const clock = `${pad(h)}:${pad(m)}:${pad(s)}`;
+      return diffMs > 86_400_000 ? `${days}天 ${clock}` : clock;
+    };
     const tick = () => {
       const now = new Date();
-      const myt = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
-      const next = new Date(myt);
-      next.setHours(19, 0, 0, 0);
-      if (myt >= next) next.setDate(next.getDate() + 1);
-      const diff = next.getTime() - myt.getTime();
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      setCountdown(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
+      const next = getNextAnyDraw(now);
+      setNextDrawKind(next.kind);
+      setCountdown(formatDiff(next.date.getTime() - now.getTime()));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -453,6 +459,9 @@ export function AnalyticsDashboardHome({
             {/* 倒计时 */}
             <div className="mt-3 inline-flex items-center gap-2" style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.15)", borderRadius: 8, padding: "6px 14px" }}>
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", fontFamily: "var(--font-jetbrains)" }}>NEXT DRAW</span>
+              {nextDrawKind === "sg_toto" && (
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", fontFamily: "var(--font-jetbrains)" }}>TOTO</span>
+              )}
               <span className="font-mono tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: "#00E5FF", letterSpacing: "0.08em" }}>{countdown}</span>
             </div>
             <div className="mt-4 flex gap-3">

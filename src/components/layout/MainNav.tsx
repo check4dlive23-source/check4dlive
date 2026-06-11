@@ -339,10 +339,11 @@ export function MainNav() {
 
       {/* Mobile bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex h-16 pb-safe backdrop-blur-xl lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex h-16 pb-safe lg:hidden"
         style={{
-          backgroundColor: "rgba(7,7,16,0.95)",
+          backgroundColor: "rgba(7,7,16,0.97)",
           borderTop: "1px solid var(--border-dim)",
+          transform: "translateZ(0)",
         }}
         aria-label="Main navigation"
       >
