@@ -79,4 +79,17 @@ html, body {
     border: 1px solid rgba(0, 229, 255, 0.1);
     border-radius: 12px;
   }
+  @keyframes live-slot-reveal {
+    from {
+      background-color: rgba(0, 229, 255, 0.35);
+      border-color: rgba(0, 229, 255, 0.45);
+    }
+    to {
+      background-color: rgba(0, 229, 255, 0.05);
+      border-color: rgba(0, 229, 255, 0.1);
+    }
+  }
+  .live-slot-reveal {
+    animation: live-slot-reveal 0.8s ease-out;
+  }
 }

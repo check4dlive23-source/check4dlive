@@ -38,9 +38,39 @@ const SUBTITLES: Partial<Record<Region, string>> = {
   singapore: "Wed/Sat/Sun 6:30PM SGT",
 };
 
-function mapStatus(first?: string | null): DrawStatus {
-  if (!first || first === "----") return "pending";
-  return "drawn";
+export function isRealNum(v: unknown): v is string {
+  return typeof v === "string" && /^\d{4}$/.test(v);
+}
+
+function rowHasAnyNumber(row: DbDrawRow): boolean {
+  return (
+    isRealNum(row.first_prize) ||
+    isRealNum(row.second_prize) ||
+    isRealNum(row.third_prize) ||
+    (row.special_numbers ?? []).some(isRealNum) ||
+    (row.consolation_numbers ?? []).some(isRealNum)
+  );
+}
+
+function isDrawComplete(row: DbDrawRow, operator: OperatorId): boolean {
+  if (
+    !isRealNum(row.first_prize) ||
+    !isRealNum(row.second_prize) ||
+    !isRealNum(row.third_prize)
+  ) {
+    return false;
+  }
+  const spCount = specialSlotCount(operator);
+  const specials = padPrizeSlots(row.special_numbers, spCount);
+  const consolations = padPrizeSlots(row.consolation_numbers, 10);
+  return specials.every(isRealNum) && consolations.every(isRealNum);
+}
+
+function mapStatus(row: DbDrawRow): DrawStatus {
+  const operator = row.operator as OperatorId;
+  if (!rowHasAnyNumber(row)) return "pending";
+  if (isDrawComplete(row, operator)) return "drawn";
+  return "live";
 }
 
 export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
@@ -58,7 +88,7 @@ export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
     subtitle: SUBTITLES[region],
     date: row.date,
     draw_no: row.draw_no ?? undefined,
-    status: mapStatus(row.first_prize),
+    status: mapStatus(row),
     first_prize: row.first_prize ?? undefined,
     second_prize: row.second_prize ?? undefined,
     third_prize: row.third_prize ?? undefined,
@@ -96,16 +126,14 @@ function withPaddedPrizes(draw: DrawResult): DrawResult {
   };
 }
 
-function hasTodayDrawnResult(
+function hasTodayAnyNumber(
   api: DbDrawRow | null | undefined,
   today: string
 ): boolean {
   return !!(
     api &&
     (api.date as string) === today &&
-    api.first_prize &&
-    api.first_prize !== "----" &&
-    /^\d{4}$/.test(api.first_prize)
+    rowHasAnyNumber(api)
   );
 }
 
@@ -128,7 +156,11 @@ export function mergeDrawResult(
   isDrawDay = false,
   today = ""
 ): DrawResult {
-  if (isDrawDay && today && !hasTodayDrawnResult(api, today)) {
+  if (
+    isDrawDay &&
+    today &&
+    (!api || (api.date as string) !== today || !hasTodayAnyNumber(api, today))
+  ) {
     return buildDrawDayPending(mock, today);
   }
 
@@ -141,27 +173,10 @@ export function mergeDrawResult(
     }
     return withPaddedPrizes(mock);
   }
+
   const fromApi = dbRowToDrawResult(api);
-  const operator = fromApi.operator;
   const date = fromApi.date || mock.date;
   const draw_no = fromApi.draw_no ?? mock.draw_no;
-  const prizes = padDrawPrizes(
-    operator,
-    fromApi.special_numbers ?? mock.special_numbers,
-    fromApi.consolation_numbers ?? mock.consolation_numbers
-  );
-
-  if (!api.first_prize || api.first_prize === "----") {
-    const spCount = specialSlotCount(operator);
-    return withPaddedPrizes({
-      ...mock,
-      date,
-      draw_no,
-      status: fromApi.status,
-      special_numbers: padPrizeSlots(api.special_numbers, spCount),
-      consolation_numbers: padPrizeSlots(api.consolation_numbers, 10),
-    });
-  }
 
   return withPaddedPrizes({
     ...fromApi,
@@ -169,7 +184,6 @@ export function mergeDrawResult(
     draw_no,
     displayName: fromApi.displayName || mock.displayName,
     subtitle: fromApi.subtitle ?? mock.subtitle,
-    ...prizes,
     jackpot1_amount: fromApi.jackpot1_amount ?? mock.jackpot1_amount,
     jackpot2_amount: fromApi.jackpot2_amount ?? mock.jackpot2_amount,
   });
