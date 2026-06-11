@@ -155,6 +155,14 @@ export function AuthNavWidget({ variant }: Props) {
           >
             {t("navWatchlist")}
           </Link>
+          <Link
+            href="/pro"
+            onClick={() => setMenuOpen(false)}
+            className="block px-3 py-2 text-[11px] uppercase tracking-[0.08em]"
+            style={{ color: "var(--amber)" }}
+          >
+            {t("navPro")}
+          </Link>
           <button
             type="button"
             onClick={signOut}

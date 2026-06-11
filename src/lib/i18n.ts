@@ -275,6 +275,7 @@ export const translations = {
     navSignIn: "登录",
     navAccount: "账户",
     navWatchlist: "我的号码",
+    navPro: "升级会员",
   },
   en: {
     analytics: "📊 Analytics",
@@ -552,6 +553,7 @@ export const translations = {
     navSignIn: "SIGN IN",
     navAccount: "ACCOUNT",
     navWatchlist: "MY NUMBERS",
+    navPro: "UPGRADE PRO",
   },
 } as const;
 
