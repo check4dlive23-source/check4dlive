@@ -20,6 +20,7 @@
     "backfill:scores": "tsx src/scripts/backfill-scores.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.106.2",
     "framer-motion": "^12.40.0",
