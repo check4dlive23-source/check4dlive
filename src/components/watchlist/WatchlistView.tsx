@@ -11,6 +11,7 @@ import type { NumberScoreRow } from "@/lib/score/compute";
 export interface WatchlistItem {
   number: string;
   score: NumberScoreRow | null;
+  delta: number | null;
 }
 
 interface Props {
@@ -29,6 +30,51 @@ function scoreLevelKey(overall: number): TranslationKey {
   if (overall >= SCORE_LEVELS.neutral) return "scoreNeutral";
   if (overall >= SCORE_LEVELS.weak) return "scoreWeak";
   return "scoreCold";
+}
+
+function DeltaBadge({
+  delta,
+  collectingLabel,
+  weeklyLabel,
+}: {
+  delta: number | null;
+  collectingLabel: string;
+  weeklyLabel: string;
+}) {
+  if (delta === null) {
+    return (
+      <span
+        className="font-mono text-[9px]"
+        style={{ color: "rgba(255,255,255,0.35)" }}
+      >
+        {collectingLabel}
+      </span>
+    );
+  }
+  const gray = "rgba(255,255,255,0.35)";
+  let text: string;
+  let color: string;
+  if (delta > 0) {
+    text = `▲ +${delta}`;
+    color = "var(--green)";
+  } else if (delta < 0) {
+    text = `▼ ${delta}`;
+    color = "#FF4D4D";
+  } else {
+    text = "— 0";
+    color = gray;
+  }
+  return (
+    <span
+      className="font-mono text-[10px] font-semibold tabular-nums"
+      style={{ color }}
+    >
+      <span style={{ color: gray, fontWeight: 400, marginRight: 4 }}>
+        {weeklyLabel}
+      </span>
+      {text}
+    </span>
+  );
 }
 
 const SCORE_PARTS = [
@@ -154,6 +200,11 @@ export function WatchlistView({ items: initialItems }: Props) {
                             {t(levelKey)}
                           </span>
                         )}
+                        <DeltaBadge
+                          delta={item.delta}
+                          collectingLabel={t("trendCollecting")}
+                          weeklyLabel={t("trendWeekly")}
+                        />
                       </>
                     ) : (
                       <span

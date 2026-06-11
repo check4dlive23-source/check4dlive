@@ -212,6 +212,29 @@ async function main() {
     const aggregates = accMapToAggregates(merged);
     const rows = computeAllScores(aggregates, today, scope);
     await upsertScopeRows(supabase, scope, rows);
+
+    if (scope === "all") {
+      const snapshotRows = rows.map((r) => ({
+        snapshot_date: today,
+        number: r.number,
+        overall_score: r.overall_score,
+        freq_score: r.freq_score,
+        cycle_score: r.cycle_score,
+        momentum_score: r.momentum_score,
+        mirror_score: r.mirror_score,
+      }));
+      for (let i = 0; i < snapshotRows.length; i += UPSERT_BATCH) {
+        const batch = snapshotRows.slice(i, i + UPSERT_BATCH);
+        const { error: snapErr } = await supabase
+          .from("score_snapshots")
+          .upsert(batch, { onConflict: "snapshot_date,number" });
+        if (snapErr) {
+          console.error("Snapshot upsert error:", snapErr.message);
+          process.exit(1);
+        }
+      }
+      console.log(`[snapshot] ${snapshotRows.length} rows for ${today}`);
+    }
   }
 
   console.log("Backfill complete.");

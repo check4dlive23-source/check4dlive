@@ -285,6 +285,8 @@ export const translations = {
     watchAdded: "★ 已关注",
     watchRemove: "取消关注",
     watchLimitReached: "免费额度已满(5个)，升级会员解锁无限关注",
+    trendCollecting: "趋势收集中",
+    trendWeekly: "7日",
   },
   en: {
     analytics: "📊 Analytics",
@@ -572,6 +574,8 @@ export const translations = {
     watchAdded: "★ WATCHING",
     watchRemove: "REMOVE",
     watchLimitReached: "Free limit reached (5). Upgrade to Pro for unlimited.",
+    trendCollecting: "Collecting trend",
+    trendWeekly: "7D",
   },
 } as const;
 

@@ -1,6 +1,7 @@
 import { WatchlistView } from "@/components/watchlist/WatchlistView";
 import { createAuthServerClient } from "@/lib/supabase/auth-server";
 import { getNumberScore } from "@/lib/score/queries";
+import { getScoreTrend, weeklyDelta } from "@/lib/score/snapshots";
 import { redirect } from "next/navigation";
 
 export const metadata = { robots: { index: false } };
@@ -19,10 +20,17 @@ export default async function WatchlistPage() {
 
   const numbers = (rows ?? []).map((r) => r.number as string);
   const items = await Promise.all(
-    numbers.map(async (number) => ({
-      number,
-      score: await getNumberScore(number),
-    }))
+    numbers.map(async (number) => {
+      const [score, trend] = await Promise.all([
+        getNumberScore(number),
+        getScoreTrend(number, 14),
+      ]);
+      return {
+        number,
+        score,
+        delta: weeklyDelta(trend),
+      };
+    })
   );
 
   return <WatchlistView items={items} />;
