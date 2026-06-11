@@ -200,7 +200,8 @@ export function NumberIntelView({
     setAiLoading(true);
     setAiContent(null);
     const currentLang = lang ?? "en";
-    fetch(`/api/ai-insight/${data.number}?lang=${currentLang}`)
+    const opParam = operators.length > 0 ? `&operators=${operators.join(",")}` : "";
+    fetch(`/api/ai-insight/${data.number}?lang=${currentLang}${opParam}`)
       .then(async (res) => {
         if (!res.ok) return null;
         const json = (await res.json()) as { content?: string };
@@ -216,7 +217,7 @@ export function NumberIntelView({
     return () => {
       cancelled = true;
     };
-  }, [data.number, lang]);
+  }, [data.number, lang, operators]);
 
   const seoText =
     lang === "zh"
@@ -303,6 +304,49 @@ export function NumberIntelView({
         {/* 搜索框 */}
         <NumberSearchBar currentNumber={data.number} />
 
+        {/* ── AI 解读 ── */}
+        <section>
+          <style>{`
+            @keyframes aiInsightPulse {
+              0%, 100% { opacity: 0.4; }
+              50% { opacity: 1; }
+            }
+          `}</style>
+          <div className="flex items-center gap-3 mb-3">
+            <SectionTitle>{t("aiInsight")}</SectionTitle>
+            <span style={{ fontSize: 9, color: "rgba(160,125,224,0.7)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: -10 }}>
+              {aiContent ? "AI · CLAUDE" : "DATA ANALYSIS"}
+            </span>
+            {aiLoading && (
+              <span
+                style={{
+                  marginLeft: "auto",
+                  fontSize: 10,
+                  color: "rgba(160,125,224,0.7)",
+                  letterSpacing: "0.05em",
+                  animation: "aiInsightPulse 1.5s ease-in-out infinite",
+                }}
+              >
+                {t("aiGenerating")}
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              position: "relative",
+              background: "linear-gradient(135deg, rgba(160,125,224,0.08), rgba(10,14,26,0.9))",
+              border: "1px solid rgba(160,125,224,0.2)",
+              borderRadius: 12,
+              padding: "16px 20px",
+            }}
+          >
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
+              {aiContent ?? aiText}
+            </p>
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 10, letterSpacing: "0.05em" }}>{t("aiInsightNote")}</p>
+          </div>
+        </section>
+
         {/* ── 概览 ── */}
         <section>
           <SectionTitle>{t("overview")}</SectionTitle>
@@ -345,51 +389,6 @@ export function NumberIntelView({
             </div>
           </section>
         )}
-
-        {/* ── AI 解读 ── */}
-        <section>
-          <style>{`
-            @keyframes aiInsightPulse {
-              0%, 100% { opacity: 0.4; }
-              50% { opacity: 1; }
-            }
-          `}</style>
-          <div className="flex items-center gap-3 mb-3">
-            <SectionTitle>{t("aiInsight")}</SectionTitle>
-            <span style={{ fontSize: 9, color: "rgba(160,125,224,0.7)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: -10 }}>
-              {aiContent ? "AI · CLAUDE" : "DATA ANALYSIS"}
-            </span>
-          </div>
-          <div
-            style={{
-              position: "relative",
-              background: "linear-gradient(135deg, rgba(160,125,224,0.08), rgba(10,14,26,0.9))",
-              border: "1px solid rgba(160,125,224,0.2)",
-              borderRadius: 12,
-              padding: "16px 20px",
-            }}
-          >
-            {aiLoading && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  right: 20,
-                  fontSize: 10,
-                  color: "rgba(160,125,224,0.7)",
-                  letterSpacing: "0.05em",
-                  animation: "aiInsightPulse 1.5s ease-in-out infinite",
-                }}
-              >
-                {t("aiGenerating")}
-              </span>
-            )}
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
-              {aiContent ?? aiText}
-            </p>
-            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 10, letterSpacing: "0.05em" }}>{t("aiInsightNote")}</p>
-          </div>
-        </section>
 
         {/* ── 关联号码 ── */}
         {relatedNumbers.length > 0 && (
