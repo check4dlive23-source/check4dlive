@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { NumberScoreGauge } from "./NumberScoreGauge";
 import { NumberSearchBar } from "./NumberSearchBar";
@@ -150,6 +150,7 @@ interface NumberIntelViewProps {
   score: NumberScoreRow | null;
   operators?: string[];
   mode?: NumberIntelMode;
+  initialInsight?: string | null;
 }
 
 export function NumberIntelView({
@@ -157,13 +158,16 @@ export function NumberIntelView({
   score,
   operators = [],
   mode = "single",
+  initialInsight = null,
 }: NumberIntelViewProps) {
   const { t, lang } = useLang();
   const router = useRouter();
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const [aiContent, setAiContent] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiContent, setAiContent] = useState<string | null>(initialInsight);
+  const [aiLoading, setAiLoading] = useState(!initialInsight);
+  const initialInsightConsumed = useRef(false);
+  const mountOperatorsKey = useRef(operators.join(","));
   const { stats } = data;
   const historyGroups = data.history.groups;
 
@@ -197,9 +201,22 @@ export function NumberIntelView({
 
   useEffect(() => {
     let cancelled = false;
+    const currentLang = lang ?? "en";
+    const opsKey = operators.join(",");
+
+    if (
+      initialInsight &&
+      !initialInsightConsumed.current &&
+      currentLang === "zh" &&
+      opsKey === mountOperatorsKey.current
+    ) {
+      initialInsightConsumed.current = true;
+      setAiLoading(false);
+      return;
+    }
+
     setAiLoading(true);
     setAiContent(null);
-    const currentLang = lang ?? "en";
     const opParam = operators.length > 0 ? `&operators=${operators.join(",")}` : "";
     fetch(`/api/ai-insight/${data.number}?lang=${currentLang}${opParam}`)
       .then(async (res) => {
@@ -217,7 +234,7 @@ export function NumberIntelView({
     return () => {
       cancelled = true;
     };
-  }, [data.number, lang, operators]);
+  }, [data.number, lang, operators, initialInsight]);
 
   const seoText =
     lang === "zh"

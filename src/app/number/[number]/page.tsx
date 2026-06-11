@@ -1,4 +1,5 @@
 import { NumberIntelView } from "@/components/number/NumberIntelView";
+import { getCachedInsight } from "@/lib/ai/number-insight";
 import {
   getNumberIntelligence,
   isValid4D,
@@ -84,23 +85,21 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const number = normalize4D(params.number);
   if (!isValid4D(number)) {
-    return { title: "Invalid number | Check4D Live" };
+    return { title: "Invalid number | Check4D Terminal" };
   }
 
   const data = await getNumberIntelligenceCached(number);
   const hits = data?.stats.total_hits ?? 0;
   const lastDate = data?.stats.last_seen_date;
 
-  const lastSeenText = lastDate
-    ? `Last seen ${lastDate}.`
-    : "No recorded appearances yet.";
+  const lastSeenZh = lastDate ? `最近开出:${lastDate}。` : "";
 
   return {
-    title: `4D Number ${number} — Statistics & History | Check4D Live`,
-    description: `Number ${number} has appeared ${hits} times across Magnum, Damacai, Toto, Cash Sweep, Sabah 88, Sandakan 4D & Singapore Pools. ${lastSeenText}`,
+    title: `${number} 4D 万字历史记录 & 分析 | 4D Number ${number} History — Check4D Terminal`,
+    description: `${number} 历史开彩 ${hits} 次,覆盖万能 Magnum、多多 Toto、大马彩 Damacai、新加坡 Singapore Pools 等 7 家。${lastSeenZh}查看完整开彩记录、冷热分析与 AI 解读。`,
     openGraph: {
-      title: `4D Number ${number} — Check4D Live`,
-      description: `${hits} total hits. ${lastSeenText}`,
+      title: `${number} 4D 万字历史 & 分析 | Check4D Terminal`,
+      description: `${number} 历史开彩 ${hits} 次。${lastSeenZh}`,
     },
   };
 }
@@ -151,7 +150,7 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
   const operators = searchParams.operators?.split(",").filter(Boolean) ?? [];
   const mode = parseMode(searchParams.mode);
 
-  const [data, score] = await Promise.all([
+  const [data, score, cachedInsight] = await Promise.all([
     getNumberIntelligenceCached(number, {
       page: 1,
       pageSize: 500,
@@ -159,6 +158,7 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
       mode,
     }),
     getNumberScore(number, operators),
+    getCachedInsight(number, "zh", operators),
   ]);
   if (!data) {
     notFound();
@@ -177,6 +177,7 @@ export default async function NumberPage({ params, searchParams }: PageProps) {
         score={score}
         operators={operators}
         mode={mode}
+        initialInsight={cachedInsight}
       />
     </>
   );

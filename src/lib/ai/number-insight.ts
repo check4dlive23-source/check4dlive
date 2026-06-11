@@ -173,6 +173,27 @@ function todayISO(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+/** 只读缓存,不调 Claude — 供 SSR 注入 */
+export async function getCachedInsight(
+  number: string,
+  lang: "zh" | "en",
+  urlOperators: string[] = []
+): Promise<string | null> {
+  const supabase = createClient();
+  if (!supabase) return null;
+  const scope = scopeKeyFromUrlOperators(urlOperators);
+  const { data } = await supabase
+    .from("ai_insights")
+    .select("content")
+    .eq("number", number)
+    .eq("insight_date", todayISO())
+    .eq("lang", lang)
+    .eq("scope", scope)
+    .maybeSingle();
+  if (!data?.content || data.content === QC_FAILED_MARKER) return null;
+  return data.content;
+}
+
 /** 缓存优先;miss 则生成并写缓存;任何失败返回 null(前端降级模板) */
 export async function getOrCreateInsight(
   number: string,

@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import type { CSSProperties } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { PageLayout } from "@/components/layout/PageLayout";
 import type { Metadata } from "next";
@@ -26,6 +28,79 @@ const OPERATOR_LABELS: Record<string, string> = {
   singapore: "SG Pools",
   sgpools: "SG Pools",
 };
+
+function isValidDrawNumber(v: unknown): v is string {
+  return typeof v === "string" && /^\d{4}$/.test(v);
+}
+
+function PrizeNumber({
+  value,
+  color,
+}: {
+  value: unknown;
+  color: string;
+}) {
+  const text = (value as string) ?? "—";
+  const inner = (
+    <div
+      style={{
+        fontSize: 28,
+        fontWeight: 900,
+        color,
+        fontFamily: "var(--font-jetbrains)",
+        letterSpacing: "0.05em",
+      }}
+    >
+      {text}
+    </div>
+  );
+  if (!isValidDrawNumber(value)) return inner;
+  return (
+    <Link href={`/number/${value}`} style={{ textDecoration: "none", cursor: "pointer" }}>
+      {inner}
+    </Link>
+  );
+}
+
+function GridPrizeNumber({
+  num,
+  variant,
+}: {
+  num: string;
+  variant: "special" | "consolation";
+}) {
+  const isSpecial = variant === "special";
+  const boxStyle: CSSProperties = {
+    background: isSpecial ? "rgba(0,229,255,0.05)" : "rgba(255,255,255,0.03)",
+    border: isSpecial
+      ? "1px solid rgba(0,229,255,0.15)"
+      : "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: "10px 4px",
+    textAlign: "center",
+    fontFamily: "var(--font-jetbrains)",
+    fontSize: 16,
+    fontWeight: 700,
+    color: isSpecial ? "#00E5FF" : "rgba(255,255,255,0.6)",
+    display: "block",
+    textDecoration: "none",
+    transition: "border-color 0.2s",
+  };
+
+  if (!isValidDrawNumber(num)) {
+    return <div style={boxStyle}>{num}</div>;
+  }
+
+  return (
+    <Link
+      href={`/number/${num}`}
+      style={{ ...boxStyle, cursor: "pointer" }}
+      className={isSpecial ? "draw-special-link" : "draw-consolation-link"}
+    >
+      {num}
+    </Link>
+  );
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const parsed = parseSlug(params.slug);
@@ -69,6 +144,10 @@ export default async function DrawPage({ params }: PageProps) {
       subtitle={`${opLabel} · ${date}`}
       showBack
     >
+      <style>{`
+        .draw-special-link:hover { border-color: rgba(0,229,255,0.4) !important; }
+        .draw-consolation-link:hover { border-color: rgba(0,229,255,0.25) !important; }
+      `}</style>
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -89,9 +168,7 @@ export default async function DrawPage({ params }: PageProps) {
               <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: 8 }}>
                 {label}
               </div>
-              <div style={{ fontSize: 28, fontWeight: 900, color, fontFamily: "var(--font-jetbrains)", letterSpacing: "0.05em" }}>
-                {(value as string) ?? "—"}
-              </div>
+              <PrizeNumber value={value} color={color} />
             </div>
           ))}
         </div>
@@ -103,22 +180,7 @@ export default async function DrawPage({ params }: PageProps) {
             </h3>
             <div className="grid grid-cols-5 gap-2">
               {special.map((num, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "rgba(0,229,255,0.05)",
-                    border: "1px solid rgba(0,229,255,0.15)",
-                    borderRadius: 8,
-                    padding: "10px 4px",
-                    textAlign: "center",
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: "#00E5FF",
-                  }}
-                >
-                  {num}
-                </div>
+                <GridPrizeNumber key={i} num={num} variant="special" />
               ))}
             </div>
           </div>
@@ -131,22 +193,7 @@ export default async function DrawPage({ params }: PageProps) {
             </h3>
             <div className="grid grid-cols-5 gap-2">
               {consolation.map((num, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 8,
-                    padding: "10px 4px",
-                    textAlign: "center",
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: "rgba(255,255,255,0.6)",
-                  }}
-                >
-                  {num}
-                </div>
+                <GridPrizeNumber key={i} num={num} variant="consolation" />
               ))}
             </div>
           </div>
