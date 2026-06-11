@@ -1,6 +1,5 @@
 import {
   getRefreshIntervalMs,
-  isDrawDayAndNearDraw,
   isRegionLiveDraw,
 } from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
@@ -27,18 +26,18 @@ export async function GET(request: Request) {
 
       const poll = async () => {
         try {
-          if (isRegionLiveDraw(region)) {
+          const inLiveWindow = isRegionLiveDraw(region);
+          if (inLiveWindow) {
             await scrapeAndCacheRegion(region);
           }
 
           const payload = await getRegionResults(region);
-          const drawDay = isDrawDayAndNearDraw(region);
           const intervalMs = getRefreshIntervalMs(region);
 
           send({
             operators: payload.operators,
-            isLive: payload.isLive,
-            isDrawDay: drawDay,
+            isLive: inLiveWindow,
+            inLiveWindow,
             date: payload.date,
             region: payload.region,
             source: payload.source,

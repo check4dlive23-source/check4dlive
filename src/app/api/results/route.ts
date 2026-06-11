@@ -1,4 +1,4 @@
-import { isDrawDayAndNearDraw, isRegionLiveDraw } from "@/lib/draw-time";
+import { isRegionLiveDraw } from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
 import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
 import type { Region } from "@/types";
@@ -13,14 +13,15 @@ export async function GET(request: Request) {
   const mockLive =
     process.env.NODE_ENV === "development" &&
     searchParams.get("mock_live") === "1";
+  const now = new Date();
 
   try {
-    if (isRegionLiveDraw(region, new Date(), mockLive)) {
+    const inLiveWindow = isRegionLiveDraw(region, now, mockLive);
+    if (inLiveWindow) {
       await scrapeAndCacheRegion(region);
     }
 
     const payload = await getRegionResults(region, { mockLive });
-    const drawDay = isDrawDayAndNearDraw(region);
 
     const headers: HeadersInit = {
       "Cache-Control": "no-store, max-age=0",
@@ -29,11 +30,11 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         operators: payload.operators,
-        isLive: payload.isLive,
+        isLive: inLiveWindow,
+        inLiveWindow,
         date: payload.date,
         region: payload.region,
         source: payload.source,
-        isDrawDay: drawDay,
       },
       { headers }
     );

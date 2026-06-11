@@ -66,14 +66,17 @@ function isDrawComplete(row: DbDrawRow, operator: OperatorId): boolean {
   return specials.every(isRealNum) && consolations.every(isRealNum);
 }
 
-function mapStatus(row: DbDrawRow): DrawStatus {
+function mapStatus(row: DbDrawRow, inLiveWindow: boolean): DrawStatus {
   const operator = row.operator as OperatorId;
   if (!rowHasAnyNumber(row)) return "pending";
   if (isDrawComplete(row, operator)) return "drawn";
-  return "live";
+  return inLiveWindow ? "live" : "drawn";
 }
 
-export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
+export function dbRowToDrawResult(
+  row: DbDrawRow,
+  inLiveWindow = false
+): DrawResult {
   const operator = row.operator as OperatorId;
   const region = row.region as Region;
   const prizes = padDrawPrizes(
@@ -88,7 +91,7 @@ export function dbRowToDrawResult(row: DbDrawRow): DrawResult {
     subtitle: SUBTITLES[region],
     date: row.date,
     draw_no: row.draw_no ?? undefined,
-    status: mapStatus(row),
+    status: mapStatus(row, inLiveWindow),
     first_prize: row.first_prize ?? undefined,
     second_prize: row.second_prize ?? undefined,
     third_prize: row.third_prize ?? undefined,
@@ -153,11 +156,11 @@ function buildDrawDayPending(mock: DrawResult, today: string): DrawResult {
 export function mergeDrawResult(
   mock: DrawResult,
   api?: DbDrawRow | null,
-  isDrawDay = false,
+  inLiveWindow = false,
   today = ""
 ): DrawResult {
   if (
-    isDrawDay &&
+    inLiveWindow &&
     today &&
     (!api || (api.date as string) !== today || !hasTodayAnyNumber(api, today))
   ) {
@@ -174,7 +177,7 @@ export function mergeDrawResult(
     return withPaddedPrizes(mock);
   }
 
-  const fromApi = dbRowToDrawResult(api);
+  const fromApi = dbRowToDrawResult(api, inLiveWindow);
   const date = fromApi.date || mock.date;
   const draw_no = fromApi.draw_no ?? mock.draw_no;
 

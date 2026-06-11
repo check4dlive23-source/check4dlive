@@ -126,12 +126,12 @@ function mergeRegionDraws(
   mocks: DrawResult[],
   operators: Record<string, DbDrawRow>,
   keys: readonly string[],
-  isDrawDay: boolean,
+  inLiveWindow: boolean,
   today: string
 ): DrawResult[] {
   return keys.map((op) => {
     const mock = mocks.find((d) => d.operator === op)!;
-    return mergeDrawResult(mock, operators[op], isDrawDay, today);
+    return mergeDrawResult(mock, operators[op], inLiveWindow, today);
   });
 }
 
@@ -140,7 +140,6 @@ export function LiveTerminal() {
   const [region, setRegion] = useState<Region>("west");
   const [results, setResults] = useState<Record<string, DbDrawRow>>({});
   const [isLive, setIsLive] = useState(false);
-  const [isDrawDay, setIsDrawDay] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -181,14 +180,14 @@ export function LiveTerminal() {
     const applyPayload = (data: {
       operators?: Record<string, DbDrawRow>;
       isLive?: boolean;
-      isDrawDay?: boolean;
+      inLiveWindow?: boolean;
       error?: string;
     }) => {
       if (data.error) return;
       if (data.operators) {
         setResults(data.operators);
-        setIsLive(data.isLive ?? false);
-        setIsDrawDay(data.isDrawDay ?? false);
+        const liveWindow = data.inLiveWindow ?? data.isLive ?? false;
+        setIsLive(liveWindow);
         setLastUpdate(new Date());
         setIsInitialized(true);
       }
@@ -241,7 +240,7 @@ export function LiveTerminal() {
     };
   }, [mounted, region]);
 
-  const drawDayActive = mounted && isDrawDay;
+  const inLiveWindowActive = mounted && isLive;
 
   const westMain4DDisplay = useMemo(
     () =>
@@ -249,10 +248,10 @@ export function LiveTerminal() {
         westMain4D,
         results,
         WEST_OPERATORS,
-        drawDayActive,
+        inLiveWindowActive,
         todayStr
       ),
-    [results, drawDayActive, todayStr]
+    [results, inLiveWindowActive, todayStr]
   );
 
   const eastMain4DDisplay = useMemo(
@@ -261,16 +260,21 @@ export function LiveTerminal() {
         eastMain4D,
         results,
         EAST_OPERATORS,
-        drawDayActive,
+        inLiveWindowActive,
         todayStr
       ),
-    [results, drawDayActive, todayStr]
+    [results, inLiveWindowActive, todayStr]
   );
 
   const singapore4DDisplay = useMemo(
     () =>
-      mergeDrawResult(singapore4D, results["sgpools"], drawDayActive, todayStr),
-    [results, drawDayActive, todayStr]
+      mergeDrawResult(
+        singapore4D,
+        results["sgpools"],
+        inLiveWindowActive,
+        todayStr
+      ),
+    [results, inLiveWindowActive, todayStr]
   );
 
   const magnumDraw = westMain4DDisplay[0];
@@ -443,7 +447,7 @@ export function LiveTerminal() {
                   <Sabah3DCard
                     date={eastMain4DDisplay[0]?.date}
                     draw_no={eastMain4DDisplay[0]?.draw_no}
-                    status={drawDayActive ? "pending" : "drawn"}
+                    status={inLiveWindowActive ? "pending" : "drawn"}
                     data={sabah3D}
                   />
                   {sabahLottoGames.map((g) => (
@@ -451,7 +455,7 @@ export function LiveTerminal() {
                       key={g.displayName}
                       data={{
                         ...g,
-                        status: drawDayActive ? "pending" : g.status,
+                        status: inLiveWindowActive ? "pending" : g.status,
                       }}
                     />
                   ))}
@@ -469,7 +473,7 @@ export function LiveTerminal() {
                   <LottoBallCard
                     data={{
                       ...singaporeToto,
-                      status: drawDayActive ? "pending" : singaporeToto.status,
+                      status: inLiveWindowActive ? "pending" : singaporeToto.status,
                     }}
                   />
                 </CardGrid>

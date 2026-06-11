@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthNavWidget } from "@/components/auth/AuthNavWidget";
 import { LanguageToggle } from "./LanguageToggle";
+import { useViewportBottomFix } from "@/hooks/useViewportBottomFix";
 import { isRegionLiveDraw } from "@/lib/draw-time";
 import { useLang } from "@/lib/language-context";
 import type { Region } from "@/types";
@@ -187,6 +188,8 @@ export function MainNav() {
   const { t } = useLang();
   const pathname = usePathname();
   const live = useAnyRegionLive();
+  const mobileNavRef = useRef<HTMLElement>(null);
+  useViewportBottomFix(mobileNavRef);
 
   const MOBILE_TABS = [
     {
@@ -339,11 +342,15 @@ export function MainNav() {
 
       {/* Mobile bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex h-16 pb-safe lg:hidden"
+        ref={mobileNavRef}
+        className="z-50 flex h-16 pb-safe lg:hidden"
         style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
           backgroundColor: "rgba(7,7,16,0.97)",
           borderTop: "1px solid var(--border-dim)",
-          transform: "translateZ(0)",
         }}
         aria-label="Main navigation"
       >
