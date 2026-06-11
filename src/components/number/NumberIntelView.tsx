@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { NumberScoreGauge } from "./NumberScoreGauge";
 import { NumberSearchBar } from "./NumberSearchBar";
+import { WatchButton } from "@/components/watchlist/WatchButton";
 import { useLang } from "@/lib/language-context";
 import { formatDrawDate } from "@/lib/number-utils";
 import { parsePosition } from "@/lib/number-intelligence";
@@ -255,17 +256,22 @@ export function NumberIntelView({
           </div>
           <div className="flex flex-col items-center sm:items-end gap-2">
             <NumberScoreGauge score={score} />
-            <button type="button"
-              onClick={() => {
-                if (typeof navigator !== "undefined" && navigator.clipboard) {
-                  navigator.clipboard.writeText(window.location.href);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }
-              }}
-              className="rounded-lg border border-line bg-surface-3 px-3 py-1.5 text-xs text-muted hover:border-gold/50 hover:text-gold">
-              {copied ? t("copiedLink") : t("shareAnalysis")}
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <WatchButton number={data.number} />
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }
+                }}
+                className="rounded-lg border border-line bg-surface-3 px-3 py-1.5 text-xs text-muted hover:border-gold/50 hover:text-gold"
+              >
+                {copied ? t("copiedLink") : t("shareAnalysis")}
+              </button>
+            </div>
           </div>
         </div>
 
