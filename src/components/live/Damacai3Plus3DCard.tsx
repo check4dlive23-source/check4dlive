@@ -33,11 +33,11 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
               <tr key={p.position} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <td style={{ padding: "8px 8px 8px 0", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", width: 32 }}>{p.position}</td>
                 <td style={{ padding: "8px 8px", fontFamily: "var(--font-jetbrains)", fontSize: 15, fontWeight: 700, color: revealed ? p.position === "1st" ? "#FFD700" : p.position === "2nd" ? "rgba(192,192,192,0.9)" : "rgba(205,127,50,0.9)" : "rgba(255,255,255,0.1)", whiteSpace: "nowrap" }}>
-                  {revealed ? p.number : "------"}
+                  {revealed ? (p.number || "—") : "------"}
                 </td>
-                <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{p.zodiac}</td>
+                <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{p.zodiac || "—"}</td>
                 <td style={{ padding: "8px 0", fontSize: 11, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textAlign: "right" }}>
-                  {t("bonus")}: <span style={{ color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? formatCurrency(p.bonus, 2) : "—"}</span>
+                  {t("bonus")}: <span style={{ color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? (p.bonus > 0 ? formatCurrency(p.bonus, 2) : "—") : "—"}</span>
                 </td>
               </tr>
             ))}
@@ -49,7 +49,7 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
         <div className="grid grid-cols-5 gap-1">
           {data.special.map((n, i) => (
             <span key={i} className="font-mono tabular-nums" style={{ fontSize: 12, textAlign: "center", padding: "3px 2px", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 6, color: revealed ? "rgba(0,229,255,0.9)" : "rgba(255,255,255,0.1)", display: "block" }}>
-              {revealed ? n : "------"}
+              {revealed ? (n || "—") : "------"}
             </span>
           ))}
         </div>
@@ -59,7 +59,7 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
         <div className="grid grid-cols-5 gap-1">
           {data.consolation.map((n, i) => (
             <span key={i} className="font-mono tabular-nums" style={{ fontSize: 12, textAlign: "center", padding: "3px 2px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, color: revealed ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.1)", display: "block" }}>
-              {revealed ? n : "------"}
+              {revealed ? (n || "—") : "------"}
             </span>
           ))}
         </div>

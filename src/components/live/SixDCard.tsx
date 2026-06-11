@@ -34,9 +34,19 @@ export function SixDCard({ displayName, subtitle, date, draw_no, status, tiers }
           <div key={tier.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 32, flexShrink: 0 }}>{tier.label}</span>
             <span className="font-mono tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: revealed ? "#00E5FF" : "rgba(255,255,255,0.1)", flex: 1, textAlign: "center", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, padding: "4px 8px" }}>
-              {!revealed ? "----" : tier.label === "1st" ? tier.front : (
-                <>{tier.front} <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>OR</span> {tier.back}</>
-              )}
+              {!revealed
+                ? "----"
+                : tier.front
+                  ? tier.label === "1st"
+                    ? tier.front
+                    : (
+                        <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                          <span style={{ fontFamily: "var(--font-jetbrains)", letterSpacing: "0.05em" }}>{tier.front}</span>
+                          <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, fontFamily: "var(--font-jetbrains)" }}>OR</span>
+                          <span style={{ fontFamily: "var(--font-jetbrains)", letterSpacing: "0.05em" }}>{tier.back}</span>
+                        </span>
+                      )
+                  : "—"}
             </span>
           </div>
         ))}

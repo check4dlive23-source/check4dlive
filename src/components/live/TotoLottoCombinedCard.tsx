@@ -41,7 +41,7 @@ export function TotoLottoCombinedCard({ games, date, draw_no, status }: TotoLott
             {SECTION_LABELS[game.displayName]?.emoji ?? "•"}{" "}
             {SECTION_LABELS[game.displayName]?.short ?? game.displayName}
           </p>
-          <LottoBalls balls={game.balls} bonus={game.bonus} hasBonus={game.hasBonus} size="sm" revealed={revealed} />
+          <LottoBalls balls={game.balls} bonus={game.bonus} hasBonus={game.hasBonus} size="sm" revealed={revealed} slotCount={6} />
           {revealed && <LottoJackpotLines data={game} compact />}
         </section>
       ))}

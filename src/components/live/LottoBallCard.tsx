@@ -5,12 +5,14 @@ import { formatDrawDate } from "@/lib/number-utils";
 import type { LottoBallResult } from "@/types";
 import { LottoBalls } from "./LottoBalls";
 import { LottoJackpotLines } from "./LottoJackpotLines";
+import { NoLiveDataPlaceholder } from "./NoLiveDataPlaceholder";
 
 interface LottoBallCardProps {
   data: LottoBallResult;
+  noLiveData?: boolean;
 }
 
-export function LottoBallCard({ data }: LottoBallCardProps) {
+export function LottoBallCard({ data, noLiveData = false }: LottoBallCardProps) {
   const { t } = useLang();
   const logo = resolveLottoLogo(data);
   const revealed = data.status !== "pending";
@@ -35,9 +37,15 @@ export function LottoBallCard({ data }: LottoBallCardProps) {
           {data.status === "drawn" ? t("completed") : t("pending")}
         </span>
       </header>
-      <section style={{ padding: "14px" }}>
-        <LottoBalls balls={data.balls} bonus={data.bonus} hasBonus={data.hasBonus} size="md" revealed={revealed} />
-        {revealed && hasJackpot && <LottoJackpotLines data={data} readable />}
+      <section style={{ padding: noLiveData ? 0 : "14px" }}>
+        {noLiveData ? (
+          <NoLiveDataPlaceholder />
+        ) : (
+          <>
+            <LottoBalls balls={data.balls} bonus={data.bonus} hasBonus={data.hasBonus} size="md" revealed={revealed} slotCount={6} />
+            {revealed && hasJackpot && <LottoJackpotLines data={data} readable />}
+          </>
+        )}
       </section>
       <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(data.date)}</span>

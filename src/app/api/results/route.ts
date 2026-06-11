@@ -1,8 +1,9 @@
 import { isRegionLiveDraw } from "@/lib/draw-time";
-import { getRegionResults } from "@/lib/live-results";
+import { getRegionResults, shouldScrapeRegion } from "@/lib/live-results";
 import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
 import type { Region } from "@/types";
 import { NextResponse } from "next/server";
+import { todayMYT } from "@/lib/draw-time";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,11 +18,13 @@ export async function GET(request: Request) {
 
   try {
     const inLiveWindow = isRegionLiveDraw(region, now, mockLive);
-    if (inLiveWindow) {
-      await scrapeAndCacheRegion(region);
-    }
+    const today = todayMYT();
+    let payload = await getRegionResults(region, { mockLive });
 
-    const payload = await getRegionResults(region, { mockLive });
+    if (shouldScrapeRegion(region, payload.operators, today, mockLive)) {
+      await scrapeAndCacheRegion(region);
+      payload = await getRegionResults(region, { mockLive });
+    }
 
     const headers: HeadersInit = {
       "Cache-Control": "no-store, max-age=0",
@@ -35,6 +38,7 @@ export async function GET(request: Request) {
         date: payload.date,
         region: payload.region,
         source: payload.source,
+        dataTimestamp: payload.dataTimestamp,
       },
       { headers }
     );

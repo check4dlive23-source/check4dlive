@@ -168,26 +168,33 @@ export function mergeDrawResult(
   }
 
   if (!api) {
-    if (mock.operator === "sgpools") {
-      return withPaddedPrizes({
-        ...mock,
-        special_numbers: [],
-      });
-    }
-    return withPaddedPrizes(mock);
+    return buildNoDbDraw(mock, inLiveWindow, today);
   }
 
   const fromApi = dbRowToDrawResult(api, inLiveWindow);
-  const date = fromApi.date || mock.date;
-  const draw_no = fromApi.draw_no ?? mock.draw_no;
 
   return withPaddedPrizes({
     ...fromApi,
-    date,
-    draw_no,
     displayName: fromApi.displayName || mock.displayName,
     subtitle: fromApi.subtitle ?? mock.subtitle,
-    jackpot1_amount: fromApi.jackpot1_amount ?? mock.jackpot1_amount,
-    jackpot2_amount: fromApi.jackpot2_amount ?? mock.jackpot2_amount,
+  });
+}
+
+function buildNoDbDraw(
+  skeleton: DrawResult,
+  inLiveWindow: boolean,
+  today: string
+): DrawResult {
+  if (inLiveWindow && today) {
+    return buildDrawDayPending(skeleton, today);
+  }
+  return withPaddedPrizes({
+    ...skeleton,
+    status: "pending",
+    first_prize: "----",
+    second_prize: "----",
+    third_prize: "----",
+    special_numbers: Array(specialSlotCount(skeleton.operator)).fill("----"),
+    consolation_numbers: Array(10).fill("----"),
   });
 }

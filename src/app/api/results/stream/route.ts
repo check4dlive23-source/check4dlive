@@ -1,8 +1,12 @@
 import {
   getRefreshIntervalMs,
   isRegionLiveDraw,
+  todayMYT,
 } from "@/lib/draw-time";
-import { getRegionResults } from "@/lib/live-results";
+import {
+  getRegionResults,
+  shouldScrapeRegion,
+} from "@/lib/live-results";
 import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
 import type { Region } from "@/types";
 
@@ -27,11 +31,14 @@ export async function GET(request: Request) {
       const poll = async () => {
         try {
           const inLiveWindow = isRegionLiveDraw(region);
-          if (inLiveWindow) {
+          const today = todayMYT();
+          let payload = await getRegionResults(region);
+
+          if (shouldScrapeRegion(region, payload.operators, today)) {
             await scrapeAndCacheRegion(region);
+            payload = await getRegionResults(region);
           }
 
-          const payload = await getRegionResults(region);
           const intervalMs = getRefreshIntervalMs(region);
 
           send({
@@ -41,6 +48,7 @@ export async function GET(request: Request) {
             date: payload.date,
             region: payload.region,
             source: payload.source,
+            dataTimestamp: payload.dataTimestamp,
             refreshIntervalMs: intervalMs,
           });
 

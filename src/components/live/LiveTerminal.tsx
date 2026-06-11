@@ -6,22 +6,16 @@ import Link from "next/link";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { useLang } from "@/lib/language-context";
 import {
-  damacai3D,
-  damacai3Plus3D,
   eastMain4D,
-  magnumGold,
-  magnumLife,
   regionLabels,
-  sabah3D,
-  sabahLottoGames,
+  sabahLottoLayouts,
   singapore4D,
-  singaporeToto,
-  toto5D,
-  toto6DTiers,
-  totoLottoGames,
+  singaporeTotoLayout,
   westMain4D,
 } from "@/lib/mock-data";
 import {
+  emptyDamacai3Plus3D,
+  emptyToto6DTiers,
   mapDamacai3Plus3DExtra,
   mapMagnumGoldExtra,
   mapMagnumLifeExtra,
@@ -140,7 +134,7 @@ export function LiveTerminal() {
   const [region, setRegion] = useState<Region>("west");
   const [results, setResults] = useState<Record<string, DbDrawRow>>({});
   const [isLive, setIsLive] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [dataTimestamp, setDataTimestamp] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [todayStr, setTodayStr] = useState("");
@@ -153,12 +147,15 @@ export function LiveTerminal() {
 
   useEffect(() => {
     setUpdateTime(
-      lastUpdate ? formatTimeMYT(lastUpdate) : formatTimeMYT(new Date())
+      dataTimestamp
+        ? formatTimeMYT(new Date(dataTimestamp))
+        : "--:--:--"
     );
-  }, [lastUpdate]);
+  }, [dataTimestamp]);
 
   useEffect(() => {
     setResults({});
+    setDataTimestamp(null);
     setIsInitialized(false);
   }, [region]);
 
@@ -181,6 +178,7 @@ export function LiveTerminal() {
       operators?: Record<string, DbDrawRow>;
       isLive?: boolean;
       inLiveWindow?: boolean;
+      dataTimestamp?: string | null;
       error?: string;
     }) => {
       if (data.error) return;
@@ -188,7 +186,7 @@ export function LiveTerminal() {
         setResults(data.operators);
         const liveWindow = data.inLiveWindow ?? data.isLive ?? false;
         setIsLive(liveWindow);
-        setLastUpdate(new Date());
+        setDataTimestamp(data.dataTimestamp ?? null);
         setIsInitialized(true);
       }
     };
@@ -292,30 +290,28 @@ export function LiveTerminal() {
     | undefined;
 
   const magnumGoldData = useMemo(
-    () => mapMagnumGoldExtra(magnumExtra?.gold, magnumGold),
+    () => mapMagnumGoldExtra(magnumExtra?.gold),
     [magnumExtra]
   );
   const magnumLifeData = useMemo(
-    () => mapMagnumLifeExtra(magnumExtra?.life, magnumLife),
+    () => mapMagnumLifeExtra(magnumExtra?.life),
     [magnumExtra]
   );
-  const damacai3DData = useMemo(() => damacai3D, []);
   const damacai3Plus3DData = useMemo(
-    () =>
-      mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D, damacai3Plus3D),
+    () => mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D) ?? emptyDamacai3Plus3D(),
     [damacaiExtra]
   );
   const toto5DData = useMemo(
-    () => mapToto5DExtra(totoExtra?.toto5D, toto5D),
+    () => mapToto5DExtra(totoExtra?.toto5D),
     [totoExtra]
   );
   const toto6DData = useMemo(
-    () => mapToto6DTiers(totoExtra?.toto6D, toto6DTiers),
+    () => mapToto6DTiers(totoExtra?.toto6D) ?? emptyToto6DTiers(),
     [totoExtra]
   );
   const totoLottoData = useMemo(
     () =>
-      mapTotoLottoGames(totoExtra?.totoLotto, totoLottoGames, {
+      mapTotoLottoGames(totoExtra?.totoLotto, {
         date: totoDraw.date,
         draw_no: totoDraw.draw_no,
         status: totoDraw.status,
@@ -417,7 +413,7 @@ export function LiveTerminal() {
                     date={damacaiDraw.date}
                     draw_no={damacaiDraw.draw_no}
                     status={damacaiDraw.status}
-                    data={damacai3DData}
+                    noLiveData
                   />
                   <Damacai3Plus3DCard
                     date={damacaiDraw.date}
@@ -445,17 +441,22 @@ export function LiveTerminal() {
                 <SectionTitle>{t("sabahOther")}</SectionTitle>
                 <CardGrid>
                   <Sabah3DCard
-                    date={eastMain4DDisplay[0]?.date}
+                    date={eastMain4DDisplay[0]?.date ?? ""}
                     draw_no={eastMain4DDisplay[0]?.draw_no}
                     status={inLiveWindowActive ? "pending" : "drawn"}
-                    data={sabah3D}
+                    noLiveData
                   />
-                  {sabahLottoGames.map((g) => (
+                  {sabahLottoLayouts.map((layout) => (
                     <LottoBallCard
-                      key={g.displayName}
+                      key={layout.displayName}
+                      noLiveData
                       data={{
-                        ...g,
-                        status: inLiveWindowActive ? "pending" : g.status,
+                        ...layout,
+                        balls: [],
+                        bonus: null,
+                        date: eastMain4DDisplay[0]?.date ?? "",
+                        draw_no: eastMain4DDisplay[0]?.draw_no,
+                        status: inLiveWindowActive ? "pending" : "drawn",
                       }}
                     />
                   ))}
@@ -471,9 +472,14 @@ export function LiveTerminal() {
                 <CardGrid cols={2}>
                   <ResultCard data={singapore4DDisplay} />
                   <LottoBallCard
+                    noLiveData
                     data={{
-                      ...singaporeToto,
-                      status: inLiveWindowActive ? "pending" : singaporeToto.status,
+                      ...singaporeTotoLayout,
+                      balls: [],
+                      bonus: null,
+                      date: singapore4DDisplay.date,
+                      draw_no: undefined,
+                      status: inLiveWindowActive ? "pending" : "drawn",
                     }}
                   />
                 </CardGrid>
@@ -483,7 +489,7 @@ export function LiveTerminal() {
             )}
 
             <p className="mt-8 text-center text-xs text-dim">
-              {t("updatedAt")}{" "}
+              {t("dataAsOf")}{" "}
               <span>{updateTime || "--:--:--"}</span>
             </p>
         </main>

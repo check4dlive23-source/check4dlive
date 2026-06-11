@@ -4,7 +4,7 @@
  */
 
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
-import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import { todayMYT } from "@/lib/draw-time";
 import { scrapeLiveResults, upsertDrawResults } from "@/lib/live-results";
 import { createClient } from "@/lib/supabase/server";
 import { upsertDrawResultsV2 } from "@/lib/draw-results-v2";
@@ -40,7 +40,6 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
 
   const fetchPromise = (async () => {
     try {
-      if (!isRegionLiveDraw(region)) return;
       const parsed = await fetchAllCheck4dDraws(region);
       const operators = await scrapeLiveResults(region, parsed);
       if (operators && Object.keys(operators).length > 0) {

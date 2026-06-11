@@ -41,7 +41,7 @@ export function FiveDCard({ displayName, date, draw_no, status, prizes }: FiveDC
           <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 28, flexShrink: 0 }}>{label}</span>
             <span className="font-mono tabular-nums" style={{ fontSize: 18, fontWeight: 700, color: revealed ? "#00E5FF" : "rgba(255,255,255,0.1)", background: revealed ? "rgba(0,229,255,0.05)" : "transparent", border: "1px solid rgba(0,229,255,0.1)", borderRadius: 8, padding: "4px 12px", flex: 1, textAlign: "center", display: "block" }}>
-              {revealed ? (prizes[key] ?? "—") : "----"}
+              {revealed ? (prizes[key]?.trim() ? prizes[key] : "—") : "----"}
             </span>
           </div>
         ))}

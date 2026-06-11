@@ -8,12 +8,14 @@ interface MagnumLifeCardProps {
   date: string;
   draw_no?: string;
   status: DrawStatus;
-  data: MagnumLifeExtra;
+  data: MagnumLifeExtra | null;
 }
 
 export function MagnumLifeCard({ date, draw_no, status, data }: MagnumLifeCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
+  const winning = data?.winning ?? Array(8).fill(0);
+  const bonus = data?.bonus ?? [0, 0];
   return (
     <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, overflow: "hidden" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg, #FFD700, transparent)" }} />
@@ -30,17 +32,17 @@ export function MagnumLifeCard({ date, draw_no, status, data }: MagnumLifeCardPr
       <section style={{ padding: "14px" }}>
         <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{t("winningNumbers")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2" style={{ marginBottom: 16 }}>
-          {data.winning.map((n, i) => (
+          {winning.map((n, i) => (
             <span key={`w-${i}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: revealed ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)", border: revealed ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 700, color: revealed ? "white" : "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)" }}>
-              {revealed ? n : "—"}
+              {revealed ? n > 0 ? n : "—" : "—"}
             </span>
           ))}
         </div>
         <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{t("bonus")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {data.bonus.map((n, i) => (
+          {bonus.map((n, i) => (
             <span key={`b-${i}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: revealed ? "rgba(255,176,32,0.15)" : "rgba(255,255,255,0.05)", border: revealed ? "2px solid #FFB020" : "1px solid rgba(255,255,255,0.1)", fontSize: 14, fontWeight: 700, color: revealed ? "#FFB020" : "rgba(255,255,255,0.3)", fontFamily: "var(--font-jetbrains)" }}>
-              {revealed ? n : "—"}
+              {revealed ? n > 0 ? n : "—" : "—"}
             </span>
           ))}
         </div>

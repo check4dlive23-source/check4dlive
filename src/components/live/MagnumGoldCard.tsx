@@ -4,12 +4,13 @@ import { LogoBadge } from "@/components/ui/LogoBadge";
 import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { DrawStatus, MagnumGoldExtra } from "@/types";
+import { NoLiveDataPlaceholder } from "./NoLiveDataPlaceholder";
 
 interface MagnumGoldCardProps {
   date: string;
   draw_no?: string;
   status: DrawStatus;
-  data: MagnumGoldExtra;
+  data: MagnumGoldExtra | null;
 }
 
 function DigitCell({ value, revealed }: { value: string; revealed: boolean }) {
@@ -23,7 +24,7 @@ function DigitCell({ value, revealed }: { value: string; revealed: boolean }) {
       border: empty ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,215,0,0.3)",
       color: revealed && !empty ? "#FFD700" : "rgba(255,255,255,0.15)",
     }}>
-      {!revealed ? "—" : empty ? " " : value}
+      {!revealed ? "—" : empty ? "—" : value}
     </span>
   );
 }
@@ -43,7 +44,7 @@ function PrizeBlock({ title, children, prize, revealed }: { title: string; child
     <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{title}</p>
       {children}
-      {prize != null && (
+      {prize != null && prize > 0 && (
         <p style={{ fontSize: 12, color: "#FFB020", marginTop: 8, fontFamily: "var(--font-jetbrains)" }}>
           Prize: {revealed ? formatCurrency(prize, 2) : "—"}
         </p>
@@ -55,6 +56,8 @@ function PrizeBlock({ title, children, prize, revealed }: { title: string; child
 export function MagnumGoldCard({ date, draw_no, status, data }: MagnumGoldCardProps) {
   const { t } = useLang();
   const revealed = status !== "pending";
+  const hasLiveData = data != null;
+
   return (
     <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, overflow: "hidden" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg, #FFD700, transparent)" }} />
@@ -67,6 +70,10 @@ export function MagnumGoldCard({ date, draw_no, status, data }: MagnumGoldCardPr
           {status === "drawn" ? t("completed") : t("pending")}
         </span>
       </header>
+      {!hasLiveData ? (
+        <NoLiveDataPlaceholder />
+      ) : (
+        <>
       <PrizeBlock title="JACKPOT 1" prize={data.jackpot1.prize} revealed={revealed}>
         <DigitRow digits={data.jackpot1.digits} bonus={data.jackpot1.bonus} revealed={revealed} />
       </PrizeBlock>
@@ -80,16 +87,13 @@ export function MagnumGoldCard({ date, draw_no, status, data }: MagnumGoldCardPr
           ))}
         </div>
       </PrizeBlock>
-      <section style={{ padding: "8px 14px" }}>
-        {data.subPrizes.map((p) => (
-          <div key={p.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{p.label}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>
-              {revealed ? formatCurrency(p.amount) : "—"}
-            </span>
-          </div>
-        ))}
-      </section>
+        </>
+      )}
+      {hasLiveData && (
+        <section style={{ padding: 0, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <NoLiveDataPlaceholder />
+        </section>
+      )}
       <footer style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{formatDrawDate(date)}</span>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{t("drawNoLabel")} {draw_no ?? "—"}</span>

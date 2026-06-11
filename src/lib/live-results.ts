@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import { isRealNum } from "@/lib/results-mapper";
 import {
   upsertDrawResultsV2,
   type DrawResultV2Row,
@@ -13,6 +14,48 @@ import {
 import type { Region } from "@/types";
 
 export type DrawRow = Record<string, unknown>;
+
+const REGION_OPERATORS: Record<Region, string[]> = {
+  west: ["magnum", "damacai", "toto"],
+  east: ["sabah", "sarawak", "sandakan"],
+  singapore: ["sgpools"],
+};
+
+function isTodayRowIncomplete(row: DrawRow, today: string): boolean {
+  if ((row.date as string) !== today) return false;
+  const first = row.first_prize as string | null | undefined;
+  if (!first || first === "----") return true;
+  const second = row.second_prize as string | null | undefined;
+  const third = row.third_prize as string | null | undefined;
+  if (!isRealNum(second) || !isRealNum(third)) return true;
+  return false;
+}
+
+/** Scrape in live window, or outside window when today's DB rows are still incomplete. */
+export function shouldScrapeRegion(
+  region: Region,
+  operators: Record<string, DrawRow>,
+  today: string,
+  mockLive = false
+): boolean {
+  if (isRegionLiveDraw(region, new Date(), mockLive)) return true;
+  for (const op of REGION_OPERATORS[region] ?? []) {
+    const row = operators[op];
+    if (row && isTodayRowIncomplete(row, today)) return true;
+  }
+  return false;
+}
+
+export function maxOperatorsCreatedAt(
+  operators: Record<string, DrawRow>
+): string | null {
+  let max: string | null = null;
+  for (const row of Object.values(operators)) {
+    const ca = row.created_at as string | undefined;
+    if (ca && (!max || ca > max)) max = ca;
+  }
+  return max;
+}
 
 const SCRAPE_TO_V2_OPERATOR: Record<string, string> = {
   magnum: "magnum",
@@ -152,6 +195,7 @@ export interface RegionResultsPayload {
   region: Region;
   isLive: boolean;
   source: "live" | "cache" | "db" | "none";
+  dataTimestamp: string | null;
 }
 
 /** Daily sync: Damacai blob API + Magnum JSON API → draw_results_v2 */
@@ -290,7 +334,14 @@ export async function getRegionResults(
 
   const supabase = createClient();
   if (!supabase) {
-    return { operators: {}, date, region, isLive, source: "none" };
+    return {
+      operators: {},
+      date,
+      region,
+      isLive,
+      source: "none",
+      dataTimestamp: null,
+    };
   }
 
   const operators = await fetchDrawsFromDb(region, date);
@@ -311,5 +362,6 @@ export async function getRegionResults(
     region,
     isLive,
     source: "db",
+    dataTimestamp: maxOperatorsCreatedAt(operators),
   };
 }
