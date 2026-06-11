@@ -272,6 +272,9 @@ export const translations = {
     loginError: "登录失败，请重试",
     loginLoading: "请稍候…",
     logout: "退出登录",
+    navSignIn: "登录",
+    navAccount: "账户",
+    navWatchlist: "我的号码",
   },
   en: {
     analytics: "📊 Analytics",
@@ -546,6 +549,9 @@ export const translations = {
     loginError: "Sign in failed. Please try again.",
     loginLoading: "Please wait…",
     logout: "Sign out",
+    navSignIn: "SIGN IN",
+    navAccount: "ACCOUNT",
+    navWatchlist: "MY NUMBERS",
   },
 } as const;
 

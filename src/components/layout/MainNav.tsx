@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AuthNavWidget } from "@/components/auth/AuthNavWidget";
 import { LanguageToggle } from "./LanguageToggle";
 import { isRegionLiveDraw } from "@/lib/draw-time";
 import { useLang } from "@/lib/language-context";
@@ -292,7 +293,14 @@ export function MainNav() {
         </div>
 
         <div
-          className="mt-auto border-t px-5 py-4"
+          className="mt-auto border-t"
+          style={{ borderColor: "var(--border-dim)" }}
+        >
+          <AuthNavWidget variant="desktop" />
+        </div>
+
+        <div
+          className="border-t px-5 py-4"
           style={{ borderColor: "var(--border-dim)" }}
         >
           <p
@@ -323,8 +331,9 @@ export function MainNav() {
         </div>
       </nav>
 
-      {/* Mobile language toggle — top right */}
-      <div className="fixed right-4 top-4 z-50 lg:hidden">
+      {/* Mobile auth + language toggle — top right */}
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-2 lg:hidden">
+        <AuthNavWidget variant="mobile" />
         <LanguageToggle />
       </div>
 
