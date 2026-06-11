@@ -203,6 +203,15 @@ export function RankingsView({
     const noFilter =
       selectedOperators.length === 0 && selectedPeriod === "all";
 
+    setLoadingMap({
+      momentum: true,
+      cold: true,
+      digit: true,
+      patterns: true,
+      mirror: true,
+      top100: !noFilter,
+    });
+
     const setDomainLoading = (key: string, value: boolean) => {
       if (!cancelled) {
         setLoadingMap((prev) => ({ ...prev, [key]: value }));
