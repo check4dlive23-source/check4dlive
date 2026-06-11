@@ -1,3 +1,4 @@
+-- ⚠️ 含 DROP TABLE,仅用于初始建表,严禁在有数据的生产库重跑
 DROP TABLE IF EXISTS ai_insights;
 CREATE TABLE ai_insights (
   number varchar(4) NOT NULL,

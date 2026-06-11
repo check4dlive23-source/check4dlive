@@ -1,10 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import type { NumberScoreRow } from "@/lib/score/compute";
 import { scopeKeyFromUrlOperators } from "@/lib/score/config";
-import { getNumberScore } from "@/lib/score/queries";
 import { getScoreTrend, weeklyDelta } from "@/lib/score/snapshots";
 
 const MODEL = "claude-haiku-4-5-20251001";
+const QC_FAILED_MARKER = "__QC_FAILED__";
 
 /** v2 operator → 本地叫法 */
 const OPERATOR_LOCAL: Record<string, { zh: string; en: string }> = {
@@ -128,12 +129,12 @@ async function callClaudeAndClean(
   return cleanInsightText(text);
 }
 
-/** 调用 Claude 并 clean,命中违禁词则重试一次,仍命中返回 null */
+/** 调用 Claude 并 clean,命中违禁词则重试一次,仍命中返回 qcFailed */
 async function generateInsightContent(
   anthropic: Anthropic,
   lang: "zh" | "en",
   dataPack: Record<string, unknown>
-): Promise<string | null> {
+): Promise<string | "qc_failed" | null> {
   const first = await callClaudeAndClean(
     anthropic,
     lang,
@@ -148,8 +149,24 @@ async function generateInsightContent(
     lang,
     buildUserMessage(dataPack, lang, retryNote)
   );
-  if (!second || isBannedInsight(second)) return null;
+  if (!second || isBannedInsight(second)) return "qc_failed";
   return second;
+}
+
+/** AI 专用:精确 scope 查分,不回退 all */
+async function getScoreExact(
+  number: string,
+  scope: string
+): Promise<NumberScoreRow | null> {
+  const supabase = createClient();
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from("number_scores")
+    .select("*")
+    .eq("number", number)
+    .eq("scope", scope)
+    .maybeSingle();
+  return data ? (data as NumberScoreRow) : null;
 }
 
 function todayISO(): string {
@@ -175,15 +192,14 @@ export async function getOrCreateInsight(
     .eq("lang", lang)
     .eq("scope", scope)
     .maybeSingle();
+  if (cached?.content === QC_FAILED_MARKER) return null;
   if (cached?.content) return cached.content;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
 
-  const [score, trend] = await Promise.all([
-    getNumberScore(number, urlOperators),
-    getScoreTrend(number, 14),
-  ]);
+  const score = await getScoreExact(number, scope);
+  const trend = await getScoreTrend(number, 14);
   if (!score) return null;
 
   const dataPack = {
@@ -233,14 +249,30 @@ export async function getOrCreateInsight(
 
   try {
     const anthropic = new Anthropic({ apiKey });
-    const clean = await generateInsightContent(anthropic, lang, dataPack);
-    if (!clean) return null;
+    const result = await generateInsightContent(anthropic, lang, dataPack);
+    if (result === "qc_failed") {
+      const { error: qcUpsertErr } = await supabase.from("ai_insights").upsert(
+        {
+          number,
+          insight_date: today,
+          lang,
+          scope,
+          content: QC_FAILED_MARKER,
+        },
+        { onConflict: "number,insight_date,lang,scope" }
+      );
+      if (qcUpsertErr)
+        console.error("ai_insights upsert failed:", qcUpsertErr.message);
+      return null;
+    }
+    if (!result) return null;
 
-    await supabase.from("ai_insights").upsert(
-      { number, insight_date: today, lang, scope, content: clean },
+    const { error: upsertErr } = await supabase.from("ai_insights").upsert(
+      { number, insight_date: today, lang, scope, content: result },
       { onConflict: "number,insight_date,lang,scope" }
     );
-    return clean;
+    if (upsertErr) console.error("ai_insights upsert failed:", upsertErr.message);
+    return result;
   } catch (e) {
     console.error("AI insight error:", e);
     return null;
