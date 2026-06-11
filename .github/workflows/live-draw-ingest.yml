@@ -1,0 +1,20 @@
+name: Live Draw Ingest
+
+on:
+  workflow_dispatch:
+  schedule:
+    # MYT 18:50-19:55 = UTC 10:50-11:55,西马/东马/新加坡开彩日:日三六
+    - cron: "50,55 10 * * 0,3,6"
+    - cron: "0,5,10,15,20,25,30,35,40,45,50,55 11 * * 0,3,6"
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger live ingest
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.INGEST_SECRET }}" \
+            "https://check4dterminal.com/api/admin/live-ingest" \
+            -m 60

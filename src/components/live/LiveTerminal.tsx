@@ -33,7 +33,7 @@ import {
   type DbDrawRow,
   mergeDrawResult,
 } from "@/lib/results-mapper";
-import { todayMYT } from "@/lib/draw-time";
+import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
 import type { DrawResult, Region } from "@/types";
 import { Damacai3DCard } from "./Damacai3DCard";
@@ -79,6 +79,13 @@ function CardGrid({
 
 const WEST_OPERATORS = ["magnum", "damacai", "toto"] as const;
 const EAST_OPERATORS = ["sabah", "sarawak", "sandakan"] as const;
+
+const POLL_LIVE_MS = 3_000;
+const POLL_IDLE_MS = 60_000;
+
+function pollIntervalMs(region: Region): number {
+  return isRegionLiveDraw(region) ? POLL_LIVE_MS : POLL_IDLE_MS;
+}
 
 function LoadingSkeleton({ cols = 3 }: { cols?: 2 | 3 }) {
   const count = cols === 3 ? 3 : 2;
@@ -158,60 +165,79 @@ export function LiveTerminal() {
 
   useEffect(() => {
     if (!mounted) return;
-    fetch(`/api/results?region=${region}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.operators) {
-          setResults(data.operators);
-          setIsInitialized(true);
-        }
-      })
-      .catch(() => {});
-  }, [mounted, region]);
 
-  useEffect(() => {
-    if (!mounted) return;
+    let cancelled = false;
+    let paused = document.visibilityState === "hidden";
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let abortController: AbortController | null = null;
 
-    let es: EventSource | null = null;
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let closed = false;
-
-    const connect = () => {
-      if (closed) return;
-      es?.close();
-      es = new EventSource(`/api/results/stream?region=${region}`);
-
-      es.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.error) {
-            console.error("SSE error:", data.error);
-            return;
-          }
-          setResults((data.operators ?? {}) as Record<string, DbDrawRow>);
-          setIsLive(data.isLive ?? false);
-          setIsDrawDay(data.isDrawDay ?? false);
-          setLastUpdate(new Date());
-          setIsInitialized(true);
-        } catch (err) {
-          console.error("SSE parse failed:", err);
-        }
-      };
-
-      es.onerror = () => {
-        es?.close();
-        if (!closed) {
-          reconnectTimer = setTimeout(connect, 5000);
-        }
-      };
+    const scheduleNext = () => {
+      if (cancelled || paused) return;
+      timeoutId = setTimeout(() => {
+        void tick();
+      }, pollIntervalMs(region));
     };
 
-    connect();
+    const applyPayload = (data: {
+      operators?: Record<string, DbDrawRow>;
+      isLive?: boolean;
+      isDrawDay?: boolean;
+      error?: string;
+    }) => {
+      if (data.error) return;
+      if (data.operators) {
+        setResults(data.operators);
+        setIsLive(data.isLive ?? false);
+        setIsDrawDay(data.isDrawDay ?? false);
+        setLastUpdate(new Date());
+        setIsInitialized(true);
+      }
+    };
+
+    const tick = async () => {
+      if (cancelled || paused) return;
+
+      abortController?.abort();
+      abortController = new AbortController();
+
+      try {
+        const res = await fetch(`/api/results?region=${region}`, {
+          signal: abortController.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (!cancelled) applyPayload(data);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+      } finally {
+        if (!cancelled && !paused) scheduleNext();
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        paused = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        abortController?.abort();
+        return;
+      }
+      paused = false;
+      void tick();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    void tick();
 
     return () => {
-      closed = true;
-      if (reconnectTimer) clearTimeout(reconnectTimer);
-      es?.close();
+      cancelled = true;
+      paused = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (timeoutId) clearTimeout(timeoutId);
+      abortController?.abort();
     };
   }, [mounted, region]);
 

@@ -1,5 +1,6 @@
-import { isDrawDayAndNearDraw } from "@/lib/draw-time";
+import { isDrawDayAndNearDraw, isRegionLiveDraw } from "@/lib/draw-time";
 import { getRegionResults } from "@/lib/live-results";
+import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
 import type { Region } from "@/types";
 import { NextResponse } from "next/server";
 
@@ -14,6 +15,10 @@ export async function GET(request: Request) {
     searchParams.get("mock_live") === "1";
 
   try {
+    if (isRegionLiveDraw(region, new Date(), mockLive)) {
+      await scrapeAndCacheRegion(region);
+    }
+
     const payload = await getRegionResults(region, { mockLive });
     const drawDay = isDrawDayAndNearDraw(region);
 
