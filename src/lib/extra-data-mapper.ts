@@ -67,10 +67,30 @@ export function mapMagnumGoldExtra(raw: unknown): MagnumGoldExtra | null {
     toDigit(raw.number6),
   ];
   const bonus = [toDigit(raw.goldenNumber1), toDigit(raw.goldenNumber2)];
-  if (!digits.some((d) => d !== "")) return null;
-
   const j1 = parseNum(raw.jackpot1);
   const j2 = parseNum(raw.jackpot2);
+  const hasDigits = digits.some((d) => d !== "");
+
+  if (!hasDigits) {
+    if (!j1 && !j2) return null;
+    const emptyDigits = ["", "", "", "", "", ""];
+    const emptyBonus = ["", ""];
+    return {
+      jackpot1: {
+        digits: emptyDigits,
+        bonus: emptyBonus,
+        prize: j1 ?? 0,
+      },
+      jackpot2: {
+        variations: [
+          { digits: [...emptyDigits.slice(0, 5), ""], bonus: emptyBonus },
+          { digits: ["", ...emptyDigits.slice(1, 6)], bonus: emptyBonus },
+        ],
+        prize: j2 ?? 0,
+      },
+      subPrizes: [],
+    };
+  }
 
   return {
     jackpot1: {

@@ -1,4 +1,5 @@
 import type { DrawResultV2Row } from "@/lib/draw-results-v2";
+import { todayMYT } from "@/lib/draw-time";
 
 const MAGNUM_BASE = "https://www.magnum4d.my";
 
@@ -163,11 +164,16 @@ export async function fetchMagnumDrawPageHtml(
   return res.text();
 }
 
-export async function fetchMagnumTodayDraw(): Promise<DrawResultV2Row | null> {
-  const end = new Date().toISOString().slice(0, 10);
-  const rows = await fetchMagnumDrawsBetween(end, end, 3);
+export async function fetchMagnumOfficialForDate(
+  drawDateIso: string
+): Promise<DrawResultV2Row | null> {
+  const rows = await fetchMagnumDrawsBetween(drawDateIso, drawDateIso, 3);
   const parsed = rows
     .map((r) => parseMagnumDraw(r))
     .filter((r): r is DrawResultV2Row => r != null);
   return parsed[0] ?? null;
+}
+
+export async function fetchMagnumTodayDraw(): Promise<DrawResultV2Row | null> {
+  return fetchMagnumOfficialForDate(todayMYT());
 }

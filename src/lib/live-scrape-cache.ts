@@ -4,6 +4,7 @@
  */
 
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
+import { supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
 import { todayMYT } from "@/lib/draw-time";
 import { scrapeLiveResults, upsertDrawResults } from "@/lib/live-results";
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +42,19 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
   const fetchPromise = (async () => {
     try {
       const parsed = await fetchAllCheck4dDraws(region);
-      const operators = await scrapeLiveResults(region, parsed);
+      let operators = await scrapeLiveResults(region, parsed);
+
+      if (region === "west" && operators.magnum) {
+        try {
+          operators = await supplementMagnumFromOfficial(operators);
+        } catch (e) {
+          console.warn(
+            "[live-scrape-cache] magnum official supplement failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
+
       if (operators && Object.keys(operators).length > 0) {
         const today = todayMYT();
         await upsertDrawResults(operators, today, region);

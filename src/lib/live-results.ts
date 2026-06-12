@@ -106,6 +106,53 @@ export async function scrapeLiveResults(
 }
 
 /** Replace today's draws per operator (live upsert) */
+function isEmptyVal(v: unknown): boolean {
+  if (v == null) return true;
+  if (typeof v === "string") {
+    const s = v.trim();
+    return s === "" || s === "----";
+  }
+  return false;
+}
+
+function mergeExtraSection(
+  existing: Record<string, unknown> | undefined,
+  incoming: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!incoming && !existing) return undefined;
+  const out = { ...(existing ?? {}) };
+  if (!incoming) return Object.keys(out).length ? out : undefined;
+  for (const [k, v] of Object.entries(incoming)) {
+    if (v != null && typeof v === "object" && !Array.isArray(v)) {
+      const merged = mergeExtraSection(
+        out[k] as Record<string, unknown> | undefined,
+        v as Record<string, unknown>
+      );
+      if (merged) out[k] = merged;
+    } else if (!isEmptyVal(v)) {
+      if (isEmptyVal(out[k])) out[k] = v;
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function mergeExtraDataForUpsert(
+  incoming: unknown,
+  existing: unknown
+): Record<string, unknown> | null | undefined {
+  if (incoming == null) {
+    return existing != null ? (existing as Record<string, unknown>) : undefined;
+  }
+  if (existing == null) {
+    return incoming as Record<string, unknown>;
+  }
+  const merged = mergeExtraSection(
+    existing as Record<string, unknown>,
+    incoming as Record<string, unknown>
+  );
+  return merged ?? null;
+}
+
 export async function upsertDrawResults(
   operators: Record<string, DrawRow>,
   date: string,
@@ -115,27 +162,54 @@ export async function upsertDrawResults(
   if (!supabase) return;
 
   for (const [operator, row] of Object.entries(operators)) {
-    const { error } = await supabase.from("draws").upsert(
-      {
-        date: (row.date as string) ?? date,
-        draw_no: row.draw_no ?? null,
-        operator,
-        region,
-        first_prize: row.first_prize ?? null,
-        second_prize: row.second_prize ?? null,
-        third_prize: row.third_prize ?? null,
-        special_numbers: row.special_numbers ?? null,
-        consolation_numbers: row.consolation_numbers ?? null,
-        jackpot1_amount: row.jackpot1_amount ?? null,
-        jackpot2_amount: row.jackpot2_amount ?? null,
-        zodiac: row.zodiac ?? null,
-        extra_data: row.extra_data ?? null,
-      },
-      {
-        onConflict: "operator,date",
-        ignoreDuplicates: false,
-      }
+    const rowDate = (row.date as string) ?? date;
+
+    const { data: existing } = await supabase
+      .from("draws")
+      .select(
+        "jackpot1_amount,jackpot2_amount,extra_data,first_prize,second_prize,third_prize,special_numbers,consolation_numbers,draw_no,zodiac"
+      )
+      .eq("operator", operator)
+      .eq("date", rowDate)
+      .maybeSingle();
+
+    const payload: Record<string, unknown> = {
+      date: rowDate,
+      draw_no: row.draw_no ?? null,
+      operator,
+      region,
+      first_prize: row.first_prize ?? null,
+      second_prize: row.second_prize ?? null,
+      third_prize: row.third_prize ?? null,
+      special_numbers: row.special_numbers ?? null,
+      consolation_numbers: row.consolation_numbers ?? null,
+      zodiac: row.zodiac ?? null,
+    };
+
+    if (row.jackpot1_amount != null) {
+      payload.jackpot1_amount = row.jackpot1_amount;
+    } else if (existing?.jackpot1_amount != null) {
+      payload.jackpot1_amount = existing.jackpot1_amount;
+    }
+
+    if (row.jackpot2_amount != null) {
+      payload.jackpot2_amount = row.jackpot2_amount;
+    } else if (existing?.jackpot2_amount != null) {
+      payload.jackpot2_amount = existing.jackpot2_amount;
+    }
+
+    const mergedExtra = mergeExtraDataForUpsert(
+      row.extra_data,
+      existing?.extra_data
     );
+    if (mergedExtra !== undefined) {
+      payload.extra_data = mergedExtra;
+    }
+
+    const { error } = await supabase.from("draws").upsert(payload, {
+      onConflict: "operator,date",
+      ignoreDuplicates: false,
+    });
 
     if (error) {
       throw new Error(`upsert ${operator}: ${error.message}`);
