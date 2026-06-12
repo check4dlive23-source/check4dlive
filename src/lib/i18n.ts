@@ -107,6 +107,26 @@ export const translations = {
     predictedNext: "预测下次出现",
     predictedNextDesc: "根据平均间隔 {days} 天，预计下次出现: {date}",
     disclaimer: "仅供参考，不构成投注建议",
+    disclaimerShort1:
+      "独立数据分析平台。非博彩运营商——不接受投注、不销售彩票。",
+    disclaimerShort2:
+      "与任何运营商均无从属关系。",
+    disclaimerShort3:
+      "仅为历史数据分析,不构成预测或投注建议。",
+    disclaimerShort4: "仅限 18 岁及以上人士。",
+    disclaimerFullLink: "完整免责声明",
+    faqLink: "FAQ",
+    disclaimerPageTitle: "免责声明",
+    disclaimerP1:
+      "Check4D Terminal 是独立的数据分析与资讯服务平台,提供历史开彩记录、统计分析及 AI 数据解读,仅供参考与娱乐用途。",
+    disclaimerP2:
+      "本平台不是博彩运营商,不接受投注、不销售彩票、不处理任何博彩交易,与万能、大马彩、多多、新加坡 Pools、沙巴88、山打根、大伯公等任何运营商均无从属或合作关系。",
+    disclaimerP3:
+      "所有统计分析与 AI 内容仅描述历史数据规律,不构成预测、不构成投注建议,亦不保证任何未来结果。开彩为随机事件,历史结果对未来开彩没有任何影响。",
+    disclaimerP4:
+      "订阅费用仅用于解锁数据分析功能,任何付费均不带来任何中奖机会。",
+    disclaimerP5:
+      "本服务仅供 18 岁及以上人士使用。如您或身边的人有博彩困扰,请寻求当地辅导服务协助。",
     shareAnalysis: "分享此号码分析",
     copiedLink: "链接已复制",
     relatedNumbers: "相关号码",
@@ -400,6 +420,27 @@ export const translations = {
     predictedNext: "Predicted next appearance",
     predictedNextDesc: "Based on avg gap of {days} days, expected around {date}",
     disclaimer: "For reference only — not betting advice",
+    disclaimerShort1:
+      "Independent data analytics service. Not a gambling operator — we do not accept bets or sell lottery tickets.",
+    disclaimerShort2:
+      "Not affiliated with any lottery operator.",
+    disclaimerShort3:
+      "Historical data analysis only. Not predictions or betting advice.",
+    disclaimerShort4:
+      "18+ only.",
+    disclaimerFullLink: "Full Disclaimer",
+    faqLink: "FAQ",
+    disclaimerPageTitle: "Disclaimer",
+    disclaimerP1:
+      "Check4D Terminal is an independent data analytics and information service. We provide historical lottery results, statistical analysis, and AI-generated data interpretation for informational and entertainment purposes only.",
+    disclaimerP2:
+      "We are not a gambling operator. We do not accept bets, sell lottery tickets, process gaming transactions, or facilitate gambling of any kind. We are not affiliated with, endorsed by, or connected to Magnum, Da Ma Cai, Sports Toto, Singapore Pools, Sabah 88, STC, Cash Sweep, or any lottery operator.",
+    disclaimerP3:
+      "All statistical analysis and AI-generated content describe historical data patterns only and do not constitute predictions, betting advice, or guarantees of future outcomes. Lottery draws are random events; past results have no influence on future draws.",
+    disclaimerP4:
+      "Subscription fees grant access to data analytics features only. No purchase confers any chance of winning anything.",
+    disclaimerP5:
+      "This service is intended for users aged 18 and above. If you or someone you know has a gambling problem, please seek help from your local support services.",
     shareAnalysis: "Share this analysis",
     copiedLink: "Link copied",
     relatedNumbers: "Related numbers",

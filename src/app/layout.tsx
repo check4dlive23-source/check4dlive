@@ -1,5 +1,6 @@
 import { AppProviders } from "@/components/providers/AppProviders";
 import { MainNav } from "@/components/layout/MainNav";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -90,6 +91,7 @@ export default function RootLayout({
         <AppProviders>
           <MainNav />
           <main className="pb-20 lg:pb-0 lg:pl-48">{children}</main>
+          <SiteFooter />
         </AppProviders>
       </body>
     </html>
