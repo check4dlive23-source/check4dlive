@@ -6,6 +6,7 @@
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
 import { magnumNeedsOfficialSupplement, supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
 import { hasValidSabah645, supplementSabahFromDiriwan88 } from "@/lib/ingest/sabah-supplement";
+import { sgTotoNeedsOfficialSupplement, supplementSgTotoFromOfficial } from "@/lib/ingest/singapore-supplement";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import type { DrawRow } from "@/lib/live-results";
 import { isRealNum } from "@/lib/results-mapper";
@@ -138,6 +139,8 @@ export function isLatestRowDeficient(
     if (op === "sabah" && !hasValidSabah645(row)) return true;
     // (e) toto lotto only; 5D/6D empty off draw days is normal — do not trigger heal
     if (op === "toto" && !hasValidTotoLotto(row)) return true;
+    // (g) singapore sgToto — official supplement target
+    if (op === "sgpools" && sgTotoNeedsOfficialSupplement(row)) return true;
   }
   return false;
 }
@@ -210,6 +213,17 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
         } catch (e) {
           console.warn(
             "[live-scrape-cache] sabah diriwan88 supplement failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
+
+      if (region === "singapore" && operators.sgpools) {
+        try {
+          operators = await supplementSgTotoFromOfficial(operators);
+        } catch (e) {
+          console.warn(
+            "[live-scrape-cache] sg toto official supplement failed:",
             e instanceof Error ? e.message : e
           );
         }

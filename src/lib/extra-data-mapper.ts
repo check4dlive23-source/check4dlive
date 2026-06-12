@@ -452,3 +452,45 @@ export function mapSabah645(
     status: meta.status,
   };
 }
+
+export function mapSgToto(
+  extraData: unknown,
+  meta: { status: LottoBallResult["status"] }
+): LottoBallResult | null {
+  if (!isRecord(extraData)) return null;
+  const raw = extraData.sgToto;
+  if (!isRecord(raw)) return null;
+
+  const balls = Array.isArray(raw.balls)
+    ? raw.balls
+        .map((b) => parseInt(String(b), 10))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 49)
+    : [];
+  const bonus = parseInt(String(raw.additional ?? ""), 10);
+
+  if (balls.length !== 6 || !Number.isFinite(bonus) || bonus < 1) return null;
+
+  const date = strField(raw.date);
+  const draw_no = strField(raw.draw_no);
+  if (!date || !draw_no) return null;
+
+  const out: LottoBallResult = {
+    operator: "sgpools",
+    displayName: "Singapore Pools Toto 6/45",
+    subtitle: "Mon/Thu 9:30PM SGT",
+    balls,
+    bonus,
+    hasBonus: true,
+    maxBall: 49,
+    currency: "S$",
+    date,
+    draw_no,
+    status: meta.status,
+  };
+
+  const j1 = parseNum(raw.group1Prize);
+  const j2 = parseNum(raw.group2Share);
+  if (j1 != null) out.jackpot1_amount = j1;
+  if (j2 != null) out.jackpot2_amount = j2;
+  return out;
+}

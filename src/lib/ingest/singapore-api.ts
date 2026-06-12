@@ -125,3 +125,123 @@ export async function fetchSingaporeDraw(
   const html = await res.text();
   return parseSingaporeResultsHtml(html);
 }
+
+const TOTO_RESULTS_PAGE = `${SG_BASE}/en/product/sr/Pages/toto_results.aspx`;
+const FETCH_TIMEOUT_MS = 10_000;
+
+export interface SgTotoLatest {
+  balls: number[];
+  additional: number;
+  group1Prize: number;
+  group2Share?: number;
+  draw_no: string;
+  date: string;
+}
+
+function parseSgMoney(raw: string): number | null {
+  const cleaned = raw.replace(/\$/g, "").replace(/,/g, "").trim();
+  if (!cleaned || cleaned === "-") return null;
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** First draw block on page (latest result). */
+function firstTotoDrawBlock(html: string): string {
+  const chunk = html.split(/Winning Ticket Details/i)[0] ?? html;
+  const firstIdx = chunk.search(/Draw No\.?\s*\d+/i);
+  if (firstIdx < 0) return chunk;
+  const rest = chunk.slice(firstIdx + 12);
+  const secondIdx = rest.search(/Draw No\.?\s*\d+/i);
+  if (secondIdx > 0) return chunk.slice(0, firstIdx + 12 + secondIdx);
+  return chunk;
+}
+
+function sliceBetween(html: string, start: string, end: string): string {
+  const from = html.indexOf(start);
+  if (from < 0) return "";
+  const body = html.slice(from + start.length);
+  const to = body.indexOf(end);
+  return to < 0 ? body.slice(0, 800) : body.slice(0, to);
+}
+
+function extractBallInts(section: string, max: number, count: number): number[] {
+  const out: number[] = [];
+  for (const m of section.matchAll(/>(\d{1,2})</g)) {
+    const n = parseInt(m[1], 10);
+    if (Number.isFinite(n) && n >= 1 && n <= max) out.push(n);
+    if (out.length >= count) break;
+  }
+  return out;
+}
+
+export function parseSgTotoResultsHtml(html: string): SgTotoLatest | null {
+  const block = firstTotoDrawBlock(html);
+
+  const dateM =
+    block.match(/class=['"]drawDate['"][^>]*>([^<]+)</i) ??
+    block.match(/(\w{3},\s*\d{1,2}\s+\w{3}\s+\d{4})/i);
+  const drawM = block.match(/Draw No\.?\s*(\d+)/i);
+  if (!dateM || !drawM) return null;
+
+  const date = sgDisplayDateToIso(dateM[1]);
+  if (!date) return null;
+
+  const winSection = sliceBetween(block, "Winning Numbers", "Additional Number");
+  const balls = extractBallInts(winSection, 49, 6);
+  if (balls.length !== 6) return null;
+
+  const addSection = sliceBetween(block, "Additional Number", "Group 1 Prize");
+  const additional = extractBallInts(addSection, 49, 1)[0];
+  if (!additional) return null;
+
+  const g1Section = sliceBetween(block, "Group 1 Prize", "Winning Shares");
+  const g1M = g1Section.match(/\$\s*([\d,]+)/);
+  const group1Prize = g1M ? parseSgMoney(g1M[0]) : null;
+  if (group1Prize == null) return null;
+
+  let group2Share: number | undefined;
+  const sharesIdx = block.indexOf("Winning Shares");
+  if (sharesIdx >= 0) {
+    const sharesBlock = block.slice(sharesIdx, sharesIdx + 1200);
+    const g2M = sharesBlock.match(
+      /Group\s*2[\s\S]*?\$\s*([\d,]+)/i
+    );
+    if (g2M) {
+      const parsed = parseSgMoney(`$${g2M[1]}`);
+      if (parsed != null) group2Share = parsed;
+    }
+  }
+
+  return {
+    balls,
+    additional,
+    group1Prize,
+    group2Share,
+    draw_no: drawM[1],
+    date,
+  };
+}
+
+export async function fetchSgTotoLatest(): Promise<SgTotoLatest | null> {
+  try {
+    const res = await fetch(TOTO_RESULTS_PAGE, {
+      headers: HEADERS,
+      cache: "no-store",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      console.warn(`[sg-toto] HTTP ${res.status}`);
+      return null;
+    }
+    const html = await res.text();
+    const parsed = parseSgTotoResultsHtml(html);
+    if (!parsed) console.warn("[sg-toto] parse returned null");
+    return parsed;
+  } catch (e) {
+    console.warn(
+      "[sg-toto] fetch failed:",
+      e instanceof Error ? e.message : e
+    );
+    return null;
+  }
+}

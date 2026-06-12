@@ -23,6 +23,7 @@ import {
   mapSabah3DExtra,
   mapSabah645,
   mapSabahLotto,
+  mapSgToto,
   mapToto5DExtra,
   mapToto6DTiers,
   mapTotoLottoGames,
@@ -358,6 +359,13 @@ export function LiveTerminal() {
       }),
     [sabahExtra, sabahDraw?.date, sabahDraw?.draw_no, sabahDraw?.status]
   );
+  const sgTotoData = useMemo(
+    () =>
+      mapSgToto(results["sgpools"]?.extra_data, {
+        status: sgTotoLiveActive ? "pending" : "drawn",
+      }),
+    [results, sgTotoLiveActive]
+  );
 
   const [sabah645Layout, sabahLotto5Layout, sabahLotto6Layout] =
     sabahLottoLayouts;
@@ -533,15 +541,18 @@ export function LiveTerminal() {
                 <CardGrid cols={2}>
                   <ResultCard data={singapore4DDisplay} />
                   <LottoBallCard
-                    noLiveData
-                    data={{
-                      ...singaporeTotoLayout,
-                      balls: [],
-                      bonus: null,
-                      date: singapore4DDisplay.date,
-                      draw_no: undefined,
-                      status: sgTotoLiveActive ? "pending" : "drawn",
-                    }}
+                    noLiveData={!sgTotoData}
+                    data={
+                      sgTotoData ?? {
+                        ...singaporeTotoLayout,
+                        balls: [],
+                        bonus: null,
+                        currency: "S$",
+                        date: singapore4DDisplay.date,
+                        draw_no: undefined,
+                        status: sgTotoLiveActive ? "pending" : "drawn",
+                      }
+                    }
                   />
                 </CardGrid>
               </>

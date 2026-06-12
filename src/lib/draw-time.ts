@@ -175,6 +175,24 @@ export function getRefreshIntervalMs(
   return isRegionLiveDraw(region, now) ? 3_000 : 120_000;
 }
 
+/** Most recent Mon/Thu Toto draw date (MYT) that should have results published. */
+export function latestSgTotoDrawDate(now = new Date()): string {
+  const { day, hour, minute } = getMYTParts(now);
+  const t = hour * 60 + minute;
+  const totoDoneToday =
+    (day === 1 || day === 4) && t >= 22 * 60 + 30;
+
+  for (let offset = 0; offset <= 7; offset++) {
+    const check = new Date(now.getTime() - offset * 86_400_000);
+    const p = getMYTParts(check);
+    if (p.day !== 1 && p.day !== 4) continue;
+    if (offset === 0 && !totoDoneToday) continue;
+    return p.date;
+  }
+
+  return getMYTParts(now).date;
+}
+
 export function getRefreshIntervalLabelKey(
   region?: Region,
   now = new Date()
