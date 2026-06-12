@@ -166,7 +166,7 @@ function sliceBetween(html: string, start: string, end: string): string {
 
 function extractBallInts(section: string, max: number, count: number): number[] {
   const out: number[] = [];
-  for (const m of section.matchAll(/>(\d{1,2})</g)) {
+  for (const m of Array.from(section.matchAll(/>(\d{1,2})</g))) {
     const n = parseInt(m[1], 10);
     if (Number.isFinite(n) && n >= 1 && n <= max) out.push(n);
     if (out.length >= count) break;
