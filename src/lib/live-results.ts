@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
-import { isRealNum } from "@/lib/results-mapper";
 import {
   upsertDrawResultsV2,
   type DrawResultV2Row,
@@ -15,36 +14,7 @@ import type { Region } from "@/types";
 
 export type DrawRow = Record<string, unknown>;
 
-const REGION_OPERATORS: Record<Region, string[]> = {
-  west: ["magnum", "damacai", "toto"],
-  east: ["sabah", "sarawak", "sandakan"],
-  singapore: ["sgpools"],
-};
-
-function isTodayRowIncomplete(row: DrawRow, today: string): boolean {
-  if ((row.date as string) !== today) return false;
-  const first = row.first_prize as string | null | undefined;
-  if (!first || first === "----") return true;
-  const second = row.second_prize as string | null | undefined;
-  const third = row.third_prize as string | null | undefined;
-  if (!isRealNum(second) || !isRealNum(third)) return true;
-  return false;
-}
-
-/** Scrape in live window, or outside window when today's DB rows are still incomplete. */
-export function shouldScrapeRegion(
-  region: Region,
-  operators: Record<string, DrawRow>,
-  today: string,
-  mockLive = false
-): boolean {
-  if (isRegionLiveDraw(region, new Date(), mockLive)) return true;
-  for (const op of REGION_OPERATORS[region] ?? []) {
-    const row = operators[op];
-    if (row && isTodayRowIncomplete(row, today)) return true;
-  }
-  return false;
-}
+export { shouldScrapeRegion } from "@/lib/live-scrape-cache";
 
 export function maxOperatorsCreatedAt(
   operators: Record<string, DrawRow>

@@ -130,13 +130,13 @@ export async function supplementMagnumFromOfficial(
   let official: DrawResultV2Row | null = null;
 
   try {
-    official = await fetchMagnumTodayDraw();
-    if (
-      !official ||
-      (official.draw_date !== rowDate &&
-        official.draw_date !== (magnum.date as string))
-    ) {
-      official = await fetchMagnumOfficialForDate(rowDate);
+    // Non-draw days: fetchMagnumTodayDraw() is null → fallback to row.date
+    official = await fetchMagnumOfficialForDate(rowDate);
+    if (!official) {
+      const todayDraw = await fetchMagnumTodayDraw();
+      if (todayDraw && todayDraw.draw_date === rowDate) {
+        official = todayDraw;
+      }
     }
   } catch (e) {
     console.warn(

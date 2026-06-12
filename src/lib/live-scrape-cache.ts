@@ -4,9 +4,10 @@
  */
 
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
-import { supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
-import { todayMYT } from "@/lib/draw-time";
-import { scrapeLiveResults, upsertDrawResults } from "@/lib/live-results";
+import { magnumNeedsOfficialSupplement, supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
+import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
+import type { DrawRow } from "@/lib/live-results";
+import { isRealNum } from "@/lib/results-mapper";
 import { createClient } from "@/lib/supabase/server";
 import { upsertDrawResultsV2 } from "@/lib/draw-results-v2";
 import type { DrawResultV2Row } from "@/lib/draw-results-v2";
@@ -22,6 +23,16 @@ const SCRAPE_TO_V2_OPERATOR: Record<string, string> = {
   sandakan: "stc",
 };
 
+const REGION_OPERATORS: Record<Region, string[]> = {
+  west: ["magnum", "damacai", "toto"],
+  east: ["sabah", "sarawak", "sandakan"],
+  singapore: ["sgpools"],
+};
+
+/** Outside live window: at most one deficient-heal scrape per region per 10 minutes */
+const deficientScrapeAt = new Map<Region, number>();
+const DEFICIENT_SCRAPE_TTL = 10 * 60 * 1000;
+
 interface CacheEntry {
   lastFetchedAt: number;
   promise: Promise<void> | null;
@@ -29,6 +40,82 @@ interface CacheEntry {
 
 const cache = new Map<Region, CacheEntry>();
 const CACHE_TTL = 3_000;
+
+function isTodayRowIncomplete(row: DrawRow, today: string): boolean {
+  if ((row.date as string) !== today) return false;
+  const first = row.first_prize as string | null | undefined;
+  if (!first || first === "----") return true;
+  const second = row.second_prize as string | null | undefined;
+  const third = row.third_prize as string | null | undefined;
+  if (!isRealNum(second) || !isRealNum(third)) return true;
+  return false;
+}
+
+function strField(v: unknown): string {
+  return String(v ?? "").trim();
+}
+
+function hasValidDamacai3Plus3D(row: DrawRow): boolean {
+  const extra = row.extra_data as Record<string, unknown> | undefined;
+  if (!extra) return false;
+  const raw = extra.damacai3Plus3D;
+  if (!raw || typeof raw !== "object") return false;
+  const d = raw as Record<string, unknown>;
+  const ok = (s: string) => s !== "" && s !== "----";
+  return (
+    ok(strField(d.first)) ||
+    ok(strField(d.second)) ||
+    ok(strField(d.third))
+  );
+}
+
+export function isLatestRowDeficient(
+  region: Region,
+  operators: Record<string, DrawRow>
+): boolean {
+  for (const op of REGION_OPERATORS[region] ?? []) {
+    const row = operators[op];
+    if (!row) continue;
+    if (!isRealNum(row.first_prize as string)) return true;
+    if (op === "magnum" && magnumNeedsOfficialSupplement(row)) return true;
+    if (op === "damacai" && !hasValidDamacai3Plus3D(row)) return true;
+  }
+  return false;
+}
+
+function isDeficientScrapeAllowed(region: Region): boolean {
+  const last = deficientScrapeAt.get(region) ?? 0;
+  return Date.now() - last >= DEFICIENT_SCRAPE_TTL;
+}
+
+function markDeficientScrape(region: Region): void {
+  deficientScrapeAt.set(region, Date.now());
+}
+
+/** Scrape in live window, when today's rows are incomplete, or latest rows need heal. */
+export function shouldScrapeRegion(
+  region: Region,
+  operators: Record<string, DrawRow>,
+  today: string,
+  mockLive = false
+): boolean {
+  if (isRegionLiveDraw(region, new Date(), mockLive)) return true;
+
+  for (const op of REGION_OPERATORS[region] ?? []) {
+    const row = operators[op];
+    if (row && isTodayRowIncomplete(row, today)) return true;
+  }
+
+  if (isLatestRowDeficient(region, operators)) {
+    if (isDeficientScrapeAllowed(region)) {
+      markDeficientScrape(region);
+      return true;
+    }
+    return false;
+  }
+
+  return false;
+}
 
 export async function scrapeAndCacheRegion(region: Region): Promise<void> {
   const now = Date.now();
@@ -41,6 +128,9 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
 
   const fetchPromise = (async () => {
     try {
+      const { scrapeLiveResults, upsertDrawResults } = await import(
+        "@/lib/live-results"
+      );
       const parsed = await fetchAllCheck4dDraws(region);
       let operators = await scrapeLiveResults(region, parsed);
 
