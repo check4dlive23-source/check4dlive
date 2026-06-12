@@ -90,6 +90,8 @@ export interface LottoBallResult {
   jackpot1_amount?: number;
   jackpot2_amount?: number;
   jackpot_amount?: number;
+  /** Display prefix for jackpot lines (default RM). */
+  currency?: string;
   date: string;
   draw_no?: string;
   status: DrawStatus;

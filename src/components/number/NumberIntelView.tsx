@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
@@ -345,6 +346,29 @@ export function NumberIntelView({
             </p>
             <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 10, letterSpacing: "0.05em" }}>{t("aiInsightNote")}</p>
           </div>
+          <Link
+            href={`/number/${data.number}/report`}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
+            style={{
+              border: "1px solid rgba(167,139,250,0.45)",
+              color: "#A78BFA",
+              textDecoration: "none",
+              background: "rgba(167,139,250,0.06)",
+            }}
+          >
+            ◤ {t("vyraDeepReport")}
+            <span
+              className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+              style={{
+                background: "rgba(167,139,250,0.15)",
+                border: "1px solid rgba(167,139,250,0.35)",
+                color: "#A78BFA",
+              }}
+            >
+              Pro
+            </span>
+            <span style={{ marginLeft: 2, opacity: 0.7 }}>→</span>
+          </Link>
         </section>
 
         {/* ── 概览 ── */}
