@@ -127,6 +127,37 @@ export const translations = {
       "订阅费用仅用于解锁数据分析功能,任何付费均不带来任何中奖机会。",
     disclaimerP5:
       "本服务仅供 18 岁及以上人士使用。如您或身边的人有博彩困扰,请寻求当地辅导服务协助。",
+    faqPageTitle: "常见问题",
+    faqQ1: "Check4D Terminal 是什么?",
+    faqA1:
+      "独立的4D数据分析平台:历史开彩记录查询、号码统计评分、AI数据解读。我们是数据工具,不是博彩网站。",
+    faqQ2: "你们能预测开彩号码吗?",
+    faqA2:
+      "不能。没有任何人或系统能预测随机开彩。我们只分析历史数据规律,所有内容不构成预测或投注建议。",
+    faqQ3: "Number Score 是什么?",
+    faqA3:
+      "基于历史出现频率、周期、近期动能与镜像关联四个维度计算的统计评分(0-100),描述号码的历史活跃度,不代表未来中奖概率。",
+    faqQ4: "VYRA 是什么?",
+    faqA4:
+      "我们的 AI 数据分析师,用通俗语言解读号码的历史统计数据。VYRA 的所有分析仅基于历史数据,不做预测。",
+    faqQ5: "Pro 会员有什么功能?",
+    faqA5:
+      "完整 AI 分析、高级周期与镜像数据、更多收藏号码额度、VYRA 每日简报完整版等。详见升级页面。",
+    faqQ6: "如何取消订阅?",
+    faqA6:
+      "登录后在账户设置中随时取消,取消后服务保留至当期结束,不再续扣。",
+    faqQ7: "退款政策?",
+    faqA7:
+      "月费订阅一般不退款;年费订阅在购买后 7 天内未大量使用可申请全额退款,联系 support 邮箱处理。",
+    faqQ8: "数据来源是什么?准确吗?",
+    faqA8:
+      "数据来自公开开彩结果及官方运营商网站,自动抓取并交叉校验。如发现任何差异,以官方公布为准。",
+    faqQ9: "你们和万能/多多/大马彩是什么关系?",
+    faqA9:
+      "没有任何关系。我们是独立第三方数据平台,与任何运营商均无从属、授权或合作关系。",
+    faqQ10: "怎么联系你们?",
+    faqA10: "邮箱:support@check4dterminal.com",
+    faqDisclaimerLink: "完整免责声明 →",
     shareAnalysis: "分享此号码分析",
     copiedLink: "链接已复制",
     relatedNumbers: "相关号码",
@@ -441,6 +472,37 @@ export const translations = {
       "Subscription fees grant access to data analytics features only. No purchase confers any chance of winning anything.",
     disclaimerP5:
       "This service is intended for users aged 18 and above. If you or someone you know has a gambling problem, please seek help from your local support services.",
+    faqPageTitle: "FAQ",
+    faqQ1: "What is Check4D Terminal?",
+    faqA1:
+      "An independent 4D data analytics platform: historical results, statistical scoring, and AI-powered data interpretation. We are a data tool, not a gambling site.",
+    faqQ2: "Can you predict lottery numbers?",
+    faqA2:
+      "No. No one and no system can predict random draws. We analyse historical data patterns only; nothing on this platform constitutes predictions or betting advice.",
+    faqQ3: "What is Number Score?",
+    faqA3:
+      "A statistical score (0-100) based on historical frequency, cycle, recent momentum and mirror correlation. It describes historical activity, not future winning probability.",
+    faqQ4: "What is VYRA?",
+    faqA4:
+      "Our AI data analyst that interprets historical statistics in plain language. All VYRA analysis is based on historical data only — no predictions.",
+    faqQ5: "What does Pro membership include?",
+    faqA5:
+      "Full AI analysis, advanced cycle & mirror data, larger watchlist, complete VYRA daily brief, and more. See the upgrade page.",
+    faqQ6: "How do I cancel my subscription?",
+    faqA6:
+      "Cancel anytime in account settings after logging in. Access continues until the end of the current billing period; no further charges.",
+    faqQ7: "What is your refund policy?",
+    faqA7:
+      "Monthly plans are generally non-refundable. Annual plans qualify for a full refund within 7 days of purchase if usage is minimal — contact our support email.",
+    faqQ8: "Where does your data come from? Is it accurate?",
+    faqA8:
+      "Data is sourced from publicly available results and official operator websites, automatically collected and cross-checked. Official operator announcements always prevail.",
+    faqQ9: "Are you affiliated with Magnum, Toto, or Da Ma Cai?",
+    faqA9:
+      "None. We are an independent third-party data platform with no affiliation, endorsement or partnership with any operator.",
+    faqQ10: "How can I contact you?",
+    faqA10: "Email: support@check4dterminal.com",
+    faqDisclaimerLink: "Full Disclaimer →",
     shareAnalysis: "Share this analysis",
     copiedLink: "Link copied",
     relatedNumbers: "Related numbers",
