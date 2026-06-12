@@ -165,7 +165,6 @@ export function NumberIntelView({
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
   const [aiContent, setAiContent] = useState<string | null>(initialInsight);
-  const [aiLoading, setAiLoading] = useState(!initialInsight);
   const initialInsightConsumed = useRef(false);
   const mountOperatorsKey = useRef(operators.join(","));
   const { stats } = data;
@@ -211,11 +210,9 @@ export function NumberIntelView({
       opsKey === mountOperatorsKey.current
     ) {
       initialInsightConsumed.current = true;
-      setAiLoading(false);
       return;
     }
 
-    setAiLoading(true);
     setAiContent(null);
     const opParam = operators.length > 0 ? `&operators=${operators.join(",")}` : "";
     fetch(`/api/ai-insight/${data.number}?lang=${currentLang}${opParam}`)
@@ -227,10 +224,7 @@ export function NumberIntelView({
       .then((content) => {
         if (!cancelled && content) setAiContent(content);
       })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setAiLoading(false);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -323,18 +317,11 @@ export function NumberIntelView({
 
         {/* ── VYRA 解读 ── */}
         <section>
-          <style>{`
-            @keyframes aiInsightPulse {
-              0%, 100% { opacity: 0.4; }
-              50% { opacity: 1; }
-            }
-          `}</style>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="mb-3">
             <div
               style={{
                 borderLeft: "2px solid #A78BFA",
                 paddingLeft: 10,
-                marginTop: -10,
               }}
             >
               <SectionTitle>
@@ -342,22 +329,6 @@ export function NumberIntelView({
                 {t("aiInsight")}
               </SectionTitle>
             </div>
-            <span style={{ fontSize: 9, color: "rgba(160,125,224,0.7)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: -10 }}>
-              VYRA
-            </span>
-            {aiLoading && (
-              <span
-                style={{
-                  marginLeft: "auto",
-                  fontSize: 10,
-                  color: "rgba(160,125,224,0.7)",
-                  letterSpacing: "0.05em",
-                  animation: "aiInsightPulse 1.5s ease-in-out infinite",
-                }}
-              >
-                {t("aiGenerating")}
-              </span>
-            )}
           </div>
           <div
             style={{
