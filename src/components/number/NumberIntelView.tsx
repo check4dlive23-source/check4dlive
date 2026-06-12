@@ -321,7 +321,7 @@ export function NumberIntelView({
         {/* 搜索框 */}
         <NumberSearchBar currentNumber={data.number} />
 
-        {/* ── AI 解读 ── */}
+        {/* ── VYRA 解读 ── */}
         <section>
           <style>{`
             @keyframes aiInsightPulse {
@@ -330,9 +330,20 @@ export function NumberIntelView({
             }
           `}</style>
           <div className="flex items-center gap-3 mb-3">
-            <SectionTitle>{t("aiInsight")}</SectionTitle>
+            <div
+              style={{
+                borderLeft: "2px solid #A78BFA",
+                paddingLeft: 10,
+                marginTop: -10,
+              }}
+            >
+              <SectionTitle>
+                <span style={{ color: "#A78BFA", marginRight: 6 }}>◤</span>
+                {t("aiInsight")}
+              </SectionTitle>
+            </div>
             <span style={{ fontSize: 9, color: "rgba(160,125,224,0.7)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: -10 }}>
-              {aiContent ? "AI · CLAUDE" : "DATA ANALYSIS"}
+              VYRA
             </span>
             {aiLoading && (
               <span
@@ -353,6 +364,7 @@ export function NumberIntelView({
               position: "relative",
               background: "linear-gradient(135deg, rgba(160,125,224,0.08), rgba(10,14,26,0.9))",
               border: "1px solid rgba(160,125,224,0.2)",
+              borderLeft: "2px solid #A78BFA",
               borderRadius: 12,
               padding: "16px 20px",
             }}
