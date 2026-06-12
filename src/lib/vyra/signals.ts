@@ -214,9 +214,10 @@ export function detectOverdue(
       scope,
       number: s.number,
       ratio: Math.round(s.ratio * 100) / 100,
-      currentGap: s.current_gap_days ?? 0,
-      avgGap: Math.round(Number(s.avg_gap_days) * 10) / 10,
+      currentGapDraws: s.current_gap_days ?? 0,
+      avgGapDraws: Math.round(Number(s.avg_gap_days) * 10) / 10,
       totalHits: s.total_hits,
+      lastSeenDate: s.last_seen_date ?? "",
     },
   }));
 }
@@ -314,6 +315,18 @@ function normalizeSurprise(signals: VyraSignal[]): VyraSignal[] {
   }));
 }
 
+/** Free tier shows top 2 — ensure different signal types when possible. */
+export function diversifyFreeTierTop2(sorted: VyraSignal[]): VyraSignal[] {
+  if (sorted.length < 2 || sorted[0].type !== sorted[1].type) return sorted;
+  const altIdx = sorted.findIndex((s, i) => i >= 2 && s.type !== sorted[0].type);
+  if (altIdx < 0) return sorted;
+  const out = [...sorted];
+  const alt = out[altIdx];
+  out.splice(altIdx, 1);
+  out.splice(1, 0, alt);
+  return out;
+}
+
 /** Merge detectors, normalize surprise, sort desc, truncate, quiet flag. */
 export function buildBriefData(
   region: VyraRegion,
@@ -328,9 +341,9 @@ export function buildBriefData(
     ...detectMirrorSync(region, date, input, config),
   ];
 
-  const signals = normalizeSurprise(raw)
-    .sort((a, b) => b.surprise - a.surprise)
-    .slice(0, config.maxSignalsPerBrief);
+  const sorted = normalizeSurprise(raw).sort((a, b) => b.surprise - a.surprise);
+  const diversified = diversifyFreeTierTop2(sorted);
+  const signals = diversified.slice(0, config.maxSignalsPerBrief);
 
   return {
     region,

@@ -7,8 +7,9 @@ import {
   detectMirrorSync,
   detectOverdue,
   detectScoreJump,
+  diversifyFreeTierTop2,
 } from "@/lib/vyra/signals";
-import type { VyraDetectInput, VyraDrawRow } from "@/lib/vyra/types";
+import type { VyraDetectInput, VyraDrawRow, VyraSignal } from "@/lib/vyra/types";
 
 const DATE = "2026-06-10";
 const REGION = "west" as const;
@@ -207,9 +208,27 @@ describe("buildBriefData", () => {
     assert.equal(brief.date, DATE);
     assert.ok(brief.signals.length <= 3);
     assert.equal(brief.quiet, false);
-    for (let i = 1; i < brief.signals.length; i++) {
-      assert.ok(brief.signals[i - 1].surprise >= brief.signals[i].surprise);
+    if (brief.signals.length >= 2) {
+      assert.notEqual(brief.signals[0].type, brief.signals[1].type);
     }
+    const locked = brief.signals.slice(2);
+    for (let i = 1; i < locked.length; i++) {
+      assert.ok(locked[i - 1].surprise >= locked[i].surprise);
+    }
+  });
+
+  it("diversifies free-tier top 2 signal types", () => {
+    const sorted: VyraSignal[] = [
+      { type: "digit_surge", surprise: 1, numbers: ["1000"], data: {} },
+      { type: "digit_surge", surprise: 0.9, numbers: ["2000"], data: {} },
+      { type: "overdue", surprise: 0.8, numbers: ["5678"], data: {} },
+      { type: "score_jump", surprise: 0.7, numbers: ["8888"], data: {} },
+    ];
+    const out = diversifyFreeTierTop2(sorted);
+    assert.equal(out[0].type, "digit_surge");
+    assert.equal(out[1].type, "overdue");
+    assert.equal(out[2].type, "digit_surge");
+    assert.equal(out[3].type, "score_jump");
   });
 
   it("marks quiet when no signals", () => {

@@ -14,6 +14,8 @@ export interface VyraSignal {
   numbers: string[];
   /** Facts for template rendering */
   data: Record<string, number | string>;
+  /** Optional context ammo for narrative (omit when not computable) */
+  context?: Record<string, number | string>;
 }
 
 export interface VyraBriefData {
@@ -40,6 +42,8 @@ export interface VyraScoreRow {
   total_hits: number;
   current_gap_days: number | null;
   avg_gap_days: number | null;
+  last_seen_date?: string | null;
+  max_gap_days?: number | null;
 }
 
 export interface VyraSnapshotRow {

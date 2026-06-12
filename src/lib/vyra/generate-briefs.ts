@@ -1,9 +1,16 @@
 import { isDrawDay, todayMYT } from "@/lib/draw-time";
 import { createClient } from "@/lib/supabase/server";
-import { loadLongestColdForRegion, loadVyraDetectInput } from "@/lib/vyra/data-loader";
-import { generateBriefNarrative } from "@/lib/vyra/narrative";
+import {
+  enrichSignalsWithContext,
+  loadLongestColdForRegion,
+  loadVyraDetectInput,
+} from "@/lib/vyra/data-loader";
+import {
+  generateBriefNarrative,
+  type VyraNarrativeResult,
+} from "@/lib/vyra/narrative";
 import { buildBriefData } from "@/lib/vyra/signals";
-import type { VyraRegion } from "@/lib/vyra/types";
+import type { VyraBriefData, VyraRegion } from "@/lib/vyra/types";
 import type { Region } from "@/types";
 
 const REGION_LABELS: Record<VyraRegion, { zh: string; en: string }> = {
@@ -22,6 +29,76 @@ function regionToDrawDayRegion(r: VyraRegion): Region {
   return r;
 }
 
+function narrativeContext(
+  region: VyraRegion,
+  lang: "zh" | "en",
+  longestCold: { number: string; draws: number } | null
+) {
+  return {
+    region,
+    regionLabel: REGION_LABELS[region][lang],
+    operatorNames: REGION_OPERATORS[region][lang],
+    isDrawDay: isDrawDay(regionToDrawDayRegion(region)),
+    longestCold,
+  };
+}
+
+async function buildEnrichedBrief(
+  supabase: NonNullable<ReturnType<typeof createClient>>,
+  region: VyraRegion,
+  briefDate: string
+): Promise<{
+  briefData: VyraBriefData;
+  longestCold: { number: string; draws: number } | null;
+}> {
+  const input = await loadVyraDetectInput(supabase, region, briefDate);
+  const base = buildBriefData(region, briefDate, input);
+  const signals = enrichSignalsWithContext(
+    base.signals,
+    input,
+    region,
+    briefDate
+  );
+  const briefData = { ...base, signals };
+  const longestCold = briefData.quiet
+    ? await loadLongestColdForRegion(supabase, region)
+    : null;
+  return { briefData, longestCold };
+}
+
+export async function generateBriefPreview(
+  region: VyraRegion,
+  lang: "zh" | "en",
+  date?: string
+): Promise<
+  | { ok: true; briefData: VyraBriefData; narrative: VyraNarrativeResult }
+  | { ok: false; error: string }
+> {
+  const supabase = createClient();
+  if (!supabase) return { ok: false, error: "Supabase unavailable" };
+
+  const briefDate = date ?? todayMYT();
+
+  try {
+    const { briefData, longestCold } = await buildEnrichedBrief(
+      supabase,
+      region,
+      briefDate
+    );
+    const narrative = await generateBriefNarrative(
+      briefData,
+      lang,
+      narrativeContext(region, lang, longestCold)
+    );
+    return { ok: true, briefData, narrative };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "preview failed",
+    };
+  }
+}
+
 export async function generateBriefForRegionLang(
   region: VyraRegion,
   lang: "zh" | "en",
@@ -33,19 +110,17 @@ export async function generateBriefForRegionLang(
   const briefDate = date ?? todayMYT();
 
   try {
-    const input = await loadVyraDetectInput(supabase, region, briefDate);
-    const briefData = buildBriefData(region, briefDate, input);
-    const longestCold = briefData.quiet
-      ? await loadLongestColdForRegion(supabase, region)
-      : null;
-
-    const narrative = await generateBriefNarrative(briefData, lang, {
+    const { briefData, longestCold } = await buildEnrichedBrief(
+      supabase,
       region,
-      regionLabel: REGION_LABELS[region][lang],
-      operatorNames: REGION_OPERATORS[region][lang],
-      isDrawDay: isDrawDay(regionToDrawDayRegion(region)),
-      longestCold,
-    });
+      briefDate
+    );
+
+    const narrative = await generateBriefNarrative(
+      briefData,
+      lang,
+      narrativeContext(region, lang, longestCold)
+    );
 
     const { error } = await supabase.from("vyra_briefs").upsert(
       {

@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Trigger live ingest
         run: |
-          curl -s -X POST \
+          curl -s -L --fail-with-body -X POST \
             -H "Authorization: Bearer ${{ secrets.INGEST_SECRET }}" \
-            "https://check4dterminal.com/api/admin/live-ingest" \
+            "https://check4dlive.vercel.app/api/admin/live-ingest" \
             -m 60

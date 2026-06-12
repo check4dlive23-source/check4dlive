@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Trigger VYRA brief generation
         run: |
-          curl -s -X POST \
+          curl -s -L --fail-with-body -X POST \
             -H "Authorization: Bearer ${{ secrets.INGEST_SECRET }}" \
-            "https://check4dterminal.com/api/admin/generate-briefs" \
+            "https://check4dlive.vercel.app/api/admin/generate-briefs" \
             -m 300
