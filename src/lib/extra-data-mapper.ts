@@ -3,6 +3,9 @@ import type {
   LottoBallResult,
   MagnumGoldExtra,
   MagnumLifeExtra,
+  Sabah3DExtra,
+  SabahLottoExtra,
+  SabahLottoTier,
   Toto5DExtra,
   Toto6DTier,
 } from "@/types";
@@ -314,4 +317,62 @@ export function mapTotoLottoGames(
 
 export function hasTotoLottoBalls(game: LottoBallResult): boolean {
   return game.balls.length > 0;
+}
+
+function isNonEmptyStr(v: unknown): v is string {
+  if (typeof v !== "string") return false;
+  const s = v.trim();
+  return s !== "" && s !== "----";
+}
+
+function mapSabahLottoTier(raw: unknown, digitCount: number): SabahLottoTier | null {
+  if (!isRecord(raw)) return null;
+  if (!Array.isArray(raw.numbers)) return null;
+  const numbers = raw.numbers
+    .slice(0, digitCount)
+    .map((n) => String(n ?? "").trim());
+  while (numbers.length < digitCount) numbers.push("");
+  const bonus = String(raw.bonus ?? "").trim();
+  const prize = String(raw.prize ?? "").trim();
+  if (
+    !numbers.some(isNonEmptyStr) &&
+    !isNonEmptyStr(bonus) &&
+    !isNonEmptyStr(prize)
+  ) {
+    return null;
+  }
+  return { numbers, bonus, prize };
+}
+
+export function mapSabah3DExtra(extraData: unknown): Sabah3DExtra | null {
+  if (!isRecord(extraData)) return null;
+  const raw = extraData.sabah3D;
+  if (!isRecord(raw)) return null;
+  const first = String(raw.first ?? "").trim();
+  const second = String(raw.second ?? "").trim();
+  const third = String(raw.third ?? "").trim();
+  if (!isNonEmptyStr(first) || !isNonEmptyStr(second) || !isNonEmptyStr(third)) {
+    return null;
+  }
+  return { first, second, third };
+}
+
+export function mapSabahLotto(extraData: unknown): SabahLottoExtra | null {
+  if (!isRecord(extraData)) return null;
+  const raw = extraData.sabahLotto;
+  if (!isRecord(raw)) return null;
+
+  const lotto5 = Array.isArray(raw.lotto5)
+    ? raw.lotto5
+        .map((t) => mapSabahLottoTier(t, 4))
+        .filter((t): t is SabahLottoTier => t != null)
+    : [];
+  const lotto6 = Array.isArray(raw.lotto6)
+    ? raw.lotto6
+        .map((t) => mapSabahLottoTier(t, 5))
+        .filter((t): t is SabahLottoTier => t != null)
+    : [];
+
+  if (lotto5.length === 0 && lotto6.length === 0) return null;
+  return { lotto5, lotto6 };
 }

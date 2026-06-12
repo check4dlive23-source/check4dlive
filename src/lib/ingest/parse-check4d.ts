@@ -161,6 +161,95 @@ function parseDamacaiExtras(block: string): Record<string, unknown> | undefined 
   };
 }
 
+function isEmptyField(v: string | undefined): boolean {
+  if (v == null) return true;
+  const s = v.trim();
+  return s === "" || s === "----";
+}
+
+function collectSabahLotto5Tier(
+  block: string,
+  tier: number
+): { numbers: string[]; bonus: string; prize: string } | null {
+  const numbers = [1, 2, 3, 4].map((i) =>
+    field(block, `Lotto5Jackpot${tier}No${i}`)
+  );
+  const bonus = field(block, `Lotto5Jackpot${tier}BonusNo`);
+  const prize = field(block, `Lotto5Jackpot${tier}Prize`);
+  if (
+    numbers.every(isEmptyField) &&
+    isEmptyField(bonus) &&
+    isEmptyField(prize)
+  ) {
+    return null;
+  }
+  return {
+    numbers: numbers.map((v) => v ?? ""),
+    bonus: bonus ?? "",
+    prize: prize ?? "",
+  };
+}
+
+function collectSabahLotto6Tier(
+  block: string,
+  tier: number
+): { numbers: string[]; bonus: string; prize: string } | null {
+  const numbers = [1, 2, 3, 4, 5].map((i) =>
+    field(block, `Lotto6Jackpot${tier}No${i}`)
+  );
+  const bonus = field(block, `Lotto6Jackpot${tier}BonusNo`);
+  const prize = field(block, `Lotto6Jackpot${tier}Prize`);
+  if (
+    numbers.every(isEmptyField) &&
+    isEmptyField(bonus) &&
+    isEmptyField(prize)
+  ) {
+    return null;
+  }
+  return {
+    numbers: numbers.map((v) => v ?? ""),
+    bonus: bonus ?? "",
+    prize: prize ?? "",
+  };
+}
+
+function parseSabahExtras(block: string): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+
+  const first3d = field(block, "FirstPrize3D");
+  const second3d = field(block, "SecondPrize3D");
+  const third3d = field(block, "ThirdPrize3D");
+  if (
+    !isEmptyField(first3d) ||
+    !isEmptyField(second3d) ||
+    !isEmptyField(third3d)
+  ) {
+    out.sabah3D = {
+      first: first3d ?? "",
+      second: second3d ?? "",
+      third: third3d ?? "",
+    };
+  }
+
+  const lotto5: { numbers: string[]; bonus: string; prize: string }[] = [];
+  for (let i = 1; i <= 8; i++) {
+    const tier = collectSabahLotto5Tier(block, i);
+    if (tier) lotto5.push(tier);
+  }
+
+  const lotto6: { numbers: string[]; bonus: string; prize: string }[] = [];
+  for (let i = 1; i <= 5; i++) {
+    const tier = collectSabahLotto6Tier(block, i);
+    if (tier) lotto6.push(tier);
+  }
+
+  if (lotto5.length > 0 || lotto6.length > 0) {
+    out.sabahLotto = { lotto5, lotto6 };
+  }
+
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function parseTotoExtras(block: string): Record<string, unknown> | undefined {
   return {
     toto5D: {
@@ -236,6 +325,7 @@ function parseCompanyBlock(
   let extra: Record<string, unknown> | undefined;
   if (company === "MAGNUM4D") extra = parseMagnumExtras(block);
   if (company === "DAMACAI") extra = parseDamacaiExtras(block);
+  if (company === "SABAH88") extra = parseSabahExtras(block);
   if (company === "SPORTTOTO") extra = parseTotoExtras(block);
 
   const spMax = specialMax(operator);

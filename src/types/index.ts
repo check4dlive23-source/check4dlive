@@ -141,6 +141,17 @@ export interface Sabah3DExtra {
   third: string;
 }
 
+export interface SabahLottoTier {
+  numbers: string[];
+  bonus: string;
+  prize: string;
+}
+
+export interface SabahLottoExtra {
+  lotto5: SabahLottoTier[];
+  lotto6: SabahLottoTier[];
+}
+
 export interface RegionResults {
   operators: Record<string, DrawResult | Jackpot4DResult | LottoBallResult>;
 }
