@@ -69,6 +69,58 @@ function hasValidDamacai3Plus3D(row: DrawRow): boolean {
   );
 }
 
+function hasValidSabahExtras(row: DrawRow): boolean {
+  const extra = row.extra_data as Record<string, unknown> | undefined;
+  if (!extra) return false;
+
+  const d3 = extra.sabah3D;
+  if (d3 && typeof d3 === "object") {
+    const d = d3 as Record<string, unknown>;
+    const ok = (s: string) => s !== "" && s !== "----";
+    if (
+      ok(strField(d.first)) ||
+      ok(strField(d.second)) ||
+      ok(strField(d.third))
+    ) {
+      return true;
+    }
+  }
+
+  const lotto = extra.sabahLotto;
+  if (lotto && typeof lotto === "object") {
+    const l = lotto as Record<string, unknown>;
+    for (const game of ["lotto5", "lotto6"] as const) {
+      const tiers = l[game];
+      if (Array.isArray(tiers) && tiers.length > 0) return true;
+    }
+  }
+
+  return false;
+}
+
+/** Star/Power/Supreme lotto only — 5D/6D omitted (source omits them off draw days). */
+function hasValidTotoLotto(row: DrawRow): boolean {
+  const extra = row.extra_data as Record<string, unknown> | undefined;
+  if (!extra) return false;
+  const lotto = extra.totoLotto;
+  if (!lotto || typeof lotto !== "object") return false;
+  const l = lotto as Record<string, unknown>;
+  const ok = (s: string) => s !== "" && s !== "----";
+
+  for (const key of ["star", "power", "supreme"] as const) {
+    const section = l[key];
+    if (!section || typeof section !== "object") continue;
+    const s = section as Record<string, unknown>;
+    const balls = Array.isArray(s.balls) ? s.balls : [];
+    if (balls.some((b) => ok(strField(b)))) return true;
+    if (ok(strField(s.bonus))) return true;
+    for (const jk of ["jackpot1", "jackpot2", "jackpot"] as const) {
+      if (ok(strField(s[jk]))) return true;
+    }
+  }
+  return false;
+}
+
 export function isLatestRowDeficient(
   region: Region,
   operators: Record<string, DrawRow>
@@ -79,6 +131,10 @@ export function isLatestRowDeficient(
     if (!isRealNum(row.first_prize as string)) return true;
     if (op === "magnum" && magnumNeedsOfficialSupplement(row)) return true;
     if (op === "damacai" && !hasValidDamacai3Plus3D(row)) return true;
+    // (d) east sabah — operator key matches DB/check4d: "sabah"
+    if (op === "sabah" && !hasValidSabahExtras(row)) return true;
+    // (e) toto lotto only; 5D/6D empty off draw days is normal — do not trigger heal
+    if (op === "toto" && !hasValidTotoLotto(row)) return true;
   }
   return false;
 }
