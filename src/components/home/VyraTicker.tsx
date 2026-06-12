@@ -1,6 +1,8 @@
 "use client";
 
 import { saveBriefRegion } from "@/app/brief/BriefRegionRedirect";
+import { useLang } from "@/lib/language-context";
+import type { Lang } from "@/lib/i18n";
 import { todayMYT } from "@/lib/draw-time";
 import { getNextAnyDraw } from "@/lib/next-draw";
 import type { VyraRegion } from "@/lib/vyra/types";
@@ -13,10 +15,14 @@ const PAUSE_MS = 4000;
 const FADE_MS = 300;
 const TRUNCATE_LEN = 60;
 
-const WEEKDAY_ZH = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const WEEKDAY: Record<Lang, string[]> = {
+  zh: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+};
 
 interface BriefSummaryResponse {
   empty?: boolean;
+  lang?: Lang;
   brief_date?: string;
   intro?: string;
   narratives?: string[];
@@ -40,13 +46,9 @@ function truncateLine(text: string): string {
   return `${t.slice(0, TRUNCATE_LEN)}…`;
 }
 
-function nextBriefDayLabel(): string {
+function nextBriefDayLabel(lang: Lang): string {
   const { date } = getNextAnyDraw();
-  return WEEKDAY_ZH[date.getUTCDay()];
-}
-
-function idleLine(): string {
-  return `待机中 · 下次简报 ${nextBriefDayLabel()} 08:00`;
+  return WEEKDAY[lang][date.getUTCDay()];
 }
 
 function staleDateBadge(briefDate: string): string {
@@ -124,6 +126,7 @@ function useTypewriter(lines: string[], reducedMotion: boolean) {
 
 export function VyraTicker() {
   const router = useRouter();
+  const { lang, t } = useLang();
   const reducedMotion = usePrefersReducedMotion();
   const [region, setRegion] = useState<VyraRegion>("west");
   const [summary, setSummary] = useState<BriefSummaryResponse | null>(null);
@@ -135,7 +138,8 @@ export function VyraTicker() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/vyra/brief-summary?region=${region}`)
+    setSummary(null);
+    fetch(`/api/vyra/brief-summary?region=${region}&lang=${lang}`)
       .then((r) => r.json())
       .then((json: BriefSummaryResponse) => {
         if (!cancelled) setSummary(json);
@@ -146,22 +150,28 @@ export function VyraTicker() {
     return () => {
       cancelled = true;
     };
-  }, [region]);
+  }, [region, lang]);
 
   useEffect(() => {
-    const t = window.setTimeout(() => setSweep(false), 600);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setSweep(false), 600);
+    return () => window.clearTimeout(timer);
   }, []);
 
+  const idleLine = useMemo(
+    () =>
+      t("vyraTickerIdle").replace("{day}", nextBriefDayLabel(lang)),
+    [t, lang]
+  );
+
   const lines = useMemo(() => {
-    if (!summary || summary.empty) return [idleLine()];
+    if (!summary || summary.empty) return [idleLine];
     const out: string[] = [];
     if (summary.intro?.trim()) out.push(truncateLine(summary.intro));
     for (const n of summary.narratives ?? []) {
       if (n?.trim()) out.push(truncateLine(n));
     }
-    return out.length > 0 ? out : [idleLine()];
-  }, [summary]);
+    return out.length > 0 ? out : [idleLine];
+  }, [summary, idleLine]);
 
   const { display, fading } = useTypewriter(lines, reducedMotion);
 
@@ -254,7 +264,7 @@ export function VyraTicker() {
         className="shrink-0 text-xs"
         style={{ color: "var(--text-dim)" }}
       >
-        全文 →
+        {t("vyraTickerReadFull")}
       </span>
     </button>
   );

@@ -11,16 +11,21 @@ function parseRegion(raw: string | null): VyraRegion | null {
   return null;
 }
 
-/** Latest zh brief snippet for home ticker. TODO: i18n — EN ticker copy. */
+function parseLang(raw: string | null): "zh" | "en" {
+  return raw === "en" ? "en" : "zh";
+}
+
+/** Latest brief snippet for home ticker (zh or en). */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = parseRegion(searchParams.get("region"));
+  const lang = parseLang(searchParams.get("lang"));
 
   if (!region) {
     return NextResponse.json({ empty: true }, { headers: CACHE_HEADERS });
   }
 
-  const brief = await fetchVyraBrief(region, "zh");
+  const brief = await fetchVyraBrief(region, lang);
   if (!brief) {
     return NextResponse.json({ empty: true }, { headers: CACHE_HEADERS });
   }
@@ -33,6 +38,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json(
     {
+      lang,
       brief_date: brief.brief_date,
       intro: brief.intro ?? "",
       narratives,
