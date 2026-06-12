@@ -10,9 +10,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
 import type { Region } from "@/types";
-import { VyraBriefHomeCard } from "./VyraBriefHomeCard";
-import type { VyraBriefRow } from "@/lib/vyra/brief-queries";
-import type { VyraRegion } from "@/lib/vyra/types";
+import { VyraTicker } from "./VyraTicker";
 
 const SEARCH_OPERATORS = [
   { id: "magnum", logo: "/logos/magnum.gif" },
@@ -288,10 +286,6 @@ interface AnalyticsDashboardHomeProps {
   initialRising: HotNumberRow[];
   initialLastWeekRank: number | null;
   initialOperatorHot: { operator: string; topNumber: string | null; totalHits: number }[];
-  vyraBriefsByRegion: Record<
-    VyraRegion,
-    { zh: VyraBriefRow | null; en: VyraBriefRow | null }
-  >;
   totalDraws: number;
   dataSpanYears: number;
 }
@@ -303,7 +297,6 @@ export function AnalyticsDashboardHome({
   initialRising,
   initialLastWeekRank,
   initialOperatorHot,
-  vyraBriefsByRegion,
   totalDraws,
   dataSpanYears,
 }: AnalyticsDashboardHomeProps) {
@@ -421,6 +414,12 @@ export function AnalyticsDashboardHome({
 
       {/* 2. Hero */}
       <section className="relative w-full" style={{ height: 520 }}>
+        <div
+          className="absolute left-0 right-0 z-10"
+          style={{ top: 100, padding: "0 22px" }}
+        >
+          <VyraTicker />
+        </div>
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 80% 60% at 50% 20%, rgba(0,229,255,0.22) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,80,255,0.15) 0%, transparent 60%), linear-gradient(180deg, #0d1a3e 0%, #070710 100%)` }} />
           {PARTICLES.map((p, i) => (
@@ -648,8 +647,6 @@ export function AnalyticsDashboardHome({
           </p>
         )}
       </div>
-
-        <VyraBriefHomeCard briefsByRegion={vyraBriefsByRegion} />
 
         {/* 3. Hot numbers */}
         <section className="mt-8">
