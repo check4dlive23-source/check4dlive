@@ -16,6 +16,7 @@ import {
 import {
   emptyDamacai3Plus3D,
   emptyToto6DTiers,
+  mapDamacai3D,
   mapDamacai3Plus3DExtra,
   mapMagnumGoldExtra,
   mapMagnumLifeExtra,
@@ -319,6 +320,10 @@ export function LiveTerminal() {
     () => mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D) ?? emptyDamacai3Plus3D(),
     [damacaiExtra]
   );
+  const damacai3DData = useMemo(
+    () => mapDamacai3D(results["damacai"]),
+    [results]
+  );
   const toto5DData = useMemo(
     () => mapToto5DExtra(totoExtra?.toto5D),
     [totoExtra]
@@ -451,7 +456,8 @@ export function LiveTerminal() {
                     date={damacaiDraw.date}
                     draw_no={damacaiDraw.draw_no}
                     status={damacaiDraw.status}
-                    noLiveData
+                    data={damacai3DData}
+                    noLiveData={!damacai3DData}
                   />
                   <Damacai3Plus3DCard
                     date={damacaiDraw.date}

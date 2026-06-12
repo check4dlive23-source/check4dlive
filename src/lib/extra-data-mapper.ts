@@ -9,6 +9,8 @@ import type {
   Toto5DExtra,
   Toto6DTier,
 } from "@/types";
+import { parseMoney } from "@/lib/ingest/parse-check4d";
+import type { DbDrawRow } from "@/lib/results-mapper";
 import { totoLottoLayouts } from "@/lib/mock-data";
 
 function parseNum(v: unknown): number | undefined {
@@ -154,6 +156,44 @@ export function emptyDamacai3Plus3D(): Damacai3Plus3DExtra {
     special: Array(10).fill(""),
     consolation: Array(10).fill(""),
   };
+}
+
+export interface Damacai3DData {
+  first: string;
+  second: string;
+  third: string;
+  jackpot?: number;
+}
+
+function isValid4dPrize(v: unknown): v is string {
+  return typeof v === "string" && /^\d{4}$/.test(v.trim());
+}
+
+/** Plain 3D = last 3 digits of 1+3D first/second/third prizes (official rule). */
+export function mapDamacai3D(row: DbDrawRow | null | undefined): Damacai3DData | null {
+  if (!row) return null;
+  const first4 = String(row.first_prize ?? "").trim();
+  const second4 = String(row.second_prize ?? "").trim();
+  const third4 = String(row.third_prize ?? "").trim();
+  if (!isValid4dPrize(first4) || !isValid4dPrize(second4) || !isValid4dPrize(third4)) {
+    return null;
+  }
+
+  const out: Damacai3DData = {
+    first: first4.slice(-3),
+    second: second4.slice(-3),
+    third: third4.slice(-3),
+  };
+
+  if (isRecord(row.extra_data)) {
+    const rawJackpot = row.extra_data.damacai3DJackpot;
+    if (rawJackpot != null && String(rawJackpot).trim() !== "") {
+      const jackpot = parseMoney(String(rawJackpot));
+      if (jackpot != null && jackpot > 0) out.jackpot = jackpot;
+    }
+  }
+
+  return out;
 }
 
 export function mapDamacai3Plus3DExtra(raw: unknown): Damacai3Plus3DExtra | null {
