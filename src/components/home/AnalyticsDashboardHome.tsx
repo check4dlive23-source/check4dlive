@@ -10,6 +10,9 @@ import type { TranslationKey } from "@/lib/i18n";
 import { useLang } from "@/lib/language-context";
 import type { ColdNumberRow, HotNumberRow } from "@/types/analytics";
 import type { Region } from "@/types";
+import { VyraBriefHomeCard } from "./VyraBriefHomeCard";
+import type { VyraBriefRow } from "@/lib/vyra/brief-queries";
+import type { VyraRegion } from "@/lib/vyra/types";
 
 const SEARCH_OPERATORS = [
   { id: "magnum", logo: "/logos/magnum.gif" },
@@ -285,6 +288,10 @@ interface AnalyticsDashboardHomeProps {
   initialRising: HotNumberRow[];
   initialLastWeekRank: number | null;
   initialOperatorHot: { operator: string; topNumber: string | null; totalHits: number }[];
+  vyraBriefsByRegion: Record<
+    VyraRegion,
+    { zh: VyraBriefRow | null; en: VyraBriefRow | null }
+  >;
   totalDraws: number;
   dataSpanYears: number;
 }
@@ -296,6 +303,7 @@ export function AnalyticsDashboardHome({
   initialRising,
   initialLastWeekRank,
   initialOperatorHot,
+  vyraBriefsByRegion,
   totalDraws,
   dataSpanYears,
 }: AnalyticsDashboardHomeProps) {
@@ -640,6 +648,8 @@ export function AnalyticsDashboardHome({
           </p>
         )}
       </div>
+
+        <VyraBriefHomeCard briefsByRegion={vyraBriefsByRegion} />
 
         {/* 3. Hot numbers */}
         <section className="mt-8">

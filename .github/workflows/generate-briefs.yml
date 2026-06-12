@@ -1,0 +1,19 @@
+name: Generate VYRA Briefs
+
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC 00:00 Sun/Wed/Sat = MYT 08:00 on draw days
+    - cron: "0 0 * * 0,3,6"
+
+jobs:
+  generate-briefs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger VYRA brief generation
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.INGEST_SECRET }}" \
+            "https://check4dterminal.com/api/admin/generate-briefs" \
+            -m 300
