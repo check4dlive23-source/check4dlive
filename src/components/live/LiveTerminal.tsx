@@ -20,6 +20,7 @@ import {
   mapMagnumGoldExtra,
   mapMagnumLifeExtra,
   mapSabah3DExtra,
+  mapSabah645,
   mapSabahLotto,
   mapToto5DExtra,
   mapToto6DTiers,
@@ -343,6 +344,15 @@ export function LiveTerminal() {
     () => mapSabahLotto(sabahExtra),
     [sabahExtra]
   );
+  const sabah645Data = useMemo(
+    () =>
+      mapSabah645(sabahExtra, {
+        date: sabahDraw?.date ?? "",
+        draw_no: sabahDraw?.draw_no,
+        status: sabahDraw?.status ?? "pending",
+      }),
+    [sabahExtra, sabahDraw?.date, sabahDraw?.draw_no, sabahDraw?.status]
+  );
 
   const [sabah645Layout, sabahLotto5Layout, sabahLotto6Layout] =
     sabahLottoLayouts;
@@ -477,15 +487,17 @@ export function LiveTerminal() {
                   />
                   <LottoBallCard
                     key={sabah645Layout.displayName}
-                    noLiveData
-                    data={{
-                      ...sabah645Layout,
-                      balls: [],
-                      bonus: null,
-                      date: sabahDraw?.date ?? "",
-                      draw_no: sabahDraw?.draw_no,
-                      status: sabahDraw?.status ?? "pending",
-                    }}
+                    noLiveData={!sabah645Data}
+                    data={
+                      sabah645Data ?? {
+                        ...sabah645Layout,
+                        balls: [],
+                        bonus: null,
+                        date: sabahDraw?.date ?? "",
+                        draw_no: sabahDraw?.draw_no,
+                        status: sabahDraw?.status ?? "pending",
+                      }
+                    }
                   />
                   <SabahLottoTiersCard
                     title={sabahLotto5Layout.displayName}

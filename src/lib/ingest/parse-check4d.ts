@@ -82,7 +82,7 @@ function extractCompanyBlock(slice: string, company: string): string {
   return slice.slice(objStart, end);
 }
 
-function parseMoney(raw?: string): number | null {
+export function parseMoney(raw?: string): number | null {
   if (!raw) return null;
   const cleaned = raw.replace(/RM\s*/i, "").replace(/,/g, "").trim();
   const n = parseFloat(cleaned);

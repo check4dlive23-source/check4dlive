@@ -376,3 +376,39 @@ export function mapSabahLotto(extraData: unknown): SabahLottoExtra | null {
   if (lotto5.length === 0 && lotto6.length === 0) return null;
   return { lotto5, lotto6 };
 }
+
+export function mapSabah645(
+  extraData: unknown,
+  meta: {
+    date: string;
+    draw_no?: string;
+    status: LottoBallResult["status"];
+  }
+): LottoBallResult | null {
+  if (!isRecord(extraData)) return null;
+  const raw = extraData.sabah645;
+  if (!isRecord(raw)) return null;
+
+  const balls = Array.isArray(raw.balls)
+    ? raw.balls
+        .map((b) => parseInt(String(b), 10))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 45)
+    : [];
+  const bonus = parseInt(String(raw.bonus ?? ""), 10);
+
+  if (balls.length !== 6 || !Number.isFinite(bonus) || bonus < 1) return null;
+
+  return {
+    operator: "sabah",
+    displayName: "Sabah Lotto88 6/45",
+    balls,
+    bonus,
+    hasBonus: true,
+    maxBall: 45,
+    jackpot1_amount: parseNum(raw.jackpot1) ?? undefined,
+    jackpot2_amount: parseNum(raw.jackpot2) ?? undefined,
+    date: meta.date,
+    draw_no: meta.draw_no,
+    status: meta.status,
+  };
+}

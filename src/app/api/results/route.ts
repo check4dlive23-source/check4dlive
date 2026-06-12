@@ -3,6 +3,10 @@ import {
   isRegionLiveDraw,
   todayMYT,
 } from "@/lib/draw-time";
+import { getRegionResults, shouldScrapeRegion } from "@/lib/live-results";
+import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
+import type { Region } from "@/types";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

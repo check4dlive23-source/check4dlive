@@ -5,6 +5,7 @@
 
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
 import { magnumNeedsOfficialSupplement, supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
+import { hasValidSabah645, supplementSabahFromDiriwan88 } from "@/lib/ingest/sabah-supplement";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import type { DrawRow } from "@/lib/live-results";
 import { isRealNum } from "@/lib/results-mapper";
@@ -131,8 +132,10 @@ export function isLatestRowDeficient(
     if (!isRealNum(row.first_prize as string)) return true;
     if (op === "magnum" && magnumNeedsOfficialSupplement(row)) return true;
     if (op === "damacai" && !hasValidDamacai3Plus3D(row)) return true;
-    // (d) east sabah — operator key matches DB/check4d: "sabah"
+    // (d) east sabah — 3D / Lotto5 / Lotto6 only (6/45 checked separately)
     if (op === "sabah" && !hasValidSabahExtras(row)) return true;
+    // (f) sabah 6/45 missing — diriwan88 supplement target
+    if (op === "sabah" && !hasValidSabah645(row)) return true;
     // (e) toto lotto only; 5D/6D empty off draw days is normal — do not trigger heal
     if (op === "toto" && !hasValidTotoLotto(row)) return true;
   }
@@ -196,6 +199,17 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
         } catch (e) {
           console.warn(
             "[live-scrape-cache] magnum official supplement failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
+
+      if (region === "east" && operators.sabah) {
+        try {
+          operators = await supplementSabahFromDiriwan88(operators);
+        } catch (e) {
+          console.warn(
+            "[live-scrape-cache] sabah diriwan88 supplement failed:",
             e instanceof Error ? e.message : e
           );
         }
