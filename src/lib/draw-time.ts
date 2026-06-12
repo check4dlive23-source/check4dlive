@@ -40,6 +40,43 @@ function inWindow(
 
 const DRAW_DAYS_WSS = [0, 3, 6]; // Sun, Wed, Sat
 
+export type SgGame = "sg4d" | "sgtoto";
+
+/** Singapore game-level live windows (MYT). */
+export function isSgGameLiveDraw(
+  game: SgGame,
+  now = new Date(),
+  mockLive = false
+): boolean {
+  if (mockLive) return true;
+
+  const { day, hour, minute } = getMYTParts(now);
+
+  switch (game) {
+    case "sg4d":
+      return (
+        DRAW_DAYS_WSS.includes(day) &&
+        inWindow(hour, minute, 18, 0, 19, 30)
+      );
+    case "sgtoto":
+      return (
+        [1, 4].includes(day) && inWindow(hour, minute, 21, 30, 22, 30)
+      );
+    default:
+      return false;
+  }
+}
+
+export function getSingaporeLiveWindows(
+  now = new Date(),
+  mockLive = false
+): { inLiveWindow4d: boolean; inLiveWindowToto: boolean } {
+  return {
+    inLiveWindow4d: isSgGameLiveDraw("sg4d", now, mockLive),
+    inLiveWindowToto: isSgGameLiveDraw("sgtoto", now, mockLive),
+  };
+}
+
 /** Whether today (MYT) is a scheduled draw day for the region — weekday only */
 export function isDrawDay(region: Region, now = new Date()): boolean {
   const { day } = getMYTParts(now);
@@ -98,14 +135,11 @@ export function isRegionLiveDraw(
         DRAW_DAYS_WSS.includes(day) &&
         inWindow(hour, minute, 18, 50, 20, 0)
       );
-    case "singapore": {
-      const sg4d =
-        DRAW_DAYS_WSS.includes(day) &&
-        inWindow(hour, minute, 18, 0, 19, 30);
-      const sgToto =
-        [1, 4].includes(day) && inWindow(hour, minute, 21, 30, 22, 30);
-      return sg4d || sgToto;
-    }
+    case "singapore":
+      return (
+        isSgGameLiveDraw("sg4d", now, mockLive) ||
+        isSgGameLiveDraw("sgtoto", now, mockLive)
+      );
     default:
       return false;
   }

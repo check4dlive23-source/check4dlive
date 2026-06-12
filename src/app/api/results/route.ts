@@ -1,9 +1,8 @@
-import { isRegionLiveDraw } from "@/lib/draw-time";
-import { getRegionResults, shouldScrapeRegion } from "@/lib/live-results";
-import { scrapeAndCacheRegion } from "@/lib/live-scrape-cache";
-import type { Region } from "@/types";
-import { NextResponse } from "next/server";
-import { todayMYT } from "@/lib/draw-time";
+import {
+  getSingaporeLiveWindows,
+  isRegionLiveDraw,
+  todayMYT,
+} from "@/lib/draw-time";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,6 +25,11 @@ export async function GET(request: Request) {
       payload = await getRegionResults(region, { mockLive });
     }
 
+    const sgWindows =
+      region === "singapore"
+        ? getSingaporeLiveWindows(now, mockLive)
+        : undefined;
+
     const headers: HeadersInit = {
       "Cache-Control": "no-store, max-age=0",
     };
@@ -35,6 +39,7 @@ export async function GET(request: Request) {
         operators: payload.operators,
         isLive: inLiveWindow,
         inLiveWindow,
+        ...(sgWindows ?? {}),
         date: payload.date,
         region: payload.region,
         source: payload.source,

@@ -137,6 +137,8 @@ export function LiveTerminal() {
   const [region, setRegion] = useState<Region>("west");
   const [results, setResults] = useState<Record<string, DbDrawRow>>({});
   const [isLive, setIsLive] = useState(false);
+  const [sg4dLive, setSg4dLive] = useState(false);
+  const [sgTotoLive, setSgTotoLive] = useState(false);
   const [dataTimestamp, setDataTimestamp] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -160,6 +162,8 @@ export function LiveTerminal() {
     setResults({});
     setDataTimestamp(null);
     setIsInitialized(false);
+    setSg4dLive(false);
+    setSgTotoLive(false);
   }, [region]);
 
   useEffect(() => {
@@ -181,6 +185,8 @@ export function LiveTerminal() {
       operators?: Record<string, DbDrawRow>;
       isLive?: boolean;
       inLiveWindow?: boolean;
+      inLiveWindow4d?: boolean;
+      inLiveWindowToto?: boolean;
       dataTimestamp?: string | null;
       error?: string;
     }) => {
@@ -189,6 +195,8 @@ export function LiveTerminal() {
         setResults(data.operators);
         const liveWindow = data.inLiveWindow ?? data.isLive ?? false;
         setIsLive(liveWindow);
+        setSg4dLive(data.inLiveWindow4d ?? false);
+        setSgTotoLive(data.inLiveWindowToto ?? false);
         setDataTimestamp(data.dataTimestamp ?? null);
         setIsInitialized(true);
       }
@@ -242,6 +250,8 @@ export function LiveTerminal() {
   }, [mounted, region]);
 
   const inLiveWindowActive = mounted && isLive;
+  const sg4dLiveActive = mounted && sg4dLive;
+  const sgTotoLiveActive = mounted && sgTotoLive;
 
   const westMain4DDisplay = useMemo(
     () =>
@@ -272,10 +282,10 @@ export function LiveTerminal() {
       mergeDrawResult(
         singapore4D,
         results["sgpools"],
-        inLiveWindowActive,
+        sg4dLiveActive,
         todayStr
       ),
-    [results, inLiveWindowActive, todayStr]
+    [results, sg4dLiveActive, todayStr]
   );
 
   const magnumDraw = westMain4DDisplay[0];
@@ -512,7 +522,7 @@ export function LiveTerminal() {
                       bonus: null,
                       date: singapore4DDisplay.date,
                       draw_no: undefined,
-                      status: inLiveWindowActive ? "pending" : "drawn",
+                      status: sgTotoLiveActive ? "pending" : "drawn",
                     }}
                   />
                 </CardGrid>

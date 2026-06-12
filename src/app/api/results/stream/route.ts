@@ -1,5 +1,6 @@
 import {
   getRefreshIntervalMs,
+  getSingaporeLiveWindows,
   isRegionLiveDraw,
   todayMYT,
 } from "@/lib/draw-time";
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
 
       const poll = async () => {
         try {
-          const inLiveWindow = isRegionLiveDraw(region);
+          const now = new Date();
+          const inLiveWindow = isRegionLiveDraw(region, now);
           const today = todayMYT();
           let payload = await getRegionResults(region);
 
@@ -40,11 +42,14 @@ export async function GET(request: Request) {
           }
 
           const intervalMs = getRefreshIntervalMs(region);
+          const sgWindows =
+            region === "singapore" ? getSingaporeLiveWindows(now) : undefined;
 
           send({
             operators: payload.operators,
             isLive: inLiveWindow,
             inLiveWindow,
+            ...(sgWindows ?? {}),
             date: payload.date,
             region: payload.region,
             source: payload.source,
