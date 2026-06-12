@@ -19,6 +19,8 @@ import {
   mapDamacai3Plus3DExtra,
   mapMagnumGoldExtra,
   mapMagnumLifeExtra,
+  mapSabah3DExtra,
+  mapSabahLotto,
   mapToto5DExtra,
   mapToto6DTiers,
   mapTotoLottoGames,
@@ -41,6 +43,7 @@ import { DrawScheduleBar } from "./DrawScheduleBar";
 import { RegionTabs } from "./RegionTabs";
 import { ResultCard } from "./ResultCard";
 import { Sabah3DCard } from "./Sabah3DCard";
+import { SabahLottoTiersCard } from "./SabahLottoTiersCard";
 import { SixDCard } from "./SixDCard";
 
 function SectionTitle({ children }: { children: ReactNode }) {
@@ -278,6 +281,7 @@ export function LiveTerminal() {
   const magnumDraw = westMain4DDisplay[0];
   const damacaiDraw = westMain4DDisplay[1];
   const totoDraw = westMain4DDisplay[2];
+  const sabahDraw = eastMain4DDisplay[0];
 
   const magnumExtra = results["magnum"]?.extra_data as
     | Record<string, unknown>
@@ -286,6 +290,9 @@ export function LiveTerminal() {
     | Record<string, unknown>
     | undefined;
   const totoExtra = results["toto"]?.extra_data as
+    | Record<string, unknown>
+    | undefined;
+  const sabahExtra = results["sabah"]?.extra_data as
     | Record<string, unknown>
     | undefined;
 
@@ -318,6 +325,17 @@ export function LiveTerminal() {
       }),
     [totoExtra, totoDraw.date, totoDraw.draw_no, totoDraw.status]
   );
+  const sabah3DData = useMemo(
+    () => mapSabah3DExtra(sabahExtra),
+    [sabahExtra]
+  );
+  const sabahLottoData = useMemo(
+    () => mapSabahLotto(sabahExtra),
+    [sabahExtra]
+  );
+
+  const [sabah645Layout, sabahLotto5Layout, sabahLotto6Layout] =
+    sabahLottoLayouts;
 
   return (
     <>
@@ -441,25 +459,40 @@ export function LiveTerminal() {
                 <SectionTitle>{t("sabahOther")}</SectionTitle>
                 <CardGrid>
                   <Sabah3DCard
-                    date={eastMain4DDisplay[0]?.date ?? ""}
-                    draw_no={eastMain4DDisplay[0]?.draw_no}
-                    status={inLiveWindowActive ? "pending" : "drawn"}
-                    noLiveData
+                    date={sabahDraw?.date ?? ""}
+                    draw_no={sabahDraw?.draw_no}
+                    status={sabahDraw?.status ?? "pending"}
+                    data={sabah3DData}
+                    noLiveData={!sabah3DData}
                   />
-                  {sabahLottoLayouts.map((layout) => (
-                    <LottoBallCard
-                      key={layout.displayName}
-                      noLiveData
-                      data={{
-                        ...layout,
-                        balls: [],
-                        bonus: null,
-                        date: eastMain4DDisplay[0]?.date ?? "",
-                        draw_no: eastMain4DDisplay[0]?.draw_no,
-                        status: inLiveWindowActive ? "pending" : "drawn",
-                      }}
-                    />
-                  ))}
+                  <LottoBallCard
+                    key={sabah645Layout.displayName}
+                    noLiveData
+                    data={{
+                      ...sabah645Layout,
+                      balls: [],
+                      bonus: null,
+                      date: sabahDraw?.date ?? "",
+                      draw_no: sabahDraw?.draw_no,
+                      status: sabahDraw?.status ?? "pending",
+                    }}
+                  />
+                  <SabahLottoTiersCard
+                    title={sabahLotto5Layout.displayName}
+                    tiers={sabahLottoData?.lotto5 ?? null}
+                    date={sabahDraw?.date ?? ""}
+                    draw_no={sabahDraw?.draw_no}
+                    status={sabahDraw?.status ?? "pending"}
+                    noLiveData={!sabahLottoData?.lotto5?.length}
+                  />
+                  <SabahLottoTiersCard
+                    title={sabahLotto6Layout.displayName}
+                    tiers={sabahLottoData?.lotto6 ?? null}
+                    date={sabahDraw?.date ?? ""}
+                    draw_no={sabahDraw?.draw_no}
+                    status={sabahDraw?.status ?? "pending"}
+                    noLiveData={!sabahLottoData?.lotto6?.length}
+                  />
                 </CardGrid>
               </>
             )}
