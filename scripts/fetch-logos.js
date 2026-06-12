@@ -21,7 +21,7 @@ function get(url) {
 
 async function main() {
   const html = (await get("https://www.4dmoon.com/")).toString("utf8");
-  const logos = [...html.matchAll(/\/images\/logo[^"'\s)]+/gi)].map((m) => m[0]);
+  const logos = Array.from(html.matchAll(/\/images\/logo[^"'\s)]+/gi)).map((m) => m[0]);
   const unique = [...new Set(logos)].sort();
   console.log("Found on page:\n", unique.join("\n"));
 

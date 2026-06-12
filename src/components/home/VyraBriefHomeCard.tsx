@@ -4,15 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { saveBriefRegion } from "@/app/brief/BriefRegionRedirect";
 import { useLang } from "@/lib/language-context";
-import type { TranslationKey } from "@/lib/i18n";
 import { formatDrawDate } from "@/lib/number-utils";
 import { todayMYT } from "@/lib/draw-time";
 import type { VyraBriefRow } from "@/lib/vyra/brief-queries";
-import type { VyraRegion } from "@/lib/vyra/types";
+import type { VyraRegion, VyraSignal } from "@/lib/vyra/types";
+import { vyraSignalIcon, vyraSignalLabelKey } from "@/lib/vyra/signal-labels";
 
 const REGIONS: VyraRegion[] = ["west", "east", "singapore"];
-
-const SIGNAL_ICONS = ["⚡", "🧊", "↗", "🔁"] as const;
 
 type BriefsByRegion = Record<
   VyraRegion,
@@ -109,12 +107,7 @@ export function VyraBriefHomeCard({ briefsByRegion }: VyraBriefHomeCardProps) {
               {preview.map((signal, i) => {
                 const locked = i >= 2;
                 const seg = brief.narrative.find((n) => n.signalIndex === i);
-                const labelKey: Record<string, TranslationKey> = {
-                  digit_surge: "vyraSignalDigitSurge",
-                  overdue: "vyraSignalOverdue",
-                  score_jump: "vyraSignalScoreJump",
-                  mirror_sync: "vyraSignalMirrorSync",
-                };
+                const sig = signal as VyraSignal;
                 return (
                   <div
                     key={i}
@@ -126,9 +119,9 @@ export function VyraBriefHomeCard({ briefsByRegion }: VyraBriefHomeCardProps) {
                     }}
                   >
                     <div style={{ filter: locked ? "blur(6px)" : "none" }}>
-                      <span style={{ marginRight: 6 }}>{SIGNAL_ICONS[i] ?? "·"}</span>
+                      <span style={{ marginRight: 6 }}>{vyraSignalIcon(sig)}</span>
                       <span style={{ fontSize: 10, color: "#A78BFA" }}>
-                        {t(labelKey[signal.type] ?? "vyraSignalDigitSurge")}
+                        {t(vyraSignalLabelKey(sig))}
                       </span>
                       {seg?.text && (
                         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 4 }}>

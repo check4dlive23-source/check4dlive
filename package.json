@@ -6,7 +6,7 @@
     "dev": "next dev -p 3010 --experimental-https --experimental-https-cert localhost.pem --experimental-https-key localhost-key.pem",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "test": "tsx --test src/lib/vyra/__tests__/signals.test.ts",
     "import:damacai": "tsx src/scripts/import-damacai-history.ts",
     "import:magnum": "tsx src/scripts/import-magnum-history.ts",
     "import:toto": "tsx src/scripts/import-toto-history.ts",

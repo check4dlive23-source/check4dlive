@@ -124,6 +124,8 @@ export function parseDamacaiDraw(
       p3: raw.p3HorseNo,
     },
   };
+  const jackpot3d = String(raw["3DJackpot"] ?? "").trim();
+  if (jackpot3d) extra_data.damacai3DJackpot = jackpot3d;
 
   return {
     draw_date: drawDate,

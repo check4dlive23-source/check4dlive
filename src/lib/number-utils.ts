@@ -1,5 +1,9 @@
-export function formatCurrency(amount: number, decimals = 0): string {
-  return `RM ${amount.toLocaleString("en-MY", {
+export function formatCurrency(
+  amount: number,
+  decimals = 0,
+  currency = "RM"
+): string {
+  return `${currency} ${amount.toLocaleString("en-MY", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   })}`;

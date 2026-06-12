@@ -30,6 +30,7 @@ export function LottoJackpotLines({
   const textSize = readable ? "text-sm" : compact ? "text-[10px]" : "text-xs";
   const noteSize = readable ? "text-xs" : compact ? "text-[9px]" : "text-[10px]";
   const { first, second } = prizeLabels(data);
+  const currency = data.currency ?? "RM";
 
   if (
     data.hasBonus &&
@@ -41,12 +42,12 @@ export function LottoJackpotLines({
         <p className="text-foreground leading-snug">
           <span className="text-muted">{first}:</span>{" "}
           <span className="font-number text-gold">
-            {formatCurrency(data.jackpot1_amount, 2)}
+            {formatCurrency(data.jackpot1_amount, 2, currency)}
           </span>
           <span className="text-dim mx-1.5">|</span>
           <span className="text-muted">{second}:</span>{" "}
           <span className="font-number text-gold">
-            {formatCurrency(data.jackpot2_amount, 2)}
+            {formatCurrency(data.jackpot2_amount, 2, currency)}
           </span>
         </p>
         <p className={`${noteSize} text-dim`}>
@@ -61,7 +62,7 @@ export function LottoJackpotLines({
       <p className={`${textSize} text-foreground`}>
         <span className="text-muted">Jackpot:</span>{" "}
         <span className="font-number text-gold">
-          {formatCurrency(data.jackpot_amount, 2)}
+          {formatCurrency(data.jackpot_amount, 2, currency)}
         </span>
       </p>
     );
@@ -72,7 +73,7 @@ export function LottoJackpotLines({
       <p className={`${textSize} text-foreground`}>
         <span className="text-muted">{first}:</span>{" "}
         <span className="font-number text-gold">
-          {formatCurrency(data.jackpot1_amount, 2)}
+          {formatCurrency(data.jackpot1_amount, 2, currency)}
         </span>
       </p>
     );
