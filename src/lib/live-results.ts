@@ -80,7 +80,24 @@ function isEmptyVal(v: unknown): boolean {
   if (v == null) return true;
   if (typeof v === "string") {
     const s = v.trim();
-    return s === "" || s === "----";
+    if (s === "" || s === "----") return true;
+    // 货币占位:剥掉货币符号/空格/逗号/----/破折号后若无任何数字 → 视为空
+    // 例:"RM " / "RM-" / "S$ " → 空;"RM 28,304.81" / "9" / "35" → 非空
+    const stripped = s.replace(/RM|S\$|\$|,|-|\s/gi, "");
+    if (stripped === "") return true;
+    return false;
+  }
+  if (typeof v === "number" || typeof v === "boolean") {
+    return false;
+  }
+  if (Array.isArray(v)) {
+    if (v.length === 0) return true;
+    return v.every((item) => isEmptyVal(item));
+  }
+  if (typeof v === "object") {
+    const vals = Object.values(v as Record<string, unknown>);
+    if (vals.length === 0) return true;
+    return vals.every((val) => isEmptyVal(val));
   }
   return false;
 }
