@@ -15,7 +15,7 @@ interface SixDCardProps {
 
 export function SixDCard({ displayName, subtitle, date, draw_no, status, tiers }: SixDCardProps) {
   const { t } = useLang();
-  const revealed = status !== "pending";
+  const revealed = status === "drawn";
   return (
     <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(255,51,51,0.15)", borderRadius: 12, overflow: "hidden" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg, #FF3333, transparent)" }} />
@@ -26,7 +26,11 @@ export function SixDCard({ displayName, subtitle, date, draw_no, status, tiers }
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{subtitle ?? t("bothSidesWin")}</p>
         </div>
         <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
-          {status === "drawn" ? t("completed") : t("pending")}
+          {status === "drawn"
+            ? t("completed")
+            : status === "live"
+              ? t("liveDrawing")
+              : t("noLiveData")}
         </span>
       </header>
       <section>

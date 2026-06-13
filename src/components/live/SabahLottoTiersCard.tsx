@@ -12,7 +12,92 @@ interface SabahLottoTiersCardProps {
   date: string;
   draw_no?: string;
   status: DrawStatus;
-  noLiveData?: boolean;
+}
+
+const PENDING_SLOT_STYLE = {
+  fontSize: 8,
+  fontWeight: 600,
+  textAlign: "center" as const,
+  letterSpacing: "-0.04em",
+  color: "rgba(255,255,255,0.1)",
+  background: "transparent",
+  border: "1px solid rgba(255,255,255,0.05)",
+  borderRadius: 4,
+};
+
+function PendingDigitSlot() {
+  return (
+    <span
+      className="font-mono tabular-nums shrink-0 flex items-center justify-center"
+      style={{ ...PENDING_SLOT_STYLE, width: 22, height: 24, lineHeight: "24px" }}
+    >
+      ----
+    </span>
+  );
+}
+
+function PendingBonusSlot() {
+  return (
+    <span
+      className="font-mono tabular-nums shrink-0 flex items-center justify-center"
+      style={{ ...PENDING_SLOT_STYLE, width: 24, height: 24, borderRadius: 6 }}
+    >
+      ----
+    </span>
+  );
+}
+
+function LiveWaitingTiers({ title }: { title: string }) {
+  const isLotto6 = title.includes("Lotto 6");
+  const digitCount = isLotto6 ? 5 : 4;
+  const tierCount = isLotto6 ? 5 : 8;
+
+  return (
+    <section style={{ padding: "8px 12px 10px", overflowX: "auto" }}>
+      {Array.from({ length: tierCount }, (_, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-1.5 min-w-0"
+          style={{
+            padding: "5px 0",
+            borderBottom: "1px solid rgba(255,255,255,0.04)",
+          }}
+        >
+          <span
+            className="shrink-0 font-mono"
+            style={{
+              width: 58,
+              fontSize: 9,
+              color: "rgba(255,255,255,0.35)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Jackpot {index + 1}
+          </span>
+          <div className="flex items-center gap-0.5 shrink-0">
+            {Array.from({ length: digitCount }, (_, i) => (
+              <PendingDigitSlot key={i} />
+            ))}
+          </div>
+          <span className="text-muted shrink-0" style={{ fontSize: 10, fontWeight: 500 }}>
+            +
+          </span>
+          <PendingBonusSlot />
+          <span
+            className="font-number shrink-0 ml-auto text-right truncate"
+            style={{
+              fontSize: 10,
+              color: "rgba(255,255,255,0.1)",
+              maxWidth: "38%",
+              minWidth: 0,
+            }}
+          >
+            ----
+          </span>
+        </div>
+      ))}
+    </section>
+  );
 }
 
 function isFilledDigit(v: string): boolean {
@@ -116,11 +201,9 @@ export function SabahLottoTiersCard({
   date,
   draw_no,
   status,
-  noLiveData = true,
 }: SabahLottoTiersCardProps) {
   const { t } = useLang();
   const hasTiers = Boolean(tiers && tiers.length > 0);
-  const showPlaceholder = !hasTiers && noLiveData;
 
   return (
     <article
@@ -159,17 +242,21 @@ export function SabahLottoTiersCard({
             letterSpacing: "0.1em",
           }}
         >
-          {status === "drawn" ? t("completed") : t("pending")}
+          {status === "drawn"
+            ? t("completed")
+            : status === "live"
+              ? t("liveDrawing")
+              : t("noLiveData")}
         </span>
       </header>
-      {showPlaceholder ? (
-        <NoLiveDataPlaceholder />
-      ) : hasTiers ? (
+      {hasTiers ? (
         <section style={{ padding: "8px 12px 10px", overflowX: "auto" }}>
           {tiers!.map((tier, i) => (
             <TierRow key={i} tier={tier} index={i} />
           ))}
         </section>
+      ) : status === "live" ? (
+        <LiveWaitingTiers title={title} />
       ) : (
         <NoLiveDataPlaceholder />
       )}

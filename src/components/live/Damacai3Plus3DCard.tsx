@@ -13,7 +13,7 @@ interface Damacai3Plus3DCardProps {
 
 export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus3DCardProps) {
   const { t } = useLang();
-  const revealed = status !== "pending";
+  const revealed = status === "drawn";
   return (
     <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(68,102,255,0.15)", borderRadius: 12, overflow: "hidden" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg, #4466FF, transparent)" }} />
@@ -23,7 +23,11 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
           <h3 style={{ fontSize: 13, fontWeight: 700, color: "white" }}>DA MA CAI 3+3D 大馬彩</h3>
         </div>
         <span style={{ fontSize: 9, color: "#00E5FF", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 100, padding: "3px 8px", fontFamily: "var(--font-jetbrains)", letterSpacing: "0.1em" }}>
-          {status === "drawn" ? t("completed") : t("pending")}
+          {status === "drawn"
+            ? t("completed")
+            : status === "live"
+              ? t("liveDrawing")
+              : t("noLiveData")}
         </span>
       </header>
       <section style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>

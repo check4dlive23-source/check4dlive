@@ -16,6 +16,8 @@ import {
 import {
   emptyDamacai3Plus3D,
   emptyToto6DTiers,
+  hasToto5DData,
+  hasTotoLottoBalls,
   mapDamacai3D,
   mapDamacai3Plus3DExtra,
   mapMagnumGoldExtra,
@@ -34,7 +36,7 @@ import {
 } from "@/lib/results-mapper";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import { formatTimeMYT } from "@/lib/number-utils";
-import type { DrawResult, Region } from "@/types";
+import type { DrawResult, DrawStatus, Region } from "@/types";
 import { Damacai3DCard } from "./Damacai3DCard";
 import { Damacai3Plus3DCard } from "./Damacai3Plus3DCard";
 import { FiveDCard } from "./FiveDCard";
@@ -85,6 +87,11 @@ const POLL_IDLE_MS = 60_000;
 
 function pollIntervalMs(region: Region): number {
   return isRegionLiveDraw(region) ? POLL_LIVE_MS : POLL_IDLE_MS;
+}
+
+function subStatus(hasData: boolean, inWindow: boolean): DrawStatus {
+  if (hasData) return "drawn";
+  return inWindow ? "live" : "pending";
 }
 
 function LoadingSkeleton({ cols = 3 }: { cols?: 2 | 3 }) {
@@ -317,10 +324,11 @@ export function LiveTerminal() {
     () => mapMagnumLifeExtra(magnumExtra?.life),
     [magnumExtra]
   );
-  const damacai3Plus3DData = useMemo(
-    () => mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D) ?? emptyDamacai3Plus3D(),
+  const damacai3Plus3DMapped = useMemo(
+    () => mapDamacai3Plus3DExtra(damacaiExtra?.damacai3Plus3D),
     [damacaiExtra]
   );
+  const damacai3Plus3DData = damacai3Plus3DMapped ?? emptyDamacai3Plus3D();
   const damacai3DData = useMemo(
     () => mapDamacai3D(results["damacai"]),
     [results]
@@ -329,10 +337,11 @@ export function LiveTerminal() {
     () => mapToto5DExtra(totoExtra?.toto5D),
     [totoExtra]
   );
-  const toto6DData = useMemo(
-    () => mapToto6DTiers(totoExtra?.toto6D) ?? emptyToto6DTiers(),
+  const toto6DMapped = useMemo(
+    () => mapToto6DTiers(totoExtra?.toto6D),
     [totoExtra]
   );
+  const toto6DData = toto6DMapped ?? emptyToto6DTiers();
   const totoLottoData = useMemo(
     () =>
       mapTotoLottoGames(totoExtra?.totoLotto, {
@@ -366,6 +375,13 @@ export function LiveTerminal() {
       }),
     [results, sgTotoLiveActive]
   );
+
+  const hasToto5D = hasToto5DData(toto5DData);
+  const hasToto6D = toto6DMapped !== null;
+  const hasTotoLotto = totoLottoData.some((g) => hasTotoLottoBalls(g));
+  const hasDamacai3Plus3D = damacai3Plus3DMapped !== null;
+  const hasSabahLotto5 = (sabahLottoData?.lotto5?.length ?? 0) > 0;
+  const hasSabahLotto6 = (sabahLottoData?.lotto6?.length ?? 0) > 0;
 
   const [sabah645Layout, sabahLotto5Layout, sabahLotto6Layout] =
     sabahLottoLayouts;
@@ -439,14 +455,14 @@ export function LiveTerminal() {
                       displayName="Sports Toto 5D"
                       date={totoDraw.date}
                       draw_no={totoDraw.draw_no}
-                      status={totoDraw.status}
+                      status={subStatus(hasToto5D, inLiveWindowActive)}
                       prizes={toto5DData}
                     />
                     <SixDCard
                       displayName="Sports Toto 6D"
                       date={totoDraw.date}
                       draw_no={totoDraw.draw_no}
-                      status={totoDraw.status}
+                      status={subStatus(hasToto6D, inLiveWindowActive)}
                       tiers={toto6DData}
                     />
                   </div>
@@ -454,7 +470,7 @@ export function LiveTerminal() {
                     games={totoLottoData}
                     date={totoDraw.date}
                     draw_no={totoDraw.draw_no}
-                    status={totoDraw.status}
+                    status={subStatus(hasTotoLotto, inLiveWindowActive)}
                   />
                 </div>
 
@@ -470,7 +486,7 @@ export function LiveTerminal() {
                   <Damacai3Plus3DCard
                     date={damacaiDraw.date}
                     draw_no={damacaiDraw.draw_no}
-                    status={damacaiDraw.status}
+                    status={subStatus(hasDamacai3Plus3D, inLiveWindowActive)}
                     data={damacai3Plus3DData}
                   />
                 </div>
@@ -518,16 +534,14 @@ export function LiveTerminal() {
                     tiers={sabahLottoData?.lotto5 ?? null}
                     date={sabahDraw?.date ?? ""}
                     draw_no={sabahDraw?.draw_no}
-                    status={sabahDraw?.status ?? "pending"}
-                    noLiveData={!sabahLottoData?.lotto5?.length}
+                    status={subStatus(hasSabahLotto5, inLiveWindowActive)}
                   />
                   <SabahLottoTiersCard
                     title={sabahLotto6Layout.displayName}
                     tiers={sabahLottoData?.lotto6 ?? null}
                     date={sabahDraw?.date ?? ""}
                     draw_no={sabahDraw?.draw_no}
-                    status={sabahDraw?.status ?? "pending"}
-                    noLiveData={!sabahLottoData?.lotto6?.length}
+                    status={subStatus(hasSabahLotto6, inLiveWindowActive)}
                   />
                 </CardGrid>
               </>
