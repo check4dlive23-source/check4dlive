@@ -162,7 +162,9 @@ export async function computeHotNumbers(
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const rows: HotNumberRow[] = Array.from(map.entries())
+  const totalNumbers = map.size;
+
+  const ranked: HotNumberRow[] = Array.from(map.entries())
     .map(([number, v]) => {
       const gap = v.last
         ? Math.max(
@@ -184,7 +186,16 @@ export async function computeHotNumbers(
         heat_level: heatLevel(v.total, gap, avgGap),
       };
     })
-    .sort((a, b) => b.total_hits - a.total_hits)
+    .sort((a, b) => b.total_hits - a.total_hits);
+
+  const rows: HotNumberRow[] = ranked
+    .map((row, rank) => ({
+      ...row,
+      percentile:
+        totalNumbers <= 1
+          ? null
+          : Math.round((1 - (rank + 1) / totalNumbers) * 100),
+    }))
     .slice(0, rowLimit);
 
   return {

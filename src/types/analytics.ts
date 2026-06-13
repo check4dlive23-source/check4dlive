@@ -7,6 +7,7 @@ export interface HotNumberRow {
   last_seen: string | null;
   heat_score: number | null;
   heat_level: HeatLevel;
+  percentile?: number | null;
 }
 
 export interface ColdNumberRow {

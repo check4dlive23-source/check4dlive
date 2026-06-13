@@ -230,6 +230,30 @@ export function LuckyModal({ open, onClose }: LuckyModalProps) {
                 ← {t("luckySelectGame")}
               </button>
             )}
+            {!rolling && (
+              <a
+                href="/brief"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  width: "100%",
+                  marginTop: 10,
+                  padding: "11px",
+                  borderRadius: 10,
+                  background: "rgba(167,139,250,0.08)",
+                  border: "1px solid rgba(167,139,250,0.25)",
+                  color: "#A78BFA",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <span>◤</span> {t("luckyViewBrief")} →
+              </a>
+            )}
           </div>
         )}
       </div>

@@ -457,6 +457,14 @@ export function AnalyticsDashboardHome({
                   {t("heatScore")} {Math.round((hero.heat_score ?? 0) * 100)}
                 </span>
               )}
+              {hero?.percentile != null && (
+                <>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>·</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+                    {t("heatPercentile")} {hero.percentile}% {t("heatPercentileOf")}
+                  </span>
+                </>
+              )}
             </div>
             {lastWeekRank && lastWeekRank > 1 && (
               <p style={{ fontSize: 11, color: "rgba(0,255,136,0.7)", fontFamily: "var(--font-jetbrains)" }}>
