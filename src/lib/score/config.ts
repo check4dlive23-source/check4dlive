@@ -25,6 +25,24 @@ export const SCORE_LEVELS = {
   weak: 30,
 } as const;
 
+export type ScoreGrade = "A" | "B" | "C" | "D" | "F";
+
+export function scoreGrade(overall: number): ScoreGrade {
+  if (overall >= SCORE_LEVELS.strong) return "A";
+  if (overall >= SCORE_LEVELS.bullish) return "B";
+  if (overall >= SCORE_LEVELS.neutral) return "C";
+  if (overall >= SCORE_LEVELS.weak) return "D";
+  return "F";
+}
+
+export function scoreColor(score: number): string {
+  if (score >= SCORE_LEVELS.strong) return "#00E5FF";
+  if (score >= SCORE_LEVELS.bullish) return "#22C55E";
+  if (score >= SCORE_LEVELS.neutral) return "#FFB020";
+  if (score >= SCORE_LEVELS.weak) return "#FF8A3D";
+  return "#FF4D4D";
+}
+
 /** v2 运营商全集（与 draw_results_v2.operator 列值一致），用于 scope 生成 */
 export const V2_OPERATORS = [
   "cashsweep",

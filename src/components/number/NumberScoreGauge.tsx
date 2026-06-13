@@ -1,17 +1,11 @@
 "use client";
 
 import { useLang } from "@/lib/language-context";
-import { SCORE_LEVELS } from "@/lib/score/config";
+import { SCORE_LEVELS, scoreColor, scoreGrade } from "@/lib/score/config";
 import type { NumberScoreRow } from "@/lib/score/compute";
 
 interface Props {
   score: NumberScoreRow | null;
-}
-
-function scoreColor(score: number): string {
-  if (score >= SCORE_LEVELS.bullish) return "#00E5FF";
-  if (score >= SCORE_LEVELS.weak) return "#FFB020";
-  return "#FF4D4D";
 }
 
 export function NumberScoreGauge({ score }: Props) {
@@ -53,6 +47,7 @@ export function NumberScoreGauge({ score }: Props) {
 
   const overall = score.overall_score;
   const color = scoreColor(overall);
+  const grade = scoreGrade(overall);
   const label = (() => {
     if (overall >= SCORE_LEVELS.strong) return t("scoreStrong");
     if (overall >= SCORE_LEVELS.bullish) return t("scoreBullish");
@@ -114,6 +109,9 @@ export function NumberScoreGauge({ score }: Props) {
           }}
         >
           {overall}
+          <tspan dx="1" dy="-10" fontSize="11" fontWeight={900} fill={color}>
+            {grade}
+          </tspan>
         </text>
       </svg>
       <div
