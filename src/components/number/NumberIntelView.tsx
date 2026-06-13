@@ -166,6 +166,7 @@ export function NumberIntelView({
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
   const [aiContent, setAiContent] = useState<string | null>(initialInsight);
+  const [aiLoading, setAiLoading] = useState(!initialInsight);
   const initialInsightConsumed = useRef(false);
   const mountOperatorsKey = useRef(operators.join(","));
   const { stats } = data;
@@ -211,9 +212,11 @@ export function NumberIntelView({
       opsKey === mountOperatorsKey.current
     ) {
       initialInsightConsumed.current = true;
+      setAiLoading(false);
       return;
     }
 
+    setAiLoading(true);
     setAiContent(null);
     const opParam = operators.length > 0 ? `&operators=${operators.join(",")}` : "";
     fetch(`/api/ai-insight/${data.number}?lang=${currentLang}${opParam}`)
@@ -225,7 +228,10 @@ export function NumberIntelView({
       .then((content) => {
         if (!cancelled && content) setAiContent(content);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setAiLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -318,6 +324,12 @@ export function NumberIntelView({
 
         {/* ── VYRA 解读 ── */}
         <section>
+          <style>{`
+            @keyframes aiInsightPulse {
+              0%, 100% { opacity: 0.4; }
+              50% { opacity: 1; }
+            }
+          `}</style>
           <div className="mb-3">
             <div
               style={{
@@ -325,10 +337,25 @@ export function NumberIntelView({
                 paddingLeft: 10,
               }}
             >
-              <SectionTitle>
-                <span style={{ color: "#A78BFA", marginRight: 6 }}>◤</span>
-                {t("aiInsight")}
-              </SectionTitle>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <SectionTitle>
+                  <span style={{ color: "#A78BFA", marginRight: 6 }}>◤</span>
+                  {t("aiInsight")}
+                </SectionTitle>
+                {aiLoading && (
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      fontSize: 10,
+                      color: "rgba(160,125,224,0.7)",
+                      letterSpacing: "0.05em",
+                      animation: "aiInsightPulse 1.5s ease-in-out infinite",
+                    }}
+                  >
+                    {t("aiGenerating")}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div
