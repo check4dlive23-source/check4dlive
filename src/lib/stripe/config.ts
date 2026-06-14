@@ -23,6 +23,21 @@ export const STRIPE_CHECKOUT: Record<
   },
 };
 
+/** Live Price IDs (reverse lookup for webhooks). */
+export const STRIPE_PRICE_IDS = {
+  monthly: STRIPE_CHECKOUT.monthly.priceId,
+  yearly: STRIPE_CHECKOUT.yearly.priceId,
+  lifetime: STRIPE_CHECKOUT.lifetime.priceId,
+} as const;
+
+/** Reverse lookup: Stripe Price ID → billing_period */
+export function billingPeriodFromPriceId(priceId: string): CheckoutPlan | null {
+  for (const plan of Object.keys(STRIPE_CHECKOUT) as CheckoutPlan[]) {
+    if (STRIPE_CHECKOUT[plan].priceId === priceId) return plan;
+  }
+  return null;
+}
+
 export function isCheckoutPlan(value: unknown): value is CheckoutPlan {
   return value === "monthly" || value === "yearly" || value === "lifetime";
 }
