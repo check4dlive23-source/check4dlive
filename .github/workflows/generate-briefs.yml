@@ -3,8 +3,12 @@ name: Generate VYRA Briefs
 on:
   workflow_dispatch:
   schedule:
-    # UTC 00:00 Sun/Wed/Sat = MYT 08:00 on draw days
+    # UTC 00:00 Sun/Wed/Sat = MYT 08:00 on draw days (primary)
     - cron: "0 0 * * 0,3,6"
+    # UTC 01:00 Sun/Wed/Sat = MYT 09:00 (backup 1)
+    - cron: "0 1 * * 0,3,6"
+    # UTC 03:00 Sun/Wed/Sat = MYT 11:00 (backup 2)
+    - cron: "0 3 * * 0,3,6"
 
 jobs:
   generate-briefs:
