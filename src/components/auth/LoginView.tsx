@@ -6,10 +6,24 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { useLang } from "@/lib/language-context";
 import { createAuthBrowserClient } from "@/lib/supabase/auth-browser";
 
+/** Relative in-app path only — blocks open redirects. */
+function safeNextPath(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) {
+    return "/";
+  }
+  return raw;
+}
+
+function authCallbackUrl(next: string | null): string {
+  const path = safeNextPath(next);
+  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(path)}`;
+}
+
 export function LoginView() {
   const { t } = useLang();
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error") === "auth";
+  const nextParam = searchParams.get("next");
 
   const [email, setEmail] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -29,7 +43,7 @@ export function LoginView() {
     setActionError(false);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: authCallbackUrl(nextParam) },
     });
     if (error) {
       setActionError(true);
@@ -52,7 +66,7 @@ export function LoginView() {
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: authCallbackUrl(nextParam),
       },
     });
     setEmailLoading(false);

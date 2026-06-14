@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { createAuthBrowserClient } from "@/lib/supabase/auth-browser";
 import { useLang } from "@/lib/language-context";
 import type { TranslationKey } from "@/lib/i18n";
 
@@ -27,17 +29,55 @@ const PRO_FEATURES: TranslationKey[] = [
   "proFeatureVyraChat",
 ];
 
-function handleUpgrade(plan: BillingPlan) {
-  // TODO #54c: Stripe Checkout Session
-  console.log("[pro] upgrade placeholder:", plan);
-}
-
 function dailyApprox(amount: number): string {
   return amount.toFixed(2);
 }
 
 export function ProPageContent() {
   const { t } = useLang();
+  const [loadingPlan, setLoadingPlan] = useState<BillingPlan | null>(null);
+
+  const handleUpgrade = async (plan: BillingPlan) => {
+    if (loadingPlan) return;
+
+    const supabase = createAuthBrowserClient();
+    if (supabase) {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        window.location.href = `/login?next=${encodeURIComponent("/pro")}`;
+        return;
+      }
+    } else {
+      window.location.href = `/login?next=${encodeURIComponent("/pro")}`;
+      return;
+    }
+
+    setLoadingPlan(plan);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = `/login?next=${encodeURIComponent("/pro")}`;
+        return;
+      }
+
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        console.error("[pro] checkout failed:", data.error);
+        setLoadingPlan(null);
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch (e) {
+      console.error("[pro] checkout error:", e);
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <div
@@ -65,6 +105,8 @@ export function ProPageContent() {
           className="order-2 md:order-none"
           onUpgrade={handleUpgrade}
           upgradeLabel={t("proUpgradeBtn")}
+          loadingPlan={loadingPlan}
+          loadingLabel={t("loginLoading")}
         />
 
         <PriceCard
@@ -81,6 +123,8 @@ export function ProPageContent() {
           className="order-1 md:order-none"
           onUpgrade={handleUpgrade}
           upgradeLabel={t("proUpgradeBtn")}
+          loadingPlan={loadingPlan}
+          loadingLabel={t("loginLoading")}
         />
 
         <PriceCard
@@ -95,6 +139,8 @@ export function ProPageContent() {
           className="order-3 md:order-none"
           onUpgrade={handleUpgrade}
           upgradeLabel={t("proUpgradeBtn")}
+          loadingPlan={loadingPlan}
+          loadingLabel={t("loginLoading")}
         />
       </div>
 
@@ -182,6 +228,8 @@ function PriceCard({
   className,
   onUpgrade,
   upgradeLabel,
+  loadingPlan,
+  loadingLabel,
 }: {
   plan: BillingPlan;
   label: string;
@@ -195,8 +243,10 @@ function PriceCard({
   highlighted?: boolean;
   dashed?: boolean;
   className?: string;
-  onUpgrade: (plan: BillingPlan) => void;
+  onUpgrade: (plan: BillingPlan) => void | Promise<void>;
   upgradeLabel: string;
+  loadingPlan: BillingPlan | null;
+  loadingLabel: string;
 }) {
   return (
     <article
@@ -256,6 +306,7 @@ function PriceCard({
       <button
         type="button"
         onClick={() => onUpgrade(plan)}
+        disabled={loadingPlan != null}
         className="mt-4 w-full rounded-lg py-2.5 text-xs font-bold"
         style={{
           fontFamily: "var(--font-jetbrains)",
@@ -263,10 +314,11 @@ function PriceCard({
           border: highlighted ? `1px solid ${AMBER}88` : `1px solid ${PURPLE}55`,
           background: highlighted ? "rgba(255,176,32,0.15)" : "rgba(167,139,250,0.12)",
           color: highlighted ? AMBER : PURPLE,
-          cursor: "pointer",
+          cursor: loadingPlan != null ? "not-allowed" : "pointer",
+          opacity: loadingPlan != null && loadingPlan !== plan ? 0.6 : 1,
         }}
       >
-        {upgradeLabel}
+        {loadingPlan === plan ? loadingLabel : upgradeLabel}
       </button>
     </article>
   );
