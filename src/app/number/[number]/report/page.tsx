@@ -1,3 +1,4 @@
+import { getSessionPlan, isPaidMember } from "@/lib/subscription/get-user-plan";
 import { VyraNumberReportView } from "@/components/vyra/VyraNumberReportView";
 import { isValid4D, normalize4D } from "@/lib/number-intelligence";
 import { buildNumberReport } from "@/lib/vyra/report";
@@ -25,8 +26,11 @@ export default async function VyraNumberReportPage({ params }: Props) {
   const number = normalize4D(params.number);
   if (!isValid4D(number)) notFound();
 
-  const report = await buildNumberReport(number);
+  const [report, plan] = await Promise.all([
+    buildNumberReport(number),
+    getSessionPlan(),
+  ]);
   if (!report) notFound();
 
-  return <VyraNumberReportView data={report} />;
+  return <VyraNumberReportView data={report} isPro={isPaidMember(plan)} />;
 }

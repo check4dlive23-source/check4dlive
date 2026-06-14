@@ -19,9 +19,10 @@ type BriefsByRegion = Record<
 
 interface VyraBriefHomeCardProps {
   briefsByRegion: BriefsByRegion;
+  isPro: boolean;
 }
 
-export function VyraBriefHomeCard({ briefsByRegion }: VyraBriefHomeCardProps) {
+export function VyraBriefHomeCard({ briefsByRegion, isPro }: VyraBriefHomeCardProps) {
   const { t, lang } = useLang();
   const [region, setRegion] = useState<VyraRegion>("west");
 
@@ -105,7 +106,7 @@ export function VyraBriefHomeCard({ briefsByRegion }: VyraBriefHomeCardProps) {
             )}
             <div className="space-y-2">
               {preview.map((signal, i) => {
-                const locked = i >= 2;
+                const locked = !isPro && i >= 2;
                 const seg = brief.narrative.find((n) => n.signalIndex === i);
                 const sig = signal as VyraSignal;
                 return (

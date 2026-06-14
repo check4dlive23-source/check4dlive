@@ -47,5 +47,5 @@ export function siteBaseUrl(): string {
   if (fromEnv) return fromEnv.replace(/\/$/, "");
   const vercel = process.env.VERCEL_URL;
   if (vercel) return `https://${vercel.replace(/\/$/, "")}`;
-  return "https://check4dterminal.com";
+  return "https://www.check4dterminal.com";
 }

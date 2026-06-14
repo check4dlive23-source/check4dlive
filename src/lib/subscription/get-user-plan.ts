@@ -3,6 +3,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type UserPlan = "free" | "pro" | "elite";
 
+export function isPaidMember(plan: UserPlan): boolean {
+  return plan === "pro" || plan === "elite";
+}
+
 type SubscriptionRow = {
   plan: string;
   billing_period: string | null;

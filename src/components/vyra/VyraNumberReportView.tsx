@@ -16,9 +16,6 @@ import { sectionCaption, sectionLockPreview } from "@/lib/vyra/report-copy";
 import type { NumberReportData } from "@/lib/vyra/report";
 import { useMemo, useState } from "react";
 
-/** TODO: wire real plan check when Pro billing ships */
-const isPro = false;
-
 const OP_LABEL: Record<string, string> = {
   magnum: "Magnum",
   damacai: "Damacai",
@@ -50,13 +47,14 @@ const SECTION_TITLES = [
 
 interface Props {
   data: NumberReportData;
+  isPro: boolean;
 }
 
 function maxHits(cells: { hits: number }[]): number {
   return Math.max(1, ...cells.map((c) => c.hits));
 }
 
-export function VyraNumberReportView({ data }: Props) {
+export function VyraNumberReportView({ data, isPro }: Props) {
   const { t } = useLang();
   const [hoverYear, setHoverYear] = useState<number | null>(null);
   const heatMax = useMemo(() => maxHits(data.yearHeatmap), [data.yearHeatmap]);

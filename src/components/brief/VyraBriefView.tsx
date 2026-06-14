@@ -9,9 +9,6 @@ import type { VyraRegion, VyraSignal } from "@/lib/vyra/types";
 import { todayMYT } from "@/lib/draw-time";
 import { saveBriefRegion } from "@/app/brief/BriefRegionRedirect";
 
-/** TODO: wire real plan check when Pro billing ships */
-const isPro = false;
-
 const REGIONS: VyraRegion[] = ["west", "east", "singapore"];
 
 function narrativeText(brief: VyraBriefRow, index: number): string {
@@ -22,10 +19,11 @@ function narrativeText(brief: VyraBriefRow, index: number): string {
 interface VyraBriefViewProps {
   region: VyraRegion;
   briefs: { zh: VyraBriefRow | null; en: VyraBriefRow | null };
+  isPro: boolean;
   compact?: boolean;
 }
 
-export function VyraBriefView({ region, briefs, compact = false }: VyraBriefViewProps) {
+export function VyraBriefView({ region, briefs, isPro, compact = false }: VyraBriefViewProps) {
   const { t, lang } = useLang();
   const brief =
     lang === "zh" ? briefs.zh ?? briefs.en : briefs.en ?? briefs.zh;

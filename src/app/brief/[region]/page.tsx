@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { VyraBriefView } from "@/components/brief/VyraBriefView";
+import { getSessionPlan, isPaidMember } from "@/lib/subscription/get-user-plan";
 import { fetchVyraBrief } from "@/lib/vyra/brief-queries";
 import type { VyraRegion } from "@/lib/vyra/types";
 
@@ -32,15 +33,17 @@ export default async function BriefRegionPage({ params }: Props) {
   const region = params.region as VyraRegion;
   if (!VALID.includes(region)) notFound();
 
-  const [briefZh, briefEn] = await Promise.all([
+  const [briefZh, briefEn, plan] = await Promise.all([
     fetchVyraBrief(region, "zh"),
     fetchVyraBrief(region, "en"),
+    getSessionPlan(),
   ]);
 
   return (
     <VyraBriefView
       region={region}
       briefs={{ zh: briefZh, en: briefEn }}
+      isPro={isPaidMember(plan)}
     />
   );
 }

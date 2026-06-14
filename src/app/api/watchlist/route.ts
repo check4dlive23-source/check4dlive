@@ -1,7 +1,9 @@
 import { createAuthServerClient } from "@/lib/supabase/auth-server";
+import { getSessionPlan, isPaidMember } from "@/lib/subscription/get-user-plan";
 import { NextResponse } from "next/server";
 
 const FREE_LIMIT = 5;
+const PRO_LIMIT = 9999;
 
 /** GET:当前用户的关注列表(号码数组) */
 export async function GET() {
@@ -33,7 +35,9 @@ export async function POST(request: Request) {
   const { count } = await supabase
     .from("watchlists")
     .select("id", { count: "exact", head: true });
-  if ((count ?? 0) >= FREE_LIMIT)
+  const plan = await getSessionPlan();
+  const limit = isPaidMember(plan) ? PRO_LIMIT : FREE_LIMIT;
+  if ((count ?? 0) >= limit)
     return NextResponse.json({ error: "limit" }, { status: 403 });
 
   const { error } = await supabase
