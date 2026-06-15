@@ -5,6 +5,7 @@
 import { loadEnvLocal } from "@/lib/script-env";
 import { createServerClient } from "@/lib/supabase/server";
 import type { DrawResultV2Row } from "@/lib/draw-results-v2";
+import { fetchDamacaiDrawForDate } from "@/lib/ingest/damacai-api";
 import {
   damacaiNeedsOfficialSupplement,
   hasValidDamacai3Plus3DBlock,
@@ -41,6 +42,28 @@ function summarize333(raw: unknown): string {
   if (!raw || typeof raw !== "object") return "(missing)";
   const d = raw as Record<string, unknown>;
   return `first=${String(d.first ?? "")} second=${String(d.second ?? "")} third=${String(d.third ?? "")}`;
+}
+
+function isRealSubEntry(v: unknown): boolean {
+  const s = String(v ?? "").trim();
+  return s !== "" && s !== "----";
+}
+
+function hasReal333Subs(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const d = raw as Record<string, unknown>;
+  for (const list of [d.special, d.consolation]) {
+    if (!Array.isArray(list) || list.length === 0) continue;
+    if (list.some(isRealSubEntry)) return true;
+  }
+  return false;
+}
+
+function subSample(raw: unknown): string {
+  if (!raw || typeof raw !== "object") return "special[0]=—";
+  const d = raw as Record<string, unknown>;
+  const s0 = Array.isArray(d.special) ? String(d.special[0] ?? "").trim() : "";
+  return `special[0]=${s0 || "—"}`;
 }
 
 async function main() {
@@ -109,9 +132,28 @@ async function main() {
 
       const before = (drawsRow.extra_data as Record<string, unknown> | undefined)
         ?.damacai3Plus3D;
+
+      let official = v2Row as DrawResultV2Row;
+      const officialBlock = (
+        official.extra_data as Record<string, unknown> | undefined
+      )?.damacai3Plus3D;
+      if (!hasReal333Subs(officialBlock)) {
+        const ymd = drawDate.replace(/-/g, "");
+        try {
+          const fresh = await fetchDamacaiDrawForDate(ymd);
+          if (fresh && hasValidDamacai3Plus3DBlock(fresh.extra_data?.damacai3Plus3D)) {
+            official = fresh;
+          }
+        } catch (e) {
+          errors.push(
+            `${drawDate}: official fetch ${e instanceof Error ? e.message : String(e)}`
+          );
+        }
+      }
+
       const merged = mergeDamacaiOfficialSupplement(
         drawsRow as DrawRow,
-        v2Row as DrawResultV2Row
+        official
       );
       const after = (merged.extra_data as Record<string, unknown> | undefined)
         ?.damacai3Plus3D;
@@ -123,7 +165,7 @@ async function main() {
       }
 
       console.log(
-        `[${dryRun ? "dry-run" : "patch"}] ${drawDate} ${summarize333(before)} → ${summarize333(after)}`
+        `[${dryRun ? "dry-run" : "patch"}] ${drawDate} ${summarize333(before)} ${subSample(before)} → ${summarize333(after)} ${subSample(after)}`
       );
 
       if (!dryRun) {

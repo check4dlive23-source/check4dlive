@@ -16,11 +16,15 @@ function isValid4d(n: string): boolean {
   return /^\d{4}$/.test(n);
 }
 
-function normalizeList(values: unknown, max = 10): string[] {
+function isValidDamacaiListEntry(n: string, digits: 4 | 6): boolean {
+  return new RegExp(`^\\d{${digits}}$`).test(n);
+}
+
+function normalizeList(values: unknown, max = 10, digits: 4 | 6 = 4): string[] {
   if (!Array.isArray(values)) return [];
   return values
     .map((v) => String(v ?? "").trim())
-    .filter((v) => isValid4d(v))
+    .filter((v) => isValidDamacaiListEntry(v, digits))
     .slice(0, max);
 }
 
@@ -115,8 +119,8 @@ export function parseDamacaiDraw(
       jackpot1: String(raw["1+3DJackpot1"] ?? ""),
       jackpot2: String(raw["1+3DJackpot2"] ?? ""),
       jackpot3: String(raw["3DJackpot"] ?? ""),
-      special: normalizeList(raw.starterList3p3d, 10),
-      consolation: normalizeList(raw.consolidateList3p3d, 10),
+      special: normalizeList(raw.starterList3p3d, 10, 6),
+      consolation: normalizeList(raw.consolidateList3p3d, 10, 6),
     },
     horses: {
       p1: raw.p1HorseNo,
