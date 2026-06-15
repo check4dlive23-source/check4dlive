@@ -11,6 +11,7 @@ import {
   supplementDamacaiFromOfficial,
 } from "@/lib/ingest/damacai-supplement";
 import { mergeExtraDataForUpsert } from "@/lib/extra-data-merge";
+import { coalesceSabahLottoForMerge } from "@/lib/ingest/sabah-supplement";
 import {
   fetchAllCheck4dDraws,
   type ParsedWestDraw,
@@ -127,9 +128,17 @@ export async function upsertDrawResults(
       payload.jackpot2_amount = existing.jackpot2_amount;
     }
 
+    let incomingExtra = row.extra_data;
+    let existingExtra = existing?.extra_data;
+    if (operator === "sabah") {
+      const coalesced = coalesceSabahLottoForMerge(existingExtra, incomingExtra);
+      incomingExtra = coalesced.incoming;
+      existingExtra = coalesced.existingForMerge;
+    }
+
     const mergedExtra = mergeExtraDataForUpsert(
-      row.extra_data,
-      existing?.extra_data
+      incomingExtra,
+      existingExtra
     );
     if (mergedExtra !== undefined) {
       payload.extra_data = mergedExtra;

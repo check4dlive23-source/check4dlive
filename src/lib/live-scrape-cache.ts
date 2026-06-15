@@ -6,7 +6,7 @@
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
 import { supplementDamacaiFromOfficial } from "@/lib/ingest/damacai-supplement";
 import { magnumNeedsOfficialSupplement, supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
-import { hasValidSabah645, supplementSabahFromDiriwan88 } from "@/lib/ingest/sabah-supplement";
+import { hasValidSabah645, hasRealSabahLottoNumbers, supplementSabahFromDiriwan88 } from "@/lib/ingest/sabah-supplement";
 import { sgTotoNeedsOfficialSupplement, supplementSgTotoFromOfficial } from "@/lib/ingest/singapore-supplement";
 import { isRegionLiveDraw, todayMYT } from "@/lib/draw-time";
 import type { DrawRow } from "@/lib/live-results";
@@ -72,33 +72,37 @@ function hasValidDamacai3Plus3D(row: DrawRow): boolean {
   );
 }
 
-function hasValidSabahExtras(row: DrawRow): boolean {
+function hasRealSabahLottoTierList(tiers: unknown): boolean {
+  if (!Array.isArray(tiers) || tiers.length === 0) return false;
+  return tiers.some(hasRealSabahLottoNumbers);
+}
+
+function hasValidSabah3D(row: DrawRow): boolean {
   const extra = row.extra_data as Record<string, unknown> | undefined;
   if (!extra) return false;
 
   const d3 = extra.sabah3D;
-  if (d3 && typeof d3 === "object") {
-    const d = d3 as Record<string, unknown>;
-    const ok = (s: string) => s !== "" && s !== "----";
-    if (
-      ok(strField(d.first)) ||
-      ok(strField(d.second)) ||
-      ok(strField(d.third))
-    ) {
-      return true;
-    }
-  }
+  if (!d3 || typeof d3 !== "object") return false;
+  const d = d3 as Record<string, unknown>;
+  const ok = (s: string) => s !== "" && s !== "----";
+  return (
+    ok(strField(d.first)) ||
+    ok(strField(d.second)) ||
+    ok(strField(d.third))
+  );
+}
+
+function hasValidSabahLotto(row: DrawRow): boolean {
+  const extra = row.extra_data as Record<string, unknown> | undefined;
+  if (!extra) return false;
 
   const lotto = extra.sabahLotto;
-  if (lotto && typeof lotto === "object") {
-    const l = lotto as Record<string, unknown>;
-    for (const game of ["lotto5", "lotto6"] as const) {
-      const tiers = l[game];
-      if (Array.isArray(tiers) && tiers.length > 0) return true;
-    }
-  }
-
-  return false;
+  if (!lotto || typeof lotto !== "object") return false;
+  const l = lotto as Record<string, unknown>;
+  return (
+    hasRealSabahLottoTierList(l.lotto5) &&
+    hasRealSabahLottoTierList(l.lotto6)
+  );
 }
 
 /** Star/Power/Supreme lotto only — 5D/6D omitted (source omits them off draw days). */
@@ -135,7 +139,8 @@ export function isLatestRowDeficient(
     if (op === "magnum" && magnumNeedsOfficialSupplement(row)) return true;
     if (op === "damacai" && !hasValidDamacai3Plus3D(row)) return true;
     // (d) east sabah — 3D / Lotto5 / Lotto6 only (6/45 checked separately)
-    if (op === "sabah" && !hasValidSabahExtras(row)) return true;
+    if (op === "sabah" && !hasValidSabah3D(row)) return true;
+    if (op === "sabah" && !hasValidSabahLotto(row)) return true;
     // (f) sabah 6/45 missing — diriwan88 supplement target
     if (op === "sabah" && !hasValidSabah645(row)) return true;
     // (e) toto lotto only; 5D/6D empty off draw days is normal — do not trigger heal
