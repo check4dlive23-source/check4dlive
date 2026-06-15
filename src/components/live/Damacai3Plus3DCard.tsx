@@ -1,5 +1,6 @@
 "use client";
 import { LogoBadge } from "@/components/ui/LogoBadge";
+import { formatDamacaiZodiac } from "@/lib/damacai-zodiac";
 import { useLang } from "@/lib/language-context";
 import { formatCurrency, formatDrawDate } from "@/lib/number-utils";
 import type { Damacai3Plus3DExtra, DrawStatus } from "@/types";
@@ -12,7 +13,7 @@ interface Damacai3Plus3DCardProps {
 }
 
 export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus3DCardProps) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const revealed = status === "drawn";
   return (
     <article style={{ background: "linear-gradient(135deg, #0d1f3c, #0a0e1a)", border: "1px solid rgba(68,102,255,0.15)", borderRadius: 12, overflow: "hidden" }}>
@@ -39,7 +40,7 @@ export function Damacai3Plus3DCard({ date, draw_no, status, data }: Damacai3Plus
                 <td style={{ padding: "8px 8px", fontFamily: "var(--font-jetbrains)", fontSize: 15, fontWeight: 700, color: revealed ? p.position === "1st" ? "#FFD700" : p.position === "2nd" ? "rgba(192,192,192,0.9)" : "rgba(205,127,50,0.9)" : "rgba(255,255,255,0.1)", whiteSpace: "nowrap" }}>
                   {revealed ? (p.number || "—") : "------"}
                 </td>
-                <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{p.zodiac || "—"}</td>
+                <td style={{ padding: "8px 8px", fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{revealed ? formatDamacaiZodiac(p.zodiac, lang) : "—"}</td>
                 <td style={{ padding: "8px 0", fontSize: 11, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textAlign: "right" }}>
                   {t("bonus")}: <span style={{ color: "#FFB020", fontFamily: "var(--font-jetbrains)" }}>{revealed ? (p.bonus > 0 ? formatCurrency(p.bonus, 2) : "—") : "—"}</span>
                 </td>
