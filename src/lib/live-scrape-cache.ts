@@ -4,6 +4,7 @@
  */
 
 import { fetchAllCheck4dDraws } from "@/lib/ingest/parse-check4d";
+import { supplementDamacaiFromOfficial } from "@/lib/ingest/damacai-supplement";
 import { magnumNeedsOfficialSupplement, supplementMagnumFromOfficial } from "@/lib/ingest/magnum-supplement";
 import { hasValidSabah645, supplementSabahFromDiriwan88 } from "@/lib/ingest/sabah-supplement";
 import { sgTotoNeedsOfficialSupplement, supplementSgTotoFromOfficial } from "@/lib/ingest/singapore-supplement";
@@ -202,6 +203,17 @@ export async function scrapeAndCacheRegion(region: Region): Promise<void> {
         } catch (e) {
           console.warn(
             "[live-scrape-cache] magnum official supplement failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
+
+      if (region === "west" && operators.damacai) {
+        try {
+          operators = await supplementDamacaiFromOfficial(operators);
+        } catch (e) {
+          console.warn(
+            "[live-scrape-cache] damacai official supplement failed:",
             e instanceof Error ? e.message : e
           );
         }

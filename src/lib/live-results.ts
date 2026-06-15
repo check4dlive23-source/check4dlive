@@ -7,10 +7,17 @@ import {
 import { fetchDamacaiTodayDraw } from "@/lib/ingest/damacai-api";
 import { fetchMagnumTodayDraw } from "@/lib/ingest/magnum-api";
 import {
+  patchDamacaiDrawFromV2,
+  supplementDamacaiFromOfficial,
+} from "@/lib/ingest/damacai-supplement";
+import { mergeExtraDataForUpsert } from "@/lib/extra-data-merge";
+import {
   fetchAllCheck4dDraws,
   type ParsedWestDraw,
 } from "@/lib/ingest/parse-check4d";
 import type { Region } from "@/types";
+
+export { mergeExtraDataForUpsert } from "@/lib/extra-data-merge";
 
 export type DrawRow = Record<string, unknown>;
 
@@ -73,71 +80,6 @@ export async function scrapeLiveResults(
     };
   }
   return operators;
-}
-
-/** Replace today's draws per operator (live upsert) */
-function isEmptyVal(v: unknown): boolean {
-  if (v == null) return true;
-  if (typeof v === "string") {
-    const s = v.trim();
-    if (s === "" || s === "----") return true;
-    // 货币占位:剥掉货币符号/空格/逗号/----/破折号后若无任何数字 → 视为空
-    // 例:"RM " / "RM-" / "S$ " → 空;"RM 28,304.81" / "9" / "35" → 非空
-    const stripped = s.replace(/RM|S\$|\$|,|-|\s/gi, "");
-    if (stripped === "") return true;
-    return false;
-  }
-  if (typeof v === "number" || typeof v === "boolean") {
-    return false;
-  }
-  if (Array.isArray(v)) {
-    if (v.length === 0) return true;
-    return v.every((item) => isEmptyVal(item));
-  }
-  if (typeof v === "object") {
-    const vals = Object.values(v as Record<string, unknown>);
-    if (vals.length === 0) return true;
-    return vals.every((val) => isEmptyVal(val));
-  }
-  return false;
-}
-
-function mergeExtraSection(
-  existing: Record<string, unknown> | undefined,
-  incoming: Record<string, unknown> | undefined
-): Record<string, unknown> | undefined {
-  if (!incoming && !existing) return undefined;
-  const out = { ...(existing ?? {}) };
-  if (!incoming) return Object.keys(out).length ? out : undefined;
-  for (const [k, v] of Object.entries(incoming)) {
-    if (v != null && typeof v === "object" && !Array.isArray(v)) {
-      const merged = mergeExtraSection(
-        out[k] as Record<string, unknown> | undefined,
-        v as Record<string, unknown>
-      );
-      if (merged) out[k] = merged;
-    } else if (!isEmptyVal(v)) {
-      if (isEmptyVal(out[k])) out[k] = v;
-    }
-  }
-  return Object.keys(out).length ? out : undefined;
-}
-
-function mergeExtraDataForUpsert(
-  incoming: unknown,
-  existing: unknown
-): Record<string, unknown> | null | undefined {
-  if (incoming == null) {
-    return existing != null ? (existing as Record<string, unknown>) : undefined;
-  }
-  if (existing == null) {
-    return incoming as Record<string, unknown>;
-  }
-  const merged = mergeExtraSection(
-    existing as Record<string, unknown>,
-    incoming as Record<string, unknown>
-  );
-  return merged ?? null;
 }
 
 export async function upsertDrawResults(
@@ -326,7 +268,17 @@ export async function runLiveCronIngest(): Promise<{
     const v2RowsFromScrape: DrawResultV2Row[] = [];
 
     for (const region of liveRegions) {
-      const liveData = await scrapeLiveResults(region, allParsed);
+      let liveData = await scrapeLiveResults(region, allParsed);
+      if (region === "west" && Object.keys(liveData).length > 0) {
+        try {
+          liveData = await supplementDamacaiFromOfficial(liveData);
+        } catch (e) {
+          console.warn(
+            "[live-cron] damacai official supplement failed:",
+            e instanceof Error ? e.message : e
+          );
+        }
+      }
       if (Object.keys(liveData).length > 0) {
         await upsertDrawResults(liveData, date, region);
         totalCount += Object.keys(liveData).length;
@@ -362,6 +314,20 @@ export async function runLiveCronIngest(): Promise<{
       };
     } else {
       v2 = await syncOfficialSourcesV2();
+    }
+
+    if (supabase && liveRegions.includes("west")) {
+      try {
+        const patched = await patchDamacaiDrawFromV2(supabase, date);
+        if (patched) {
+          await upsertDrawResults({ damacai: patched }, date, "west");
+        }
+      } catch (e) {
+        console.warn(
+          "[live-cron] damacai v2 patch failed:",
+          e instanceof Error ? e.message : e
+        );
+      }
     }
 
     return {

@@ -17,7 +17,8 @@
     "import:sabah88": "tsx src/scripts/import-sabah88-history.ts",
     "import:stc": "tsx src/scripts/import-stc-history.ts",
     "aggregate:v2": "tsx src/scripts/aggregate-stats-v2.ts",
-    "backfill:scores": "tsx src/scripts/backfill-scores.ts"
+    "backfill:scores": "tsx src/scripts/backfill-scores.ts",
+    "backfill:damacai-333": "tsx src/scripts/backfill-damacai-333-draws.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
